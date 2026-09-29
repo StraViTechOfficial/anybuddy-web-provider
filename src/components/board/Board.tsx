@@ -39,7 +39,7 @@ export function Blk({ x, sel, onSel, now, vertical, past, onPeek }: { x: Item; s
       onFocus={(e) => onPeek?.(x, e.currentTarget)} onBlur={() => onPeek?.(null)}
     >
       <b>{x.kind === "progress" && <i className={s.live} aria-hidden />}{name}</b>
-      <small>{hm(x.s)}{extra && ` · ${extra}`}</small>
+      <small>{hm(x.s)}{extra && <span className={s.extra}> · {extra}</span>}</small>
     </button>
   );
 }
