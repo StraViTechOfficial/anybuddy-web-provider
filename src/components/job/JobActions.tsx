@@ -59,6 +59,7 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
   const start = slotMin(b.selectedSlot), hrs = bookedHours(b), hrsText = `${hrs} hr${hrs > 1 ? "s" : ""}`;
   const today = ymd(now), day = ymd(b.scheduledDate);
   const errLine = err && <p className="err" role="alert">{err}</p>;
+  const note = typeof b.userDesc === "string" && b.userDesc ? <p className={s.note}><b>Customer note</b>{b.userDesc}</p> : null;
 
   /* ---------- request ---------- */
   if (b.status === 1) {
@@ -71,6 +72,7 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
           {b.address && <><dt>Where</dt><dd>{b.address}</dd></>}
           <dt>Pays</dt><dd>{money(b.vendorPriceAfterDetection ?? b.price)} to you, already paid by the customer</dd>
         </dl>
+        {note}
         <Fit b={b} />
         {mode === "decline" ? (
           <Reason
@@ -98,11 +100,10 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
     return (
       <div className={s.wrap}>
         <span className="tag t-ok">Done</span>
-        <Ring p={1} tone="done" big={worked === null ? "Done" : elapsed(worked)} small={worked === null ? "finished" : "worked"} />
         <p className={`${s.fit} ${s.ok}`}>
           <CheckCircle size={20} weight="fill" aria-hidden />
           <span>
-            Finished.{b.hoursBilled ? ` Billed ${b.hoursBilled} of ${hrsText} booked.` : ""}
+            Finished.{worked !== null && ` Worked ${elapsed(worked)}.`}{b.hoursBilled ? ` Billed ${b.hoursBilled} of ${hrsText} booked.` : ""}
             {b.vendorPriceAfterDetection != null && ` ${money(b.vendorPriceAfterDetection)} added to your balance.`}
           </span>
         </p>
@@ -130,21 +131,28 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
       )}
     </div>
   );
+  const facts = (whenText: string) => (
+    <dl className={s.kv}>
+      <dt>When</dt><dd>{whenText}, {hm(start)} to {hm(start + hrs * 60)}</dd>
+      {b.address && <><dt>Where</dt><dd>{b.address}</dd></>}
+    </dl>
+  );
   // Sliding sends the code to the customer, then the code boxes open.
   const sendCode = () => run(() => api("vendor/bookings/send-code", { method: "PUT", body: { bookingId: b._id } }), undefined, "code");
   const code = <CodeStep bookingId={b._id} finish={!!b.checkInAt} onClose={() => to(null)} onDone={() => { to(null); onChange(); }} />;
 
-  // Mid-job order (owner 29 Sep): live status, timer, finish, the customer's note, then call / help. No directions: already there.
+  // Mid-job order (owner 29 Sep): live status, time worked (a thin bar, not the centre of the screen), finish, the
+// customer's note, then call / help. No directions: already there.
   if (b.checkInAt) {
     const since = now.getTime() - Date.parse(b.checkInAt);
     const started = minuteOf(new Date(b.checkInAt));
     return (
       <div className={s.wrap}>
         <p className={s.live}><i aria-hidden />In progress, started {hm(started)}. Booked until {hm(started + hrs * 60)}.</p>
-        <Ring p={Math.min(1, since / (hrs * 36e5))} tone={mode === "code" ? "wait" : ""} big={elapsed(since)} small={`of ${hrsText} booked`} />
+        <Progress since={since} booked={hrs * 36e5} label={`of ${hrsText} booked`} />
         {mode === "code" ? code : <Slide label="Slide to finish the job" busy={busy} onDone={sendCode} />}
         {errLine}
-        {typeof b.userDesc === "string" && b.userDesc && <p className={s.note}><b>Customer note</b>{b.userDesc}</p>}
+        {note}
         <div className={s.row}>
           {phone && <a className="btn" href={`tel:${b.user_details?.countryCode || "+1"}${phone}`}><Phone size={20} aria-hidden />Call customer</a>}
           <a className="btn" href={`/account/help?booking=${encodeURIComponent(String(b.bookingId ?? b._id))}`}><Lifebuoy size={20} aria-hidden />Get help</a>
@@ -161,9 +169,10 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
     return (
       <div className={s.wrap}>
         <span className="tag t-info">Confirmed</span>
+        {facts(dayLabel(day))}
         {contact}
-        <Ring p={0} big={hm(start)} small={dayLabel(day)} />
-        <p className={`hint ${s.center}`}>The next steps open on the day of the job.</p>
+        {note}
+        <p className="hint">On my way and start open on the day of the job.</p>
         {cancel}
       </div>
     );
@@ -171,22 +180,30 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
 
   const until = msUntil(b, now);
   const eta = b.onTheWayAt && b.etaMinutes ? new Date(Date.parse(b.onTheWayAt) + b.etaMinutes * 6e4) : null;
-  const when = eta ? `Arriving by ${hm(minuteOf(eta))}` : until > 0 ? `Starts in ${countdown(until)}` : "Due now";
+  const sendEta = (m: number) => run(() => api("vendor/bookings/on-the-way", { method: "PUT", body: { bookingId: b._id, etaMinutes: m } }), `Sent. The customer knows you arrive in ${m} min.`);
   return (
     <div className={s.wrap}>
-      <span className={`tag ${eta ? "t-wait" : "t-info"}`}>{eta ? `On the way, ${b.etaMinutes} min` : "Confirmed"}</span>
+      <span className={`tag ${eta ? "t-wait" : "t-info"}`}>{eta ? `On the way, arriving by ${hm(minuteOf(eta))}` : "Confirmed"}</span>
+      {facts(until > 0 ? `Today, in ${countdown(until)}` : "Today, due now")}
       {contact}
-      <Ring p={0} tone={mode === "code" ? "wait" : ""} big={hm(start)} small={when} />
+      {note}
       {mode === "code" ? code : (
         <>
-          {!b.onTheWayAt && mode !== "eta" && (
-            <button className={`btn lg ${s.wide}`} onClick={() => to("eta")}>
-              <NavigationArrow size={20} aria-hidden />On my way <span className={s.opt}>Optional</span>
-            </button>
-          )}
-          {mode === "eta" && (
-            <Eta busy={busy} onClose={() => to(null)}
-              onSend={(m) => run(() => api("vendor/bookings/on-the-way", { method: "PUT", body: { bookingId: b._id, etaMinutes: m } }), `Sent. The customer knows you arrive in ${m} min.`)} />
+          {/* One tap sends (owner 29 Sep). A wrong tap is fixed by another: the server takes a new time and tells the customer again. */}
+          {eta && mode !== "eta" ? (
+            <p className={s.sent}>
+              <NavigationArrow size={20} aria-hidden />The customer knows you arrive by {hm(minuteOf(eta))}.
+              <button type="button" className={s.link} onClick={() => to("eta")}>Change</button>
+            </p>
+          ) : (
+            <div className={s.eta} role="group" aria-labelledby="eta-l">
+              <span className={s.lbl} id="eta-l">On my way, arriving in <span className={s.opt}>Optional</span></span>
+              <div className={s.chips}>
+                {ETAS.map((x) => (
+                  <button key={x} type="button" disabled={busy} aria-pressed={b.etaMinutes === x && !!eta} onClick={() => sendEta(x)}>{x} min</button>
+                ))}
+              </div>
+            </div>
           )}
           <Slide label="Slide to start the job" busy={busy} onDone={sendCode} />
         </>
@@ -197,31 +214,13 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
   );
 }
 
-function Ring({ p, big, small, tone = "" }: { p: number; big: string; small: string; tone?: "" | "wait" | "done" }) {
-  const C = 2 * Math.PI * 52;
+/** Time worked on a thin bar; past the booked time the bar turns amber and says by how much. */
+function Progress({ since, booked, label }: { since: number; booked: number; label: string }) {
+  const over = since - booked;
   return (
-    <div className={`${s.ring} ${tone ? s[tone] : ""}`}>
-      <svg viewBox="0 0 120 120" aria-hidden>
-        <circle cx="60" cy="60" r="52" className={s.rt} />
-        <circle cx="60" cy="60" r="52" className={s.rp} style={{ strokeDasharray: C, strokeDashoffset: C * (1 - p) }} />
-      </svg>
-      <div className={s.rtxt}><b>{big}</b><small>{small}</small></div>
-    </div>
-  );
-}
-
-function Eta({ onSend, onClose, busy }: { onSend: (m: number) => void; onClose: () => void; busy: boolean }) {
-  const [m, setM] = useState(15);
-  return (
-    <div className={s.panel}>
-      <span className={s.lbl} id="eta-l">Arriving in</span>
-      <div className={s.chips} role="group" aria-labelledby="eta-l">
-        {ETAS.map((x) => <button key={x} type="button" aria-pressed={m === x} onClick={() => setM(x)}>{x} min</button>)}
-      </div>
-      <div className={s.row}>
-        <button className="btn p lg" disabled={busy} aria-busy={busy} onClick={() => onSend(m)}>Tell the customer</button>
-        <button className="btn lg" onClick={onClose}>Close</button>
-      </div>
+    <div className={`${s.prog} ${over > 6e4 ? s.over : ""}`}>
+      <p><b>{elapsed(since)}</b> <span>{over > 6e4 ? `${countdown(over)} over the booked time` : label}</span></p>
+      <div className={s.bar} aria-hidden><i style={{ width: `${Math.min(100, (since / booked) * 100)}%` }} /></div>
     </div>
   );
 }

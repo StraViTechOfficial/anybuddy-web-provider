@@ -194,7 +194,6 @@ function Home() {
                 <h2 className={s.ft}>{serviceOf(focused)}</h2>
                 {focused.status !== 1 && <Link className="btn" href={`/jobs/${focused._id}`}>Job details</Link>}
               </div>
-              {focused.status !== 1 && focused.address && <p className="muted">{focused.address}</p>}
               {stale ? <p className="muted">This day has passed. The job was not started.</p> : <JobActions booking={focused} onChange={load} />}
             </>
           ) : (

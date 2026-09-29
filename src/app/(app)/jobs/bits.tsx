@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { countdown, elapsed, TZ } from "@/lib/format";
+import { countdown, elapsed, time, TZ } from "@/lib/format";
 import type { BookingStatus, Job } from "@/lib/types";
 
 export const TABS: [string, string, BookingStatus][] = [
@@ -44,7 +44,7 @@ export function JobTag({ job, now }: { job: Job; now: number }) {
       : <span className="tag t-wait">Request</span>;
   if (job.status === 2) {
     if (job.checkInAt) return <span className="tag t-info">In progress {elapsed(now - at(job.checkInAt))}</span>;
-    if (job.onTheWayAt) return <span className="tag t-info">On the way{job.etaMinutes ? `, ${job.etaMinutes} min` : ""}</span>;
+    if (job.onTheWayAt) return <span className="tag t-wait">On the way{job.etaMinutes ? `, arriving by ${time(new Date(at(job.onTheWayAt) + job.etaMinutes * 6e4))}` : ""}</span>;
     return <span className="tag t-ok">Confirmed</span>;
   }
   if (job.status === 3) return <span className="tag t-ok">Done</span>;

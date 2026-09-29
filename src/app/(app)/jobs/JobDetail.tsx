@@ -34,8 +34,9 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
   const rate = job.services?.price;
   const photos = [...(job.checkInImages ?? []), ...(job.checkOutImages ?? [])].filter((p) => p.url);
 
-  // JobActions shows the status, the request's when and where, Call and Directions, time worked, earnings and the
-  // cancel reason; this page shows the rest, so nothing appears twice.
+  // JobActions shows the status, when and where and the customer's note while a job is open (request or confirmed),
+  // Call and Directions, time worked, earnings and the cancel reason; this page shows the rest, so nothing appears twice.
+  const open = job.status === 1 || job.status === 2;
   return (
     <>
       {backLink}
@@ -44,10 +45,10 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
         {job.categoryName && <p className="muted">{job.categoryName}</p>}
 
         <ul className={s.meta}>
-          {job.status !== 1 && (
+          {!open && (
             <li><Clock size={20} aria-hidden />{day(job.scheduledDate)}{job.selectedSlot && `, ${clock(job.selectedSlot)}`}{job.endTime && ` to ${clock(job.endTime)}`}, {hours(job)}</li>
           )}
-          {job.status !== 1 && job.address && <li><MapPin size={20} aria-hidden />{job.address}</li>}
+          {!open && job.address && <li><MapPin size={20} aria-hidden />{job.address}</li>}
           {job.endAddress && <li><MapPin size={20} aria-hidden />Then to {job.endAddress}</li>}
           <li><CurrencyDollar size={20} aria-hidden />{hours(job)} booked{rate ? ` at ${money(rate)}/hr` : ""}, {PAID[job.payment_status ?? 0]}</li>
         </ul>
@@ -58,7 +59,7 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
 
         <dl className={s.kv}>
           <div><dt>Customer</dt><dd>{u.firstName || "Customer"}</dd></div>
-          {job.userDesc && <div><dt>Note</dt><dd>{job.userDesc}</dd></div>}
+          {!open && job.userDesc && <div><dt>Note</dt><dd>{job.userDesc}</dd></div>}
           {job.bookingId && <div><dt>Booking</dt><dd>{job.bookingId}</dd></div>}
         </dl>
 
