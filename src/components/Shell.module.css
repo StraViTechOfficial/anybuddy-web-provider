@@ -1,5 +1,5 @@
 .app { min-height: 100dvh; display: flex; flex-direction: column; }
-.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 24px; height: 60px; padding: 0 28px; background: var(--canvas); border-bottom: 1px solid var(--line); }
+.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 24px; height: 64px; padding: 0 max(32px, calc((100% - 1240px) / 2 + 32px)); background: var(--canvas); border-bottom: 1px solid var(--line); } /* bar content lines up with the page column (.main) */
 .nav { display: flex; gap: 2px; flex: 1; }
 .nav a, .tabbar a { position: relative; display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 500; color: var(--ink2); }
 .nav a { height: 36px; padding: 0 12px; border-radius: var(--r); }
@@ -9,7 +9,7 @@
 .bell { position: relative; margin-left: auto; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--r); }
 .bell:hover { background: var(--hover); }
 .bell b { position: absolute; top: 11px; right: 12px; width: 7px; height: 7px; border-radius: 50%; background: var(--now); }
-.banner { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 10px 28px; background: var(--amber-soft); color: var(--amber-ink); font-weight: 500; font-size: var(--fs-sm); }
+.banner { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 10px max(32px, calc((100% - 1240px) / 2 + 32px)); background: var(--amber-soft); color: var(--amber-ink); font-weight: 500; font-size: var(--fs-sm); }
 .banner.bad { background: var(--bad-soft); color: var(--bad); }
 .banner a { font-weight: 700; }
 /* Content column centred on the page, text left-aligned inside it (Stripe/Linear/Airbnb standard). */

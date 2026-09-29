@@ -1,5 +1,5 @@
 .page { min-height: 100dvh; display: flex; flex-direction: column; }
-.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; padding: 0 28px; border-bottom: 1px solid var(--line); }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; padding: 0 max(32px, calc((100% - 1104px) / 2 + 32px)); border-bottom: 1px solid var(--line); } /* lines up with .main */
 .main { flex: 1; width: 100%; max-width: 1104px; margin: 0 auto; padding: 20px 32px 32px; }
 .main h1:focus { outline: 0; }
 .progress { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: var(--fs-sm); font-weight: 600; color: var(--mute); }

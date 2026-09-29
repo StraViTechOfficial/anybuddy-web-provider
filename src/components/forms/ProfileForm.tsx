@@ -110,9 +110,9 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
     <form method="post" onSubmit={submit} noValidate>
       <fieldset className={s.form} disabled={!loaded}>
       <RequiredNote />
-      <div className={s.cols}>
-        <div className={s.stack}>
-          <div className={s.photo}>
+      {/* One grid, paired rows: names beside street, about beside city and areas, so the two columns line up. */}
+      <div className={s.profile}>
+          <div className={`${s.photo} ${s.pPhoto}`}>
             {img ? <img src={img} alt="" width={64} height={64} /> : <UserCircle size={64} weight="light" aria-hidden />}
             <div>
               <label className="btn" aria-busy={photo.busy}>
@@ -123,28 +123,32 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
               {photo.error ? <p className="err">{photo.error}</p> : <p className="hint">Optional. A clear photo of your face helps customers.</p>}
             </div>
           </div>
-          <div className="row2">
+          <h2 className={s.pYou}>Personal details</h2>
+          <div className={`row2 ${s.pNames}`}>
             <Field id="firstName" label="First name" required error={errs.firstName}><input autoComplete="given-name" value={v.firstName} onChange={set("firstName")} maxLength={50} /></Field>
             <Field id="lastName" label="Last name" required error={errs.lastName}><input autoComplete="family-name" value={v.lastName} onChange={set("lastName")} maxLength={50} /></Field>
           </div>
-          <Field id="about" label="About you" required={mode === "onboarding"} error={errs.about} hint={mode === "edit" ? "Leave empty to keep what you wrote before." : "At least 20 characters."}>
-            <textarea className={`input ${s.about}`} value={v.about} onChange={set("about")} maxLength={1000}
-              placeholder="Your experience, the jobs you do best, and what customers can expect." />
-          </Field>
-        </div>
-        <div className={s.stack}>
-          <h2>Home base</h2>
-          <Field id="street" label="Street address" required error={errs.street}><input autoComplete="street-address" value={v.street} onChange={set("street")} maxLength={100} /></Field>
-          <div className={s.row3}>
+          <div className={s.pAbout}>
+            <Field id="about" label="About you" required={mode === "onboarding"} error={errs.about} hint={mode === "edit" ? "Leave empty to keep what you wrote before." : "At least 20 characters."}>
+              <textarea className={`input ${s.about}`} value={v.about} onChange={set("about")} maxLength={1000}
+                placeholder="Your experience, the jobs you do best, and what customers can expect." />
+            </Field>
+          </div>
+          <h2 className={s.pHome}>Home base</h2>
+          <div className={s.pStreet}>
+            <Field id="street" label="Street address" required error={errs.street}><input autoComplete="street-address" value={v.street} onChange={set("street")} maxLength={100} /></Field>
+          </div>
+          <div className={`${s.row3} ${s.pCity}`}>
             <Field id="city" label="City" required error={errs.city}><input autoComplete="address-level2" value={v.city} onChange={set("city")} maxLength={50} /></Field>
             <SelectField id="state" label="State" required error={errs.state} value={v.state} onChange={(state) => setV((o) => ({ ...o, state }))}
               options={states.map((x) => ({ value: x.isoCode, label: x.name }))} />
             <Field id="zip" label="ZIP code" required error={errs.zip}><input autoComplete="postal-code" inputMode="numeric" value={v.zip} onChange={set("zip")} maxLength={5} /></Field>
           </div>
-          <Field id="areas" label="Areas you serve (optional)">
-            <input autoComplete="off" value={v.areas} onChange={set("areas")} maxLength={100} placeholder="Boston, Cambridge" />
-          </Field>
-        </div>
+          <div className={s.pAreas}>
+            <Field id="areas" label="Areas you serve (optional)" hint="Towns or neighborhoods, separated by commas.">
+              <input autoComplete="off" value={v.areas} onChange={set("areas")} maxLength={100} placeholder="Boston, Cambridge" />
+            </Field>
+          </div>
       </div>
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
       </fieldset>

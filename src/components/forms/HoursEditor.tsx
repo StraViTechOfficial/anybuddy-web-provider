@@ -114,7 +114,7 @@ export function HoursEditor({ mode, onDone, onBack }: FormProps) {
   return (
     <form method="post" onSubmit={submit} noValidate>
       <fieldset className={s.form} disabled={!loaded}>
-      <div className={s.cols}>
+      <div className={`${s.cols} ${s.even}`}>
         <section className={s.stack} aria-labelledby="weekly">
           <div className={s.head}>
             <h2 id="weekly">Weekly hours</h2>
@@ -167,8 +167,8 @@ export function HoursEditor({ mode, onDone, onBack }: FormProps) {
               {(errs.breakFrom || errs.breakTo) && <small id="breakErr" className={`err ${s.full}`} role="alert">{errs.breakFrom ?? errs.breakTo}</small>}
             </div>
             <TimeOff leaves={leaves} onChange={setLeaves} />
+            <p className={`hint ${s.foot}`}>Customers only see times inside your hours, outside your break and not on days off. Times are New York time.</p>
           </div>
-          <p className="hint">Customers only see times inside your hours, outside your break and not on days off. Times are New York time.</p>
         </section>
       </div>
       {clash && <Clashes list={clash} busy={busy} onSave={() => submit(undefined, true)} onKeep={() => setClash(null)} />}
