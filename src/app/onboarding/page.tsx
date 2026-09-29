@@ -68,7 +68,7 @@ export default function Onboarding() {
   return (
     <div className={s.page}>
       <header className={s.top}>
-        <Logo large />
+        <Logo />
         <button className="btn" onClick={logOut} disabled={leaving}>Log out</button>
       </header>
       <main className={s.main}>
