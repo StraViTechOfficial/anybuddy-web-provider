@@ -138,8 +138,8 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
         <Field id="zip" label="ZIP code" required error={errs.zip}><input autoComplete="postal-code" inputMode="numeric" value={v.zip} onChange={set("zip")} maxLength={5} /></Field>
       </div>
       {/* Contract (SPA register: "Location, Complete Address"; CMA listing: within 10 km first, then by distance).
-          The location is the service area: search reaches 100 km, nearest first. No separate area field. */}
-      <p className="hint">Your location. Customers find you by distance from this address, the closest first. They see your city, never your street address.</p>
+          Owner (29 Sep): the address the Buddy works from. It is the service area: search reaches 100 km, nearest first. No separate area field. */}
+      <p className="hint">The address you work from. Customers find you by distance from here, the closest first. They see your city, never your street address.</p>
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
       </fieldset>
     </form>
