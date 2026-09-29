@@ -1,5 +1,6 @@
 /* Account hub and its sub-pages (password, reviews, help, legal). */
 .wrap { display: grid; gap: 24px; max-width: 720px; margin-inline: auto; width: 100%; }
+.wide { max-width: 1040px; } /* Help: form and FAQ side by side so the page fits one laptop screen */
 .hub { max-width: 1180px; }
 /* Laptop: two columns so the page uses its width; phones and tablets: one column. */
 .cols { display: grid; gap: 24px; align-items: start; }

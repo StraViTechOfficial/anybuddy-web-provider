@@ -111,7 +111,6 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
       <fieldset className={s.form} disabled={!loaded}>
       <RequiredNote />
       {/* Plain rows: every input in a row shares one top line, so hints and errors only add space below and never skew a row. */}
-      <h2>Personal details</h2>
       <div className={s.nameRow}>
         <div className="field">
           <span className={s.label} id="photo-l">Photo (optional)</span>
@@ -129,10 +128,9 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
         <Field id="lastName" label="Last name" required error={errs.lastName}><input autoComplete="family-name" value={v.lastName} onChange={set("lastName")} maxLength={50} /></Field>
       </div>
       <Field id="about" label="About you" required={mode === "onboarding"} error={errs.about} hint={mode === "edit" ? "Leave empty to keep what you wrote before." : "At least 20 characters."}>
-        <textarea className="input" value={v.about} onChange={set("about")} maxLength={1000}
+        <textarea className={`input ${s.short}`} value={v.about} onChange={set("about")} maxLength={1000}
           placeholder="Your experience, the jobs you do best, and what customers can expect." />
       </Field>
-      <h2 className={s.section}>Home base</h2>
       <div className={s.addrRow}>
         <Field id="street" label="Street address" required error={errs.street}><input autoComplete="street-address" value={v.street} onChange={set("street")} maxLength={100} /></Field>
         <Field id="city" label="City" required error={errs.city}><input autoComplete="address-level2" value={v.city} onChange={set("city")} maxLength={50} /></Field>

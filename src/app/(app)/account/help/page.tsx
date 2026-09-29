@@ -47,9 +47,10 @@ function Help() {
   };
 
   return (
-    <div className={s.wrap}>
+    <div className={`${s.wrap} ${s.wide}`}>
       <Link className={s.back} href="/account"><ArrowLeft size={20} aria-hidden />Account</Link>
       <h1>Help and support</h1>
+      <div className={s.cols}>
       <section aria-labelledby="contact-h">
         <h2 id="contact-h">Contact support</h2>
         <form method="post" className={`box pad ${s.form}`} onSubmit={submit} noValidate>
@@ -77,6 +78,7 @@ function Help() {
         </div>
         <p className={`hint ${s.note}`}>You can also email <a href="mailto:info@any-buddy.com">info@any-buddy.com</a>.</p>
       </section>
+      </div>
     </div>
   );
 }

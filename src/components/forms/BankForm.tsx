@@ -71,20 +71,19 @@ export function BankForm({ mode, onDone, onBack }: FormProps) {
   const digits = { inputMode: "numeric" as const, autoComplete: "off", spellCheck: false };
   return (
     <form method="post" onSubmit={submit} noValidate>
-      <fieldset className={`${s.form} ${s.narrow}`} disabled={!loaded}>
+      <fieldset className={s.form} disabled={!loaded}>
       <RequiredNote />
       {last4 && <p className={`box ${s.saved}`}><b>Account ending {last4}</b><span className="hint">To change your payout details, enter the account number again.</span></p>}
-      <div className="row2">
+      <div className={s.row3}>
         <Field id="holder" label="Account holder name" required error={errs.holder}><input autoComplete="name" value={v.holder} onChange={set("holder")} maxLength={100} /></Field>
         <Field id="bank" label="Bank name" required error={errs.bank}><input autoComplete="off" value={v.bank} onChange={set("bank")} maxLength={100} /></Field>
+        <Field id="routing" label="Routing number" required error={errs.routing} hint="9 digits, on your checks or on your bank's website.">
+          <input {...digits} value={v.routing} onChange={set("routing")} maxLength={9} />
+        </Field>
       </div>
-      <Field id="routing" label="Routing number" required error={errs.routing} hint="9 digits, on your checks or on your bank's website.">
-        <input {...digits} value={v.routing} onChange={set("routing")} maxLength={9} />
-      </Field>
-      <div className="row2">
+      <div className={s.row3}>
         <Field id="account" label="Account number" required error={errs.account}><input {...digits} type="password" value={v.account} onChange={set("account")} maxLength={17} /></Field>
         <Field id="confirm" label="Confirm account number" required error={errs.confirm}><input {...digits} type="password" value={v.confirm} onChange={set("confirm")} maxLength={17} /></Field>
-      </div>
       <fieldset className={s.radios}>
         <legend className={s.label}>Account type<Req /></legend>
         {["Checking", "Savings"].map((t) => (
@@ -93,10 +92,13 @@ export function BankForm({ mode, onDone, onBack }: FormProps) {
           </label>
         ))}
       </fieldset>
+      </div>
       {last4 && (
+        <div className={s.row3}>
         <Field id="password" label="Your Any-Buddy password" required error={errs.password} hint="Needed to change where your earnings go.">
           <input type="password" autoComplete="current-password" value={v.password} onChange={set("password")} maxLength={128} />
         </Field>
+        </div>
       )}
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
       </fieldset>
