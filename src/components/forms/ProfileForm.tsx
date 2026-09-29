@@ -8,6 +8,8 @@ import { Actions, Field, RequiredNote, SelectField, errText, hasErrors, type Err
 import s from "./forms.module.css";
 
 type State = { name: string; isoCode: string };
+// Unit words in the street line. The lookup needs the building only; the unit doesn't change the distance.
+const UNIT = /\b(apt|apartment|appartment|suite|ste|unit|floor|fl|room|rm)\b|#/i;
 const EMPTY = { firstName: "", lastName: "", street: "", city: "", state: "", zip: "", about: "" };
 
 // Step 1 and Account › Profile. The address is turned into a map point on save (services need one).
@@ -21,6 +23,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [where, setWhere] = useState<{ field: string; message: string; for: string } | null>(null); // address lookup says which field is wrong
   const [loaded, setLoaded] = useState(false); // inputs stay disabled until the saved values are in
 
   useEffect(() => {
@@ -52,12 +55,16 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
     firstName: v.firstName.trim().length < 2 ? "Enter your first name." : undefined,
     lastName: v.lastName.trim().length < 2 ? "Enter your last name." : undefined,
     about: aboutRequired && v.about.trim().length < 20 ? "Write at least 20 characters about your work." : undefined,
-    street: v.street.trim().length < 2 ? "Enter your street address." : undefined,
+    street: v.street.trim().length < 2 ? "Enter your street address."
+      : UNIT.test(v.street) ? "Leave out the apartment or suite number. Only the building's street address is needed."
+      : !/^\d+[a-z-]*\s+\S{2,}/i.test(v.street.trim()) ? "Start with the building number, then the street name. For example: 1148 Main St."
+      : undefined,
     city: v.city.trim().length < 2 ? "Enter your city." : undefined,
     state: !v.state ? "Choose your state." : undefined,
     zip: !/^\d{5}$/.test(v.zip) ? "Enter a 5-digit ZIP code." : undefined,
   });
-  const errs: Errors = tried ? check() : {};
+  const addrKey = [v.street, v.city, v.state, v.zip].join("|");
+  const errs: Errors = tried ? { ...check(), ...(where?.for === addrKey && { [where.field]: where.message }) } : {}; // the lookup's note clears once the address changes
 
   async function pickPhoto(file?: File) {
     if (!file) return;
@@ -82,8 +89,9 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
       const geo = await fetch("/onboarding/geocode?" + new URLSearchParams({ street: v.street, city: v.city, state: v.state, zip: v.zip }));
       const point = await geo.json().catch(() => ({}));
       if (!geo.ok) {
-        setError(point.message ?? "We couldn't find that address. Check the street and ZIP.");
-        document.getElementById("street")?.focus();
+        if (!point.field) return setError(point.message ?? "We can't check addresses right now. Try again in a moment.");
+        setWhere({ field: point.field, message: point.message, for: addrKey });
+        document.getElementById(point.field)?.focus();
         return;
       }
       await api("vendor/auth/update-register-profile", {
