@@ -2,14 +2,13 @@
 import Link from "next/link";
 import { useState, type FormEvent, type ReactNode } from "react";
 import {
-  Bank, Bell, CaretRight, Clock, FileText, Lifebuoy, Lock, Scroll, SignOut, Star, Trash, User, Wrench, type Icon,
+  Bank, Bell, CaretRight, Clock, FileText, Lifebuoy, Lock, Scroll, SealCheck, SignOut, Star, Trash, User, Wrench, type Icon,
 } from "@phosphor-icons/react";
 import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { useVendor } from "@/components/Vendor";
 import s from "./account.module.css";
 
-const REVIEW = [["In review", "t-wait"], ["Approved", "t-ok"], ["Needs changes", "t-bad"]] as const;
 const BUSINESS: [string, string, Icon][] = [
   ["/account/profile", "Profile", User], ["/account/services", "Services and rates", Wrench], ["/hours", "Working hours", Clock],
   ["/account/documents", "Documents", FileText], ["/account/bank", "Bank details", Bank],
@@ -59,7 +58,6 @@ export default function Page() {
     }
   };
   const name = `${vendor.firstName} ${vendor.lastName}`.trim();
-  const [review, tone] = REVIEW[vendor.verificationStatus] ?? REVIEW[0];
 
   return (
     <div className={`${s.wrap} ${s.hub}`}>
@@ -69,7 +67,13 @@ export default function Page() {
         <div>
           <p className={s.name}>{name}</p>
           <p className="muted">{vendor.email}</p>
-          <span className={`tag ${tone}`}>Review: {review}</span>
+          {vendor.verificationStatus === 1 ? (
+            <p className={s.verified}><SealCheck size={18} weight="fill" aria-hidden /><b>Verified Buddy</b><span>Your ID and documents were checked by Any-Buddy.</span></p>
+          ) : vendor.verificationStatus === 2 ? (
+            <p><span className="tag t-bad">Changes needed</span> <Link href="/account/help">Contact support</Link></p>
+          ) : (
+            <p><span className="tag t-wait">Under review</span> <span className="muted">We email you when you&apos;re approved.</span></p>
+          )}
         </div>
       </header>
 
@@ -96,7 +100,7 @@ export default function Page() {
           <span><Trash size={20} aria-hidden />Delete account</span>
         </button>
         {del && (
-          <form id="del-panel" className={s.del} onSubmit={remove} noValidate>
+          <form method="post" id="del-panel" className={s.del} onSubmit={remove} noValidate>
             <p><b>Deleting your account can&apos;t be undone.</b> Your profile comes off Any-Buddy, customers can no longer book you and you are logged out.</p>
             <p>Withdraw your money first. Once the account is deleted you can&apos;t log in to withdraw it.</p>
             <div className="field">

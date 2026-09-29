@@ -9,8 +9,8 @@
 .row { display: grid; grid-template-columns: 90px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 56px; padding: 10px 12px; border-bottom: 1px solid var(--line); text-decoration: none; transition: background .15s; }
 [role="listitem"]:last-child .row { border-bottom: 0; }
 .row:hover { background: var(--hover); }
-.row[aria-current] { background: var(--navy-soft); box-shadow: inset 3px 0 0 var(--navy); }
-.row time { font-weight: 600; color: var(--navy); font-size: var(--fs-sm); }
+.row[aria-current] { background: var(--brand-soft); box-shadow: inset 3px 0 0 var(--brand); }
+.row time { font-weight: 600; color: var(--brand); font-size: var(--fs-sm); }
 .what { min-width: 0; }
 .what b, .what small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .what small { color: var(--mute); font-size: var(--fs-sm); }
@@ -18,7 +18,7 @@
 .ghost { height: 44px; margin: 10px 12px; }
 .ghostBig { height: 320px; }
 
-.back { display: none; align-items: center; gap: 6px; min-height: 44px; margin-bottom: 4px; font-weight: 600; color: var(--navy); text-decoration: none; }
+.back { display: none; align-items: center; gap: 6px; min-height: 44px; margin-bottom: 4px; font-weight: 600; color: var(--brand); text-decoration: none; }
 .title { font-size: var(--fs-h3); overflow-wrap: anywhere; }
 .meta { display: grid; gap: 6px; margin-top: 12px; padding: 0; list-style: none; color: var(--ink2); }
 .meta li { display: flex; gap: 8px; align-items: flex-start; }

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { CheckCircle, MapTrifold, NavigationArrow, Phone, Warning } from "@phosphor-icons/react";
+import { CheckCircle, Lifebuoy, MapTrifold, NavigationArrow, Phone, Warning } from "@phosphor-icons/react";
 import { api, ApiError } from "@/lib/api";
 import { countdown, elapsed, money, cancelLabel } from "@/lib/format";
 import type { Booking, JobBooking } from "@/lib/types";
@@ -134,15 +134,21 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
   const sendCode = () => run(() => api("vendor/bookings/send-code", { method: "PUT", body: { bookingId: b._id } }), undefined, "code");
   const code = <CodeStep bookingId={b._id} finish={!!b.checkInAt} onClose={() => to(null)} onDone={() => { to(null); onChange(); }} />;
 
+  // Mid-job order (owner 29 Sep): live status, timer, finish, the customer's note, then call / help. No directions: already there.
   if (b.checkInAt) {
     const since = now.getTime() - Date.parse(b.checkInAt);
+    const started = minuteOf(new Date(b.checkInAt));
     return (
       <div className={s.wrap}>
-        <span className="tag t-ok">In progress</span>
-        {contact}
+        <p className={s.live}><i aria-hidden />In progress, started {hm(started)}. Booked until {hm(started + hrs * 60)}.</p>
         <Ring p={Math.min(1, since / (hrs * 36e5))} tone={mode === "code" ? "wait" : ""} big={elapsed(since)} small={`of ${hrsText} booked`} />
         {mode === "code" ? code : <Slide label="Slide to finish the job" busy={busy} onDone={sendCode} />}
         {errLine}
+        {typeof b.userDesc === "string" && b.userDesc && <p className={s.note}><b>Customer note</b>{b.userDesc}</p>}
+        <div className={s.row}>
+          {phone && <a className="btn" href={`tel:${b.user_details?.countryCode || "+1"}${phone}`}><Phone size={20} aria-hidden />Call customer</a>}
+          <a className="btn" href={`/account/help?booking=${encodeURIComponent(String(b.bookingId ?? b._id))}`}><Lifebuoy size={20} aria-hidden />Get help</a>
+        </div>
       </div>
     );
   }

@@ -50,7 +50,7 @@ export default function Page() {
     <div className={s.wrap}>
       <Link className={s.back} href="/account"><ArrowLeft size={20} aria-hidden />Account</Link>
       <h1>Password</h1>
-      <form className={`box pad ${s.form}`} onSubmit={submit} noValidate>
+      <form method="post" className={`box pad ${s.form}`} onSubmit={submit} noValidate>
         {FIELDS.map(([k, label, auto]) => (
           <div className="field" key={k}>
             <span><label htmlFor={k}>{label}</label></span>

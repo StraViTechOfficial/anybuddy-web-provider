@@ -5,8 +5,8 @@
 .progress { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: var(--fs-sm); font-weight: 600; color: var(--mute); }
 .progress progress { flex: 1; max-width: 240px; height: 6px; appearance: none; border: 0; border-radius: 3px; overflow: hidden; background: var(--line); }
 .progress progress::-webkit-progress-bar { background: var(--line); }
-.progress progress::-webkit-progress-value { background: var(--navy); border-radius: 3px; }
-.progress progress::-moz-progress-bar { background: var(--navy); }
+.progress progress::-webkit-progress-value { background: var(--brand); border-radius: 3px; }
+.progress progress::-moz-progress-bar { background: var(--brand); }
 .sub { margin: 4px 0 18px; }
 .done { display: grid; gap: 12px; justify-items: start; max-width: 520px; margin: 48px auto 0; }
 .tick { color: var(--ok); }

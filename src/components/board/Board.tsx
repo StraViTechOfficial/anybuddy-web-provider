@@ -1,6 +1,6 @@
 "use client";
 // Laptop (a week) and tablet (3 days): the visible days as rows on one 07:00 to 19:00 grid.
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { countdown, elapsed, hourMark } from "@/lib/format";
 import type { Availability } from "@/lib/types";
 import { dayLabel, hm, openHours, serviceOf, shortDay } from "@/components/job/when";
@@ -12,7 +12,10 @@ const pct = (m: number) => `${((Math.min(H1, Math.max(H0, m)) - H0) / SPAN) * 10
 const TICKS = Array.from({ length: SPAN / 60 + 1 }, (_, i) => i);
 
 /** One block. `vertical` = the phone agenda (64px per hour). */
-export function Blk({ x, sel, onSel, now, vertical, past }: { x: Item; sel: boolean; onSel: () => void; now: Date; vertical?: boolean; past?: boolean }) {
+type Peek = (x: Item | null, el?: HTMLElement) => void;
+const KIND = { req: "Request", progress: "In progress", onway: "On the way", confirmed: "Confirmed", done: "Done", cancelled: "Canceled" } as const;
+
+export function Blk({ x, sel, onSel, now, vertical, past, onPeek }: { x: Item; sel: boolean; onSel: () => void; now: Date; vertical?: boolean; past?: boolean; onPeek?: Peek }) {
   const s0 = Math.max(H0, x.s), e0 = Math.min(H1, Math.max(x.e, s0 + 30));
   const pos: CSSProperties = vertical
     ? { top: ((s0 - H0) / 60) * 64, height: ((e0 - s0) / 60) * 64 - 6 }
@@ -30,10 +33,12 @@ export function Blk({ x, sel, onSel, now, vertical, past }: { x: Item; sel: bool
       style={pos}
       data-id={x.b._id}
       aria-pressed={sel}
-      aria-label={`${{ req: "Request", progress: "In progress", onway: "On the way", confirmed: "Confirmed", done: "Done", cancelled: "Canceled" }[x.kind]}, ${name}, ${hm(x.s)}`} // no live timer: it would re-announce every second
+      aria-label={`${KIND[x.kind]}, ${name}, ${hm(x.s)}`} // no live timer: it would re-announce every second
       onClick={onSel}
+      onMouseEnter={(e) => onPeek?.(x, e.currentTarget)} onMouseLeave={() => onPeek?.(null)}
+      onFocus={(e) => onPeek?.(x, e.currentTarget)} onBlur={() => onPeek?.(null)}
     >
-      <b>{name}</b>
+      <b>{x.kind === "progress" && <i className={s.live} aria-hidden />}{name}</b>
       <small>{hm(x.s)}{extra && ` · ${extra}`}</small>
     </button>
   );
@@ -43,6 +48,14 @@ export function Board({ items, days, today, avail, sel, onSel, now, nowMin, unit
   items: Item[]; days: string[]; today: string; avail: Availability | null;
   sel?: string; onSel: (id: string) => void; now: Date; nowMin: number; unit: string;
 }) {
+  // Hover or keyboard focus shows the full details above a block (names get cut in 1-hour blocks). Tap still opens the panel.
+  const [peek, setPeek] = useState<{ x: Item; r: DOMRect } | null>(null);
+  const onPeek: Peek = (x, el) => setPeek(x && el ? { x, r: el.getBoundingClientRect() } : null);
+  useEffect(() => {
+    const hide = () => setPeek(null);
+    addEventListener("scroll", hide, true);
+    return () => removeEventListener("scroll", hide, true);
+  }, []);
   return (
     <section className={`box ${s.lanes} ${days.length > 3 ? s.week : ""}`} aria-label={`Your ${unit}`}>
       <div className={s.axis} aria-hidden>
@@ -66,7 +79,7 @@ export function Board({ items, days, today, avail, sel, onSel, now, nowMin, unit
               )}
               {d === today && nowMin >= H0 && nowMin <= H1 && <i className={s.now} style={{ left: pct(nowMin) }}><em>{hm(nowMin)}</em></i>}
               {items.filter((x) => x.day === i).map((x) => (
-                <Blk key={x.b._id} x={x} now={now} past={d < today} sel={sel === x.b._id} onSel={() => onSel(x.b._id)} />
+                <Blk key={x.b._id} x={x} now={now} past={d < today} sel={sel === x.b._id} onSel={() => onSel(x.b._id)} onPeek={onPeek} />
               ))}
             </div>
           </div>
@@ -77,11 +90,19 @@ export function Board({ items, days, today, avail, sel, onSel, now, nowMin, unit
         <span><i className={`${s.lg} ${s.progress}`} />In progress</span>
         <span><i className={`${s.lg} ${s.confirmed}`} />Confirmed</span>
         <span><i className={`${s.lg} ${s.onway}`} />On the way</span>
-        <span><i className={`${s.lg} ${s.req}`} />Request, dashed until you accept</span>
+        <span><i className={`${s.lg} ${s.req}`} />Request (dashed)</span>
         <span><i className={`${s.lg} ${s.done} ${s.muted}`} />Past or canceled</span>
-        <span><i className={`${s.lg} ${s.offl}`} />Closed or break</span>
+        <span><i className={`${s.lg} ${s.offl}`} />Closed</span>
+        <span><i className={`${s.lg} ${s.brkl}`} />Break</span>
         <span className={s.keys}>Keys: <kbd>←</kbd><kbd>→</kbd> move · <kbd>A</kbd> accept · <kbd>D</kbd> decline · <kbd>[</kbd><kbd>]</kbd> {unit}</span>
       </div>
+      {peek && (
+        <div className={s.tip} role="tooltip" style={{ left: peek.r.left + peek.r.width / 2, top: peek.r.top - 8 }}>
+          <b>{serviceOf(peek.x.b)}</b>
+          <span>{hm(peek.x.s)} to {hm(peek.x.e)}</span>
+          <span>{KIND[peek.x.kind]}{peek.x.kind === "req" && peek.x.b.expiresAt ? `, expires in ${countdown(Date.parse(peek.x.b.expiresAt) - now.getTime())}` : ""}</span>
+        </div>
+      )}
     </section>
   );
 }

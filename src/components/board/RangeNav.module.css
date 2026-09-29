@@ -1,0 +1,6 @@
+/* "Go to date" sits in the board's button row: same height and weight as the buttons beside it. */
+.goto > button { height: 36px; font-size: var(--fs-sm); font-weight: 600; }
+@media (max-width: 699px) {
+  .goto { flex: 1; }
+  .goto > button { height: 44px; width: 100%; }
+}

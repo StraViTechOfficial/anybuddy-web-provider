@@ -1,5 +1,4 @@
 .logo { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; }
 .logo img { display: block; }
 .word { width: auto; }
-.pro { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--amber-ink); background: var(--amber-soft); padding: 2px 6px; border-radius: 4px; }
 @media (prefers-color-scheme: dark) { .logo img { filter: brightness(0) invert(.9); } }

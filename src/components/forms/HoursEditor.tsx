@@ -7,6 +7,7 @@ import { Clashes, type Clash } from "./Clashes";
 import { useToast } from "@/components/Toast";
 import { Actions, errText, hasErrors, type Errors, type FormProps } from "./Field";
 import { TimeOff } from "./TimeOff";
+import { TimeSelect } from "@/components/ui/TimeSelect";
 import s from "./forms.module.css";
 
 type Day = { isOpen: boolean; from: string; to: string };
@@ -111,7 +112,7 @@ export function HoursEditor({ mode, onDone, onBack }: FormProps) {
   }
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form method="post" onSubmit={submit} noValidate>
       <fieldset className={s.form} disabled={!loaded}>
       <div className={s.cols}>
         <section className={s.stack} aria-labelledby="weekly">
@@ -133,12 +134,10 @@ export function HoursEditor({ mode, onDone, onBack }: FormProps) {
                   </label>
                   {d.isOpen ? (
                     <span className={s.times}>
-                      <input className="input" type="time" step={1800} aria-label={`${NAMES[i]} start`} value={d.from}
-                        onChange={(e) => setDay(i, { from: e.target.value })} />
+                      <TimeSelect label={`${NAMES[i]} start`} hideLabel value={d.from} onChange={(v) => setDay(i, { from: v })} />
                       <span className="muted">to</span>
-                      <input id={`to-${i}`} className="input" type="time" step={1800} aria-label={`${NAMES[i]} end`} value={d.to}
-                        aria-invalid={errs[`to-${i}`] ? true : undefined} aria-describedby={err ? `err-${i}` : undefined}
-                        onChange={(e) => setDay(i, { to: e.target.value })} />
+                      <TimeSelect id={`to-${i}`} label={`${NAMES[i]} end`} hideLabel value={d.to}
+                        invalid={!!errs[`to-${i}`]} describedBy={err ? `err-${i}` : undefined} onChange={(v) => setDay(i, { to: v })} />
                     </span>
                   ) : <span className="muted">Closed</span>}
                   {err && <small id={`err-${i}`} className={`err ${s.full}`}>{err}</small>}
@@ -158,14 +157,14 @@ export function HoursEditor({ mode, onDone, onBack }: FormProps) {
               </label>
               {brk.on ? (
                 <span className={s.times}>
-                  <input id="breakFrom" className="input" type="time" step={1800} aria-label="Break start" value={brk.from}
-                    aria-invalid={errs.breakFrom ? true : undefined} onChange={(e) => setBrk({ ...brk, from: e.target.value })} />
+                  <TimeSelect id="breakFrom" label="Break start" hideLabel value={brk.from}
+                    invalid={!!errs.breakFrom} describedBy={errs.breakFrom || errs.breakTo ? "breakErr" : undefined} onChange={(v) => setBrk({ ...brk, from: v })} />
                   <span className="muted">to</span>
-                  <input id="breakTo" className="input" type="time" step={1800} aria-label="Break end" value={brk.to}
-                    aria-invalid={errs.breakTo ? true : undefined} onChange={(e) => setBrk({ ...brk, to: e.target.value })} />
+                  <TimeSelect id="breakTo" label="Break end" hideLabel value={brk.to}
+                    invalid={!!errs.breakTo} describedBy={errs.breakFrom || errs.breakTo ? "breakErr" : undefined} onChange={(v) => setBrk({ ...brk, to: v })} />
                 </span>
               ) : <span className="muted">Optional</span>}
-              {(errs.breakFrom || errs.breakTo) && <small className={`err ${s.full}`} role="alert">{errs.breakFrom ?? errs.breakTo}</small>}
+              {(errs.breakFrom || errs.breakTo) && <small id="breakErr" className={`err ${s.full}`} role="alert">{errs.breakFrom ?? errs.breakTo}</small>}
             </div>
             <TimeOff leaves={leaves} onChange={setLeaves} />
           </div>

@@ -45,7 +45,7 @@ export default function Page() {
   );
 
   return (
-    <>
+    <div className={s.col}>
       <h1>Notifications</h1>
       <div className={`box ${s.list}`} role="list" aria-busy={items === null}>
         {items === null && !error && [0, 1, 2].map((i) => <div key={i} className={`skeleton ${s.ghost}`} />)}
@@ -62,6 +62,6 @@ export default function Page() {
       {more && (
         <button className={`btn block ${s.more}`} onClick={() => load(page + 1)} aria-busy={busy} disabled={busy}>Load more</button>
       )}
-    </>
+    </div>
   );
 }

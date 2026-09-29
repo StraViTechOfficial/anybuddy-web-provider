@@ -100,9 +100,9 @@ function Earnings() {
         <Withdraw available={bal.available} open={payouts.find((p) => p.type === "withdrawal" && p.status === "requested")} last4={last4} onDone={refresh} />
         <div className={s.left}>
           <section className="box pad" aria-labelledby="chart-h">
-            <h2 id="chart-h" className={s.ch}>Earned, {label} <b>{money(earned)}</b></h2>
+            <h2 id="chart-h" className={s.ch}>Earned {label} <b>{money(earned)}</b></h2>
             <p className="hint">{period === "week" ? "Per day" : period === "all" ? "Per month" : "Per week, Monday to Sunday"}. Your share of finished jobs.</p>
-            <Chart bars={fill(bars, earnedItems)} title={`Earned, ${label}`} />
+            <Chart key={period} bars={fill(bars, earnedItems)} title={`Earned ${label}, ${money(earned)}`} />
           </section>
           <section aria-labelledby="feed-h">
             <h2 id="feed-h" className={s.fh}>Money in and out</h2>

@@ -1,5 +1,6 @@
 "use client";
 import { cloneElement, type ReactElement, type ReactNode } from "react";
+import { Select, type SelectProps } from "@/components/ui/Select";
 import s from "./forms.module.css";
 
 // Shared by the five setup forms: one label/error/hint rule, one submit bar, one "first wrong field" rule.
@@ -7,21 +8,38 @@ export type Mode = "onboarding" | "edit";
 export type FormProps = { mode: Mode; onDone: () => void; onBack?: () => void };
 export type Errors = Record<string, string | undefined>;
 
-type Control = ReactElement<{ id?: string; className?: string; "aria-invalid"?: boolean; "aria-describedby"?: string }>;
+type Control = ReactElement<{ id?: string; className?: string; required?: boolean; "aria-invalid"?: boolean; "aria-describedby"?: string }>;
 
-/** Label above, hint and error below. The control gets its id, aria-invalid and aria-describedby here. */
-export function Field({ id, label, error, hint, children }: { id: string; label: string; error?: string; hint?: ReactNode; children: Control }) {
+/** The required mark after a label. Screen readers get "required" from the control itself, so the star is hidden from them. */
+export const Req = () => <span className={s.req} aria-hidden> *</span>;
+/** One line at the top of every form that has a required field. */
+export const RequiredNote = () => <p className={s.reqNote}><span aria-hidden>*</span> Required</p>;
+
+/** Label above, hint and error below. The control gets its id, required, aria-invalid and aria-describedby here. */
+export function Field({ id, label, error, hint, required, children }: { id: string; label: string; error?: string; hint?: ReactNode; required?: boolean; children: Control }) {
   const described = [hint && `${id}-hint`, error && `${id}-err`].filter(Boolean).join(" ") || undefined;
   return (
     <div className="field">
-      <label className={s.label} htmlFor={id}>{label}</label>
+      <label className={s.label} htmlFor={id}>{label}{required && <Req />}</label>
       {cloneElement(children, {
         id,
         className: children.props.className ?? "input",
+        required: required || undefined,
         "aria-invalid": error ? true : undefined,
         "aria-describedby": described,
       })}
       {hint && <small id={`${id}-hint`} className="hint">{hint}</small>}
+      {error && <small id={`${id}-err`} className="err">{error}</small>}
+    </div>
+  );
+}
+
+/** Field's label/error rule around the shared Select (native selects are replaced, owner 29 Sep). */
+export function SelectField({ id, label, error, required, ...rest }: Omit<SelectProps, "id" | "label" | "hideLabel" | "invalid" | "describedBy"> & { id: string; label: string; error?: string; required?: boolean }) {
+  return (
+    <div className="field">
+      <label className={s.label} htmlFor={id}>{label}{required && <Req />}</label>
+      <Select {...rest} id={id} label={label} hideLabel invalid={!!error} describedBy={error ? `${id}-err` : undefined} />
       {error && <small id={`${id}-err`} className="err">{error}</small>}
     </div>
   );

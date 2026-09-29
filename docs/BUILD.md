@@ -5,6 +5,7 @@ Read this before writing code. Decisions live in the Dev Tracker (RAID D-26 to D
 ## Stack (D-40, D-41)
 - Next.js 15 App Router, React 19, TypeScript strict. Dependencies: next, react, @phosphor-icons/react. **Do not add a dependency.** Ask the lead if one seems necessary.
 - The browser only calls `/api/...` through `src/lib/api.ts` (`api()` and `upload()`). The proxy (`src/app/api/[...path]/route.ts`) keeps the token in httpOnly cookies. Never read, store or log a token in page code.
+- One exception: the sign-up phone check keeps its short-lived `phoneToken` (30 min, can't log in, backend refuses it as a session) in component memory until the account is created (D-53).
 - Backend reply shape: `{ status: 1|0, message, data, count }`. `api()` throws `ApiError(message, status, data)` when `status !== 1`; show `error.message` near the action that failed.
 - Local: backend `http://localhost:6001/api` (set in `.env.local` as `BACKEND_URL`), app `http://localhost:3200`.
 
@@ -27,6 +28,9 @@ Need a shared type? Add it to `src/lib/types.ts` (append only, never change an e
 - Layout: phone < 700px, tablet 700 to 1020px, laptop > 1020px. No sideways scroll. Tap targets 44px on phones. Forms: visible label, error under the field, first wrong field gets focus, `autocomplete` set, 16px inputs.
 - Style: tokens in `globals.css` only (no raw hex in components). Screen styles in a co-located `*.module.css`. Icons: `@phosphor-icons/react`, 20px. No pop-ups, drawers or overlays; actions open inline. Toasts via `useToast()` with Undo where an action can be reversed.
 - Motion only when it means something (live timers, the now line, the timer ring, slide to confirm). Respect reduced motion.
+
+- Every `<form>` has `method="post"` (a GET form submitted before hydration puts passwords in the URL).
+- No native browser pickers or dropdowns: use `src/components/ui/{Select,DatePicker,TimeSelect}` (owner, 29 Sep).
 
 ## Code rules (ponytail)
 - Files under 250 lines (hard stop 500). One rule in one place. No abstraction with one user, no config for a value that never changes.

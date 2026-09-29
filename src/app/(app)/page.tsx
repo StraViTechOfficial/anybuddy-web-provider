@@ -14,6 +14,8 @@ import { boardItems, pickDefault, urgent } from "@/components/board/items";
 import { JobActions } from "@/components/job/JobActions";
 import { addDays, daysFrom, hm, isDayKey, minuteOf, serviceOf, useNow, ymd } from "@/components/job/when";
 import s from "@/components/board/Board.module.css";
+import { ReviewScreen } from "@/components/ReviewScreen";
+import { useVendor } from "@/components/Vendor";
 
 type Lists = { reqs: JobBooking[]; jobs: JobBooking[] };
 const list = (status: 1 | 2 | 3, limit: number) =>
@@ -22,6 +24,10 @@ const longDate = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "long
 const TABLET = "(min-width: 700px) and (max-width: 1020px)";
 
 export default function Page() {
+  const { vendor } = useVendor();
+  if (!vendor) return null; // the app layout is loading the Buddy
+  // D-51: until admin approval, Home is the review screen (no board, jobs or earnings).
+  if (vendor.verificationStatus !== 1) return <ReviewScreen vendor={vendor} />;
   return <Suspense><Home /></Suspense>;
 }
 
@@ -180,7 +186,7 @@ function Home() {
           {nav(s.wideOnly)}
           <Board items={items} days={days} today={today} avail={avail} sel={current} onSel={pick} now={now} nowMin={nowMin} unit={unit} />
         </div>
-        <Agenda items={items} requests={requests} days={days} today={today} sel={current} onSel={pick} now={now} nowMin={nowMin} nav={nav("")} />
+        <Agenda items={items} avail={avail} requests={requests} days={days} today={today} sel={current} onSel={pick} now={now} nowMin={nowMin} nav={nav("")} />
         <aside id="focus" ref={focusRef} className={`box ${s.focus}`} aria-label="Selected job">
           {focused ? (
             <>

@@ -1,13 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api, ApiError } from "@/lib/api";
 import { countdown } from "@/lib/format";
 import { codeUntil, landing, say, startCode } from "../form";
+import { CodeBoxes, EMPTY_CODE as EMPTY } from "../CodeBoxes";
 import s from "../auth.module.css";
-
-const EMPTY = ["", "", "", "", "", ""];
 
 // One screen for both code steps: flow=verify (new account, unverified login) and flow=reset (forgot password).
 export default function Code() {
@@ -51,30 +50,6 @@ export default function Code() {
     }
   }
 
-  // Typing, autofill and paste all land here: spread the digits from box `i` onwards.
-  function fill(i: number, raw: string) {
-    const got = raw.replace(/\D/g, "").slice(0, 6 - i).split("");
-    if (!got.length) return;
-    const next = [...digits];
-    got.forEach((d, j) => (next[i + j] = d));
-    setDigits(next);
-    setFail("");
-    boxes.current[Math.min(i + got.length, 5)]?.focus();
-    if (next.every(Boolean)) verify(next.join(""));
-  }
-
-  function onKey(i: number, e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace") {
-      e.preventDefault();
-      const next = [...digits];
-      const at = digits[i] || i === 0 ? i : i - 1;
-      next[at] = "";
-      setDigits(next);
-      boxes.current[at]?.focus();
-    } else if (e.key === "ArrowLeft") boxes.current[i - 1]?.focus();
-    else if (e.key === "ArrowRight") boxes.current[i + 1]?.focus();
-  }
-
   async function resend() {
     setSending(true);
     setFail("");
@@ -99,30 +74,21 @@ export default function Code() {
       <div className={s.head}>
         <h1 id="code-title">Enter the 6-digit code</h1>
         <p className="sub">
-          {reset ? "If this email has an account, a code is on its way." : "We sent a 6-digit code to your email."} Check your spam folder if it hasn&apos;t arrived.
+          {reset ? "If this email has an account, a code is on its way." : "Enter the 6-digit code we emailed to you, or tap Verify my email in that email."} If it has not arrived, check your spam folder.
         </p>
       </div>
-      <form className={s.form} onSubmit={(e: FormEvent) => { e.preventDefault(); verify(digits.join("")); }} noValidate>
-        <div className={s.boxes} role="group" aria-labelledby="code-title" aria-describedby={fail ? "code-err" : undefined}>
-          {digits.map((d, i) => (
-            <input
-              key={i}
-              ref={(el) => { boxes.current[i] = el; }}
-              value={d}
-              onChange={(e) => fill(i, e.target.value)}
-              onKeyDown={(e) => onKey(i, e)}
-              onPaste={(e: ClipboardEvent<HTMLInputElement>) => { e.preventDefault(); fill(i, e.clipboardData.getData("text")); }}
-              onFocus={(e) => e.target.select()}
-              inputMode="numeric"
-              pattern="[0-9]*"
-              autoComplete={i === 0 ? "one-time-code" : "off"}
-              autoFocus={i === 0}
-              aria-label={`Digit ${i + 1} of 6`}
-              aria-invalid={!!fail || undefined}
-              disabled={busy}
-            />
-          ))}
-        </div>
+      <form method="post" className={s.form} onSubmit={(e: FormEvent) => { e.preventDefault(); verify(digits.join("")); }} noValidate>
+        <CodeBoxes
+          digits={digits}
+          setDigits={(d) => { setDigits(d); setFail(""); }}
+          onComplete={verify}
+          labelledBy="code-title"
+          describedBy={fail ? "code-err" : undefined}
+          invalid={!!fail}
+          disabled={busy}
+          autoFocus
+          boxes={boxes}
+        />
         {fail && <p id="code-err" className={s.alert} role="alert">{fail}</p>}
         {note && !fail && <p className={s.note} role="status">{note}</p>}
         <button className="btn p lg block" disabled={busy} aria-busy={busy}>{busy ? "Checking your code" : "Continue"}</button>

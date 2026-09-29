@@ -74,7 +74,7 @@ export interface Job extends Booking {
   address?: string;
   endAddress?: string;
   user_details?: { firstName?: string; lastName?: string; phone?: string; countryCode?: string };
-  userDesc?: string; // the customer's note (not yet returned by /detail)
+  userDesc?: string; // the customer's note (returned by /detail since BUG-80 work)
   payment_status?: 0 | 1 | 2 | 3 | 4; // 0 pending, 1 processing, 2 paid, 3 cancelled, 4 refunded
   cancelReason?: string | null;
   checkOutAt?: string | null;
@@ -148,6 +148,7 @@ export interface VendorService {
   description?: string;
   category: Category;
   subcategory: { _id: string; serviceName: string };
+  isActive?: 0 | 1; // FEA-36: 0 hidden from customers
 }
 export interface DayHours { day: number; isOpen: boolean; from: string; to: string }
 export interface Leave { date: string; description?: string }

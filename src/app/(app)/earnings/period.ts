@@ -4,7 +4,7 @@ export const PERIODS = { week: "This week", month: "This month", last: "Last mon
 export type Period = keyof typeof PERIODS;
 export const isPeriod = (v: unknown): v is Period => typeof v === "string" && v in PERIODS;
 
-export type Bar = { label: string; name: string; from: string; to: string; total: number };
+export type Bar = { label: string; name: string; from: string; to: string; total: number; now: boolean; later: boolean };
 
 const toDate = (k: string) => new Date(k + "T00:00:00Z");
 const toKey = (d: Date) => d.toISOString().slice(0, 10);
@@ -12,14 +12,15 @@ const addDays = (k: string, n: number) => { const d = toDate(k); d.setUTCDate(d.
 const lastOfMonth = (k: string) => { const d = toDate(k.slice(0, 8) + "01"); d.setUTCMonth(d.getUTCMonth() + 1, 0); return toKey(d); };
 const label = (k: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-US", { timeZone: "UTC", ...o }).format(toDate(k));
 
-/** The period's first and last day (inclusive) and its empty chart bars: days for a week, Monday weeks for a month, months for all time. */
+/** The period's first and last day (inclusive) and its empty chart bars: days for a week, Monday weeks for a month, months for all time.
+ * Week and month show their whole span so bars keep one rhythm; `now` holds today, `later` is still to come. */
 export function periodBars(p: Period, today: string, first = today): { from: string; to: string; bars: Bar[] } {
-  const bar = (from: string, to: string, lbl: string, name: string): Bar => ({ label: lbl, name, from, to, total: 0 });
+  const bar = (from: string, to: string, lbl: string, name: string): Bar => ({ label: lbl, name, from, to, total: 0, now: from <= today && today <= to, later: from > today });
   const bars: Bar[] = [];
   if (p === "week") {
     const from = addDays(today, -((toDate(today).getUTCDay() + 6) % 7));
-    for (let k = from; k <= today; k = addDays(k, 1)) bars.push(bar(k, k, label(k, { weekday: "short" }), label(k, { weekday: "long", month: "short", day: "numeric" })));
-    return { from, to: today, bars };
+    for (let k = from; k <= addDays(from, 6); k = addDays(k, 1)) bars.push(bar(k, k, label(k, { weekday: "short" }), label(k, { weekday: "long", month: "short", day: "numeric" })));
+    return { from, to: addDays(from, 6), bars };
   }
   if (p === "all") {
     const from = first < today ? first : today;
@@ -30,7 +31,7 @@ export function periodBars(p: Period, today: string, first = today): { from: str
     return { from, to: today, bars };
   }
   const from = p === "month" ? today.slice(0, 8) + "01" : addDays(today.slice(0, 8) + "01", -1).slice(0, 8) + "01";
-  const to = p === "month" ? today : lastOfMonth(from);
+  const to = lastOfMonth(from);
   for (let k = from; k <= to; ) {
     const end = [addDays(k, 6 - ((toDate(k).getUTCDay() + 6) % 7)), to].sort()[0]; // the Sunday, or the period's last day
     bars.push(bar(k, end, label(k, { month: "short", day: "numeric" }), `${label(k, { month: "short", day: "numeric" })} to ${label(end, { day: "numeric" })}`));
@@ -47,4 +48,12 @@ export function fill(bars: Bar[], items: { key: string; amount: number }[]): Bar
     if (i >= 0) cents[i] += Math.round(amount * 100);
   }
   return bars.map((b, i) => ({ ...b, total: cents[i] / 100 }));
+}
+
+/** Round y-axis gridlines from $0 up past `max`: 3 or 4 lines, the lowest top that fits, on steps of 1, 2, 2.5 or 5 times a power of ten. */
+export function ticks(max: number): number[] {
+  const pow = 10 ** Math.floor(Math.log10(Math.max(max, 1) / 3));
+  const n = (st: number) => Math.max(2, Math.ceil(max / st)); // intervals
+  const step = [1, 2, 2.5, 5, 10, 20].map((m) => m * pow).filter((st) => n(st) <= 3).sort((a, b) => a * n(a) - b * n(b))[0]; // the lowest top line
+  return Array.from({ length: n(step) + 1 }, (_, i) => i * step);
 }

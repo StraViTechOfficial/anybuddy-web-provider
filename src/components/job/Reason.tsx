@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useId, useState } from "react";
 import { api, ApiError } from "@/lib/api";
+import { Select } from "@/components/ui/Select";
 import s from "./JobActions.module.css";
 
 // Reason picker for declining a request or cancelling a job: the backend's provider reasons plus a note.
@@ -41,16 +42,11 @@ export function Reason({ intro, confirm, onSubmit, onClose }: {
   };
 
   return (
-    <form className={s.panel} onSubmit={send} noValidate>
+    <form method="post" className={s.panel} onSubmit={send} noValidate>
       {intro}
       {reasons.length > 0 && (
-        <label className="field">
-          <span>Reason</span>
-          <select id={`${id}r`} className="input" value={pick} onChange={(e) => setPick(e.target.value)} aria-invalid={!!err && !pick && !note}>
-            <option value="">Choose a reason</option>
-            {reasons.map((r) => <option key={r}>{r}</option>)}
-          </select>
-        </label>
+        <Select id={`${id}r`} label="Reason" placeholder="Choose a reason" value={pick} onChange={setPick}
+          options={[{ value: "", label: "Choose a reason" }, ...reasons.map((r) => ({ value: r, label: r }))]} invalid={!!err && !pick && !note} />
       )}
       <label className="field">
         <span>{reasons.length ? "Note to the customer (optional)" : "Reason"}</span>

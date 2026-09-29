@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { api, ApiError } from "@/lib/api";
 import { emailError, landing, Password, safeNext, say, startCode, useForm } from "../form";
+import { Req, RequiredNote } from "@/components/forms/Field";
 import s from "../auth.module.css";
 
 export default function Login() {
@@ -43,18 +44,19 @@ export default function Login() {
         <h1>Log in</h1>
         <p className="sub">Welcome back to Any-Buddy Pro.</p>
       </div>
-      <form className={s.form} onSubmit={onSubmit} noValidate>
+      <form method="post" className={s.form} onSubmit={onSubmit} noValidate>
+        <RequiredNote />
         <label className="field">
-          <span>Email address</span>
-          <input {...f.field("email")} className="input" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com" />
+          <span>Email address<Req /></span>
+          <input {...f.field("email")} className="input" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com" required />
           {f.error("email")}
         </label>
         <div className="field">
           <div className={s.labelRow}>
-            <label htmlFor="password"><span>Password</span></label>
+            <label htmlFor="password"><span>Password<Req /></span></label>
             <Link href="/forgot" className={s.link}>Forgot password</Link>
           </div>
-          <Password {...f.field("password")} autoComplete="current-password" />
+          <Password {...f.field("password")} autoComplete="current-password" required />
           {f.error("password")}
         </div>
         {fail && <p className={s.alert} role="alert">{fail}</p>}

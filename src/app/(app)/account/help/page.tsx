@@ -52,7 +52,7 @@ function Help() {
       <h1>Help and support</h1>
       <section aria-labelledby="contact-h">
         <h2 id="contact-h">Contact support</h2>
-        <form className={`box pad ${s.form}`} onSubmit={submit} noValidate>
+        <form method="post" className={`box pad ${s.form}`} onSubmit={submit} noValidate>
           <p className="muted">Our team replies by email to {vendor?.email ?? "your account email"}.</p>
           <div className="field">
             <span><label htmlFor="subject">Subject</label></span>

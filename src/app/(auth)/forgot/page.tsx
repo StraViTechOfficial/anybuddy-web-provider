@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
 import { emailError, say, startCode, useForm } from "../form";
+import { Req, RequiredNote } from "@/components/forms/Field";
 import s from "../auth.module.css";
 
 export default function Forgot() {
@@ -33,12 +34,13 @@ export default function Forgot() {
       <title>Reset your password · Any-Buddy Pro</title>
       <div className={s.head}>
         <h1>Reset your password</h1>
-        <p className="sub">Enter the email address on your account and we&apos;ll send you a 6-digit code.</p>
+        <p className="sub">Enter the email address on your account and we will send you a 6-digit code.</p>
       </div>
-      <form className={s.form} onSubmit={onSubmit} noValidate>
+      <form method="post" className={s.form} onSubmit={onSubmit} noValidate>
+        <RequiredNote />
         <label className="field">
-          <span>Email address</span>
-          <input {...f.field("email")} className="input" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com" autoFocus />
+          <span>Email address<Req /></span>
+          <input {...f.field("email")} className="input" type="email" autoComplete="email" inputMode="email" placeholder="you@example.com" autoFocus required />
           {f.error("email")}
         </label>
         {fail && <p className={s.alert} role="alert">{fail}</p>}

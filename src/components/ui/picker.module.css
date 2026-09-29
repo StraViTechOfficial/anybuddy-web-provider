@@ -1,0 +1,50 @@
+/* DatePicker, TimeSelect and Select: one field that looks like .input (44px, 12px inner padding, 20px icon),
+   and an anchored panel under it (not a modal). */
+.wrap { position: relative; display: inline-grid; gap: 6px; min-width: 0; }
+.block { display: grid; width: 100%; }
+.label { font-size: var(--fs-sm); font-weight: 600; }
+.field { display: inline-flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: 44px; min-width: 0; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--canvas); color: var(--ink); font-size: 16px; white-space: nowrap; text-align: left; }
+.field svg { flex: none; color: var(--mute); }
+.field:hover:not(:disabled) { border-color: var(--mute); }
+.field:focus-visible { outline: 0; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+.field[aria-expanded="true"] { border-color: var(--brand); }
+.field[aria-invalid="true"] { border-color: var(--bad); }
+.field:disabled { opacity: .5; cursor: not-allowed; }
+.start { justify-content: flex-start; }
+.text { overflow: hidden; text-overflow: ellipsis; }
+.empty { color: var(--mute); }
+
+.panel { position: fixed; z-index: 30; width: max-content; max-width: calc(100vw - 32px); overflow: auto; overscroll-behavior: contain; border: 1px solid var(--line); border-radius: var(--r2); background: var(--canvas); box-shadow: 0 8px 24px rgb(0 0 0 / .14); }
+
+/* Time list */
+.list { max-height: 264px; overflow-y: auto; overscroll-behavior: contain; padding: 4px; list-style: none; }
+.opt { display: flex; align-items: center; min-height: 36px; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+.opt[aria-disabled="true"] { color: var(--mute); cursor: not-allowed; }
+.hint { display: block; font-size: var(--fs-xs); color: var(--mute); }
+.opt.active { background: var(--hover); }
+.opt[aria-selected="true"] .hint { color: inherit; }
+.opt[aria-selected="true"] { background: var(--brand); color: var(--on-brand); font-weight: 600; }
+
+/* Calendar */
+.cal { width: 304px; max-width: calc(100vw - 32px); padding: 10px; }
+.calHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.nav { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: var(--r); background: none; color: var(--ink); }
+.nav:hover:not(:disabled) { background: var(--hover); }
+.nav:disabled { color: var(--line); cursor: not-allowed; }
+.grid { width: 100%; table-layout: fixed; border-collapse: collapse; }
+.grid th { padding: 4px 0; border: 0; text-align: center; font-size: var(--fs-xs); font-weight: 600; color: var(--mute); }
+.grid td { padding: 1px; border: 0; text-align: center; }
+.dayBtn { width: 100%; height: 36px; border: 1px solid transparent; border-radius: var(--r); background: none; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dayBtn:hover:not(:disabled) { background: var(--hover); }
+.dayBtn[aria-current="date"] { border-color: var(--ink2); font-weight: 700; }
+td[aria-selected="true"] .dayBtn { background: var(--brand); border-color: var(--brand); color: var(--on-brand); font-weight: 700; }
+.dayBtn:disabled { color: var(--mute); opacity: .45; cursor: not-allowed; }
+.calFoot { display: flex; justify-content: space-between; gap: 8px; margin-top: 8px; }
+
+@media (max-width: 699px) {
+  .opt { min-height: 44px; }
+  .dayBtn, .nav { height: 44px; }
+  .nav { width: 44px; }
+  .cal { width: calc(100vw - 32px); }
+  .list { max-height: min(308px, 45dvh); }
+}

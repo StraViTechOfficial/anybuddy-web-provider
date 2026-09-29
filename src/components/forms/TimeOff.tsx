@@ -2,6 +2,7 @@
 import { useState, type KeyboardEvent } from "react";
 import { day, TZ } from "@/lib/format";
 import type { Leave } from "@/lib/types";
+import { DatePicker } from "@/components/ui/DatePicker";
 import s from "./forms.module.css";
 
 // Days off inside the hours form (saved with it). Dates are business days "YYYY-MM-DD"; past ones are dropped.
@@ -34,8 +35,8 @@ export function TimeOff({ leaves, onChange }: { leaves: Leave[]; onChange: (l: L
         </div>
       ))}
       <div className={s.addoff}>
-          <input className="input" type="date" min={min} value={date} aria-label="Day off" onChange={(e) => setDate(e.target.value)} onKeyDown={enter}
-            aria-invalid={error ? true : undefined} aria-describedby={error ? "offErr" : undefined} />
+          <DatePicker id="dayOff" label="Day off" hideLabel min={min} value={date} onChange={(v) => { setDate(v); setError(""); }}
+            invalid={!!error} describedBy={error ? "offErr" : undefined} />
           <input className="input" value={note} maxLength={100} placeholder="Note (optional)" aria-label="Note" onChange={(e) => setNote(e.target.value)} onKeyDown={enter} />
         <button type="button" className="btn" onClick={add}>Add time off</button>
         {error && <small id="offErr" className={`err ${s.full}`}>{error}</small>}

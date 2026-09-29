@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { Bell, Briefcase, Clock, House, UserCircle, Wallet, type Icon } from "@phosphor-icons/react";
+import { Bell, Briefcase, CheckCircle, CircleNotch, Clock, House, UserCircle, Wallet, type Icon } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { Logo } from "./Logo";
 import { useVendor } from "./Vendor";
@@ -22,7 +22,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const { vendor } = useVendor();
   const [requests, setRequests] = useState(0);
   const [unread, setUnread] = useState(0);
+  const approved = vendor?.verificationStatus === 1; // D-51: before approval only Home (review), Hours and Account
   useEffect(() => {
+    if (!approved) return;
     const load = () => {
       api("vendor/bookings/list", { query: { status: 1, page: 1, limit: 1 } }).then((r) => setRequests(r.count ?? 0)).catch(() => {});
       // Opening Notifications marks everything read (backend), so the dot clears there.
@@ -32,9 +34,9 @@ export function Shell({ children }: { children: ReactNode }) {
     load();
     const t = setInterval(load, 60_000);
     return () => clearInterval(t);
-  }, [path]);
+  }, [path, approved]);
   const on = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
-  const nav = TABS.map(([href, label, I]) => (
+  const nav = TABS.filter(([href]) => approved || !["/jobs", "/earnings"].includes(href)).map(([href, label, I]) => (
     <Link key={href} href={href} aria-current={on(href) ? "page" : undefined}>
       <I size={20} weight={on(href) ? "fill" : "regular"} aria-hidden />
       {label}
@@ -47,16 +49,23 @@ export function Shell({ children }: { children: ReactNode }) {
       <header className={s.top}>
         <Logo />
         <nav className={s.nav} aria-label="Main">{nav}</nav>
-        <Link href="/notifications" className={s.bell} aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}>
+        {approved && <Link href="/notifications" className={s.bell} aria-label={unread ? `Notifications, ${unread} unread` : "Notifications"}>
           <Bell size={20} aria-hidden />
           {unread > 0 && <b />}
-        </Link>
+        </Link>}
       </header>
-      {vendor && vendor.verificationStatus !== 1 && (
+      {vendor && vendor.verificationStatus !== 1 && path !== "/" && (
         <p className={`${s.banner} ${vendor.verificationStatus === 2 ? s.bad : ""}`} role="status">
           {vendor.verificationStatus === 2
             ? <>Your application needs changes. <Link href="/account/help">Contact support</Link> to continue.</>
-            : "Our team is reviewing your documents. Customers can book you once you're approved."}
+            : <>
+                {/* Onboarding is finished to reach this screen, so every setup step is done; only the admin review is left. */}
+                <span className={s.steps} aria-label="Setup progress">
+                  {["Profile", "Services", "Hours", "Documents", "Bank"].map((t) => <span key={t}><CheckCircle size={16} weight="fill" aria-hidden />{t}</span>)}
+                  <span className={s.now}><CircleNotch size={16} aria-hidden />Admin review</span>
+                </span>
+                <span>Customers can book you once you&apos;re approved. We email you when it&apos;s done.</span>
+              </>}
         </p>
       )}
       <main id="main" className={s.main}>{children}</main>

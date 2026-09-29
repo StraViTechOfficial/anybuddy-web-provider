@@ -3,7 +3,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { api, upload } from "@/lib/api";
 import type { DocKey, VendorDocs, VendorService } from "@/lib/types";
 import { useVendor } from "@/components/Vendor";
-import { Actions, errText, hasErrors, type FormProps } from "./Field";
+import { Actions, Req, RequiredNote, errText, hasErrors, type FormProps } from "./Field";
 import s from "./forms.module.css";
 
 type Slot = { url: string; name?: string; local?: string; busy?: boolean; error?: string };
@@ -83,8 +83,9 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   }
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form method="post" onSubmit={submit} noValidate>
       <fieldset className={s.form} disabled={!loaded}>
+      <RequiredNote />
       <ul className={s.docs}>
         {DOCS.map(([k, label]) => {
           const d = docs[k];
@@ -93,7 +94,7 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
           return (
             <li key={k} className={`box ${s.doc}`}>
               <div>
-                <b>{label}</b>
+                <b>{label}{required(k) && <Req />}</b>
                 <p className={d?.url ? s.ok : "hint"}>{d?.busy ? "Uploading" : d?.url ? d.name ?? "Uploaded" : note(k)}</p>
                 {err && <p id={`err-${k}`} className="err">{err}</p>}
               </div>
@@ -101,7 +102,7 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
                 {view && !d?.busy && <a className="btn" href={view} target="_blank" rel="noopener noreferrer">View<span className="sr"> {label}</span></a>}
                 <label className="btn" aria-busy={d?.busy}>
                   {d?.url ? "Replace" : "Upload"}
-                  <input id={`doc-${k}`} className="sr" type="file" accept={TYPES} disabled={d?.busy}
+                  <input id={`doc-${k}`} className="sr" type="file" accept={TYPES} disabled={d?.busy} aria-required={required(k) || undefined}
                     aria-invalid={err ? true : undefined} aria-describedby={err ? `err-${k}` : undefined}
                     onChange={(e) => { pick(k, e.target.files?.[0]); e.target.value = ""; }} />
                   <span className="sr"> {label}</span>
@@ -117,14 +118,14 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
       <p className="hint">Photos or PDF files, up to 10 MB each. Only our review team can open them.</p>
       <div className="field">
         <label className={s.check}>
-          <input id="tick" type="checkbox" checked={tick} onChange={(e) => setTick(e.target.checked)}
+          <input id="tick" type="checkbox" required checked={tick} onChange={(e) => setTick(e.target.checked)}
             aria-invalid={errs.tick ? true : undefined} aria-describedby={errs.tick ? "tick-err" : undefined} />
-          I hold the licenses and insurance my trade needs.
+          <span>I hold the licenses and insurance my trade needs.<Req /></span>
         </label>
         {errs.tick && <small id="tick-err" className="err">{errs.tick}</small>}
       </div>
       {mode === "edit" && vendor?.verificationStatus === 1 && (
-        <p className={`${s.note} t-wait`}>Saving changed documents sends your account back to review. Customers can&apos;t book you until it&apos;s approved again.</p>
+        <p className={`${s.note} t-wait`}>Saving changed documents sends your account back to review. Customers cannot book you until it is approved again.</p>
       )}
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
       </fieldset>

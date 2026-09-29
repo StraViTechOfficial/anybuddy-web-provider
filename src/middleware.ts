@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 // Pages a signed-out Buddy may open. Everything else needs the session cookie.
-const PUBLIC = ["/login", "/signup", "/code", "/forgot"];
+const PUBLIC = ["/login", "/signup", "/code", "/forgot", "/verify-email"];
 
 export function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;

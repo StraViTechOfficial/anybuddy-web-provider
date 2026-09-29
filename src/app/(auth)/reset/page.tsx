@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import { newPasswordError, Password, say, useForm } from "../form";
+import { Req, RequiredNote } from "@/components/forms/Field";
 import s from "../auth.module.css";
 
 // Reached signed in, straight from the reset code. Lives in (auth), not (app): the app layout would send a Buddy
@@ -41,17 +42,18 @@ export default function Reset() {
       <title>Choose a new password · Any-Buddy Pro</title>
       <div className={s.head}>
         <h1>Choose a new password</h1>
-        <p className="sub">Use a password you haven&apos;t used on Any-Buddy before.</p>
+        <p className="sub">Use a password you have not used on Any-Buddy before.</p>
       </div>
-      <form className={s.form} onSubmit={onSubmit} noValidate>
+      <form method="post" className={s.form} onSubmit={onSubmit} noValidate>
+        <RequiredNote />
         <label className="field">
-          <span>New password</span>
-          <Password {...f.field("newPassword")} autoComplete="new-password" autoFocus aria-describedby={f.field("newPassword")["aria-describedby"] ?? "newPassword-hint"} />
+          <span>New password<Req /></span>
+          <Password {...f.field("newPassword")} autoComplete="new-password" required autoFocus aria-describedby={f.field("newPassword")["aria-describedby"] ?? "newPassword-hint"} />
           {f.error("newPassword") ?? <p id="newPassword-hint" className="hint">At least 8 characters</p>}
         </label>
         <label className="field">
-          <span>Confirm new password</span>
-          <Password {...f.field("confirmPassword")} autoComplete="new-password" />
+          <span>Confirm new password<Req /></span>
+          <Password {...f.field("confirmPassword")} autoComplete="new-password" required />
           {f.error("confirmPassword")}
         </label>
         {fail && <p className={s.alert} role="alert">{fail}</p>}

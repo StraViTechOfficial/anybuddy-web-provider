@@ -2,7 +2,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
 import type { VendorBank } from "@/lib/types";
-import { Actions, Field, errText, hasErrors, type Errors, type FormProps } from "./Field";
+import { Actions, Field, Req, RequiredNote, errText, hasErrors, type Errors, type FormProps } from "./Field";
 import s from "./forms.module.css";
 
 /** US routing (ABA) number: 9 digits whose 3-7-1 weighted sum is a multiple of 10 (same rule as the server). */
@@ -70,22 +70,23 @@ export function BankForm({ mode, onDone, onBack }: FormProps) {
 
   const digits = { inputMode: "numeric" as const, autoComplete: "off", spellCheck: false };
   return (
-    <form onSubmit={submit} noValidate>
+    <form method="post" onSubmit={submit} noValidate>
       <fieldset className={`${s.form} ${s.narrow}`} disabled={!loaded}>
+      <RequiredNote />
       {last4 && <p className={`box ${s.saved}`}><b>Account ending {last4}</b><span className="hint">To change your payout details, enter the account number again.</span></p>}
       <div className="row2">
-        <Field id="holder" label="Account holder name" error={errs.holder}><input autoComplete="name" value={v.holder} onChange={set("holder")} maxLength={100} /></Field>
-        <Field id="bank" label="Bank name" error={errs.bank}><input autoComplete="off" value={v.bank} onChange={set("bank")} maxLength={100} /></Field>
+        <Field id="holder" label="Account holder name" required error={errs.holder}><input autoComplete="name" value={v.holder} onChange={set("holder")} maxLength={100} /></Field>
+        <Field id="bank" label="Bank name" required error={errs.bank}><input autoComplete="off" value={v.bank} onChange={set("bank")} maxLength={100} /></Field>
       </div>
-      <Field id="routing" label="Routing number" error={errs.routing} hint="9 digits, on your checks or your bank's website.">
+      <Field id="routing" label="Routing number" required error={errs.routing} hint="9 digits, on your checks or on your bank's website.">
         <input {...digits} value={v.routing} onChange={set("routing")} maxLength={9} />
       </Field>
       <div className="row2">
-        <Field id="account" label="Account number" error={errs.account}><input {...digits} type="password" value={v.account} onChange={set("account")} maxLength={17} /></Field>
-        <Field id="confirm" label="Confirm account number" error={errs.confirm}><input {...digits} type="password" value={v.confirm} onChange={set("confirm")} maxLength={17} /></Field>
+        <Field id="account" label="Account number" required error={errs.account}><input {...digits} type="password" value={v.account} onChange={set("account")} maxLength={17} /></Field>
+        <Field id="confirm" label="Confirm account number" required error={errs.confirm}><input {...digits} type="password" value={v.confirm} onChange={set("confirm")} maxLength={17} /></Field>
       </div>
       <fieldset className={s.radios}>
-        <legend className={s.label}>Account type</legend>
+        <legend className={s.label}>Account type<Req /></legend>
         {["Checking", "Savings"].map((t) => (
           <label key={t} className={s.check}>
             <input type="radio" name="type" value={t} checked={v.type === t} onChange={set("type")} /> {t}
@@ -93,7 +94,7 @@ export function BankForm({ mode, onDone, onBack }: FormProps) {
         ))}
       </fieldset>
       {last4 && (
-        <Field id="password" label="Your Any-Buddy password" error={errs.password} hint="Needed to change where your earnings go.">
+        <Field id="password" label="Your Any-Buddy password" required error={errs.password} hint="Needed to change where your earnings go.">
           <input type="password" autoComplete="current-password" value={v.password} onChange={set("password")} maxLength={128} />
         </Field>
       )}

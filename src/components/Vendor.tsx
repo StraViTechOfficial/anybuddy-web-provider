@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import type { Vendor } from "@/lib/types";
 
@@ -11,6 +11,7 @@ export const useVendor = () => useContext(VendorCtx);
 // Loads the signed-in Buddy once. `needs` decides where an unfinished or finished Buddy belongs.
 export function VendorProvider({ children, needs }: { children: ReactNode; needs: "onboarded" | "onboarding" }) {
   const router = useRouter();
+  const path = usePathname();
   const [vendor, setVendor] = useState<Vendor | null>(null);
   const reload = useCallback(async () => {
     const { data } = await api<Vendor>("vendor/auth/get-profile-details", { query: { type: 1 } });
@@ -21,6 +22,8 @@ export function VendorProvider({ children, needs }: { children: ReactNode; needs
     if (!vendor) return;
     if (needs === "onboarded" && vendor.step < 5) router.replace("/onboarding");
     if (needs === "onboarding" && vendor.step >= 5) router.replace("/");
-  }, [vendor, needs, router]);
+    // D-51: work screens open only after admin approval.
+    if (needs === "onboarded" && vendor.verificationStatus !== 1 && /^\/(jobs|earnings|notifications)(\/|$)/.test(path)) router.replace("/");
+  }, [vendor, needs, router, path]);
   return <VendorCtx.Provider value={{ vendor, reload }}>{children}</VendorCtx.Provider>;
 }

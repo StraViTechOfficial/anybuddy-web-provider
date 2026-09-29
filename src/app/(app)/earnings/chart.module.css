@@ -1,0 +1,39 @@
+/* Earned per bar. Grid lines and axis text stay quiet; today's bar carries the brand colour. */
+.chart { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: 200px auto; column-gap: 10px; margin-top: 8px; padding-top: 34px; animation: fade .2s ease-out; }
+@keyframes fade { from { opacity: 0; } }
+
+.y { position: relative; font-size: var(--fs-xs); color: var(--mute); }
+.y b { display: block; height: 0; overflow: hidden; font-weight: 400; }
+.y span { position: absolute; right: 0; transform: translateY(50%); line-height: 1; white-space: nowrap; }
+
+.plot { position: relative; }
+.grid { position: absolute; left: 0; right: 0; height: 1px; background: var(--line); }
+.grid:first-child { background: color-mix(in srgb, var(--mute) 60%, var(--canvas)); } /* the $0 baseline */
+.cols { position: absolute; inset: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.col { position: relative; display: flex; align-items: flex-end; justify-content: center; height: 100%; padding: 0; border: 0; border-radius: var(--r); background: none; } /* the whole column is the target */
+.col:focus-visible { outline-offset: 0; }
+.bar { position: relative; width: min(40px, 62%); border-radius: 4px 4px 0 0; background: color-mix(in srgb, var(--brand) 50%, var(--canvas)); transition: background .15s; }
+.col:hover .bar, .col[aria-pressed="true"] .bar { background: color-mix(in srgb, var(--brand) 72%, var(--canvas)); }
+.col[data-now] .bar { background: var(--brand); }
+
+.val, .tip { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; pointer-events: none; font-size: var(--fs-xs); font-weight: 600; }
+.val { bottom: calc(100% + 4px); color: var(--ink); }
+.tip { z-index: 1; bottom: calc(100% + 8px); display: grid; padding: 5px 9px; border-radius: 6px; background: var(--ink); color: var(--canvas); text-align: left; line-height: 1.35; }
+.tip small { font-size: var(--fs-xs); font-weight: 400; }
+.col:first-child :is(.val, .tip) { left: 0; transform: none; }
+.col:last-child :is(.val, .tip) { left: auto; right: 0; transform: none; }
+
+.x { grid-column: 2; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin-top: 8px; font-size: var(--fs-xs); color: var(--mute); text-align: center; }
+.x > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.x [data-now] { color: var(--ink); font-weight: 600; }
+.short { display: none; }
+
+.empty { display: grid; place-items: center; height: 140px; margin-top: 12px; border: 1px dashed var(--line); border-radius: var(--r); color: var(--mute); text-align: center; }
+
+@media (max-width: 699px) {
+  .chart { grid-template-rows: 180px auto; column-gap: 8px; }
+  .long { display: none; }
+  .short { display: inline; }
+  .x [data-skip] { visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) { .chart { animation: none; } .bar { transition: none; } }
