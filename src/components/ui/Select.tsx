@@ -22,22 +22,41 @@ export function Select({ value, onChange, options, placeholder = "Choose", label
   const [active, setActive] = useState(0);
   const list = useRef<HTMLUListElement>(null);
   const typed = useRef({ text: "", at: 0 });
+  const btn = useRef<HTMLButtonElement>(null);
+  // Long lists (e.g. 50 states) get a small search box at the top of the panel.
+  const searchable = options.length > 10;
+  const [q, setQ] = useState("");
+  const view = options.map((o, i) => ({ o, i })).filter(({ o }) => !q || o.label.toLowerCase().includes(q.toLowerCase()));
   const close = useCallback(() => setOpen(false), []);
   const pop = usePopup(open, close, block);
   const cur = options.findIndex((o) => o.value === value);
   const shown = options[cur];
 
   useEffect(() => {
-    if (open) list.current?.children[active]?.scrollIntoView({ block: "nearest" });
-  }, [open, active]);
+    if (open) document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: "nearest" }); // by id: the list may be filtered
+  }, [open, active, listId]);
 
   /** The nearest enabled option from i in direction dir (1 or -1); stays put at the ends. */
   const usable = (i: number, dir: number) => {
     for (let j = Math.max(0, Math.min(options.length - 1, i)); j >= 0 && j < options.length; j += dir) if (!options[j].disabled) return j;
     return active;
   };
-  function show(i = cur < 0 ? usable(0, 1) : cur) { setActive(i); setOpen(true); }
-  function pick(i: number) { if (options[i] && !options[i].disabled) onChange(options[i].value); setOpen(false); }
+  function show(i = cur < 0 ? usable(0, 1) : cur) { setQ(""); setActive(i); setOpen(true); }
+  function pick(i: number) { if (options[i] && !options[i].disabled) onChange(options[i].value); setOpen(false); btn.current?.focus(); }
+
+  /** Keys while typing in the search box: move within the filtered list, Enter picks, Escape closes. */
+  function searchKeys(e: KeyboardEvent) {
+    const ok = view.filter(({ o }) => !o.disabled).map(({ i }) => i);
+    const at = ok.indexOf(active);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const next = ok[Math.max(0, Math.min(ok.length - 1, at + (e.key === "ArrowDown" ? 1 : -1)))];
+      if (next !== undefined) setActive(next);
+    }
+    if (e.key === "Enter") { e.preventDefault(); if (ok.includes(active)) pick(active); }
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); setOpen(false); btn.current?.focus(); }
+    if (e.key === "Tab") setOpen(false);
+  }
 
   function keys(e: KeyboardEvent) {
     const last = options.length - 1, at = open ? active : Math.max(cur, 0);
@@ -64,7 +83,7 @@ export function Select({ value, onChange, options, placeholder = "Choose", label
   return (
     <div ref={pop.root} className={`${s.wrap} ${block ? s.block : ""} ${className}`}>
       <span id={`${fieldId}-l`} className={hideLabel ? "sr" : s.label}>{label}</span>
-      <button id={fieldId} type="button" role="combobox" className={s.field} disabled={disabled}
+      <button ref={btn} id={fieldId} type="button" role="combobox" className={s.field} disabled={disabled}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={listId} aria-labelledby={`${fieldId}-l`}
         aria-activedescendant={open ? `${listId}-${active}` : undefined}
         aria-invalid={invalid || undefined} aria-describedby={describedBy}
@@ -74,8 +93,16 @@ export function Select({ value, onChange, options, placeholder = "Choose", label
       </button>
       {open && createPortal(
         <div ref={pop.panel} style={pop.style} className={s.panel}>
+          {searchable && (
+            <input className={s.search} autoFocus value={q} placeholder="Search" aria-label={`Search ${label}`}
+              role="combobox" aria-expanded aria-controls={listId} aria-autocomplete="list"
+              aria-activedescendant={view.some(({ i }) => i === active) ? `${listId}-${active}` : undefined}
+              onChange={(e) => { setQ(e.target.value); const f = options.findIndex((o) => !o.disabled && o.label.toLowerCase().includes(e.target.value.toLowerCase())); if (f >= 0) setActive(f); }}
+              onKeyDown={searchKeys} />
+          )}
           <ul ref={list} id={listId} role="listbox" aria-labelledby={`${fieldId}-l`} className={s.list}>
-            {options.map((o, i) => (
+            {view.length === 0 && <li className={s.none} role="presentation">No matches</li>}
+            {view.map(({ o, i }) => (
               <li key={o.value} id={`${listId}-${i}`} role="option" aria-selected={o.value === value} aria-disabled={o.disabled || undefined}
                 className={`${s.opt} ${i === active ? s.active : ""}`}
                 onMouseDown={(e) => e.preventDefault()} onClick={() => !o.disabled && pick(i)} onMouseMove={() => i !== active && !o.disabled && setActive(i)}>
