@@ -1,4 +1,5 @@
 "use client";
+import { CheckCircle } from "@phosphor-icons/react";
 import { useEffect, useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
 import type { VendorBank } from "@/lib/types";
@@ -82,8 +83,14 @@ export function BankForm({ mode, onDone, onBack }: FormProps) {
         </Field>
       </div>
       <div className={s.row3}>
-        <Field id="account" label="Account number" required error={errs.account}><input {...digits} type="password" value={v.account} onChange={set("account")} maxLength={17} /></Field>
-        <Field id="confirm" label="Confirm account number" required error={errs.confirm}><input {...digits} type="password" value={v.confirm} onChange={set("confirm")} maxLength={17} /></Field>
+        {/* Owner 29 Sep: the first box shows the number so the Buddy can read it; the second stays hidden and a live
+            line says whether the two match; no pasting into it (owner, payouts plan), so it is really typed twice.
+            The saved number still shows only as its last 4. */}
+        <Field id="account" label="Account number" required error={errs.account}><input {...digits} value={v.account} onChange={set("account")} maxLength={17} /></Field>
+        <Field id="confirm" label="Confirm account number" required error={errs.confirm}
+          hint={!v.confirm ? "Type it again to check." : v.confirm === v.account ? <span className={s.match}><CheckCircle size={16} weight="fill" aria-hidden />The numbers match.</span> : "Not the same yet."}>
+          <input {...digits} type="password" value={v.confirm} onChange={set("confirm")} onPaste={(e) => e.preventDefault()} maxLength={17} />
+        </Field>
       <fieldset className={s.radios}>
         <legend className={s.label}>Account type<Req /></legend>
         {["Checking", "Savings"].map((t) => (
