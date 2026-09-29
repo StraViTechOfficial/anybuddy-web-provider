@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Home base address → map point for update-register-profile step 1 (services need it). The browser can't call the
+// Location (complete address, contract SPA register) → map point for update-register-profile step 1 (services need it). The browser can't call the
 // US Census geocoder itself (no CORS), so this forwards only street/city/state/ZIP. Signed-in only (middleware).
 // ponytail: free keyless US Census geocoder (US addresses, no autocomplete); swap for Google Geocoding if the lead
 // prefers one geocoder across apps.
