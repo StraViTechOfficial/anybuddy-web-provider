@@ -1,0 +1,18 @@
+.page { min-height: 100dvh; display: flex; flex-direction: column; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 60px; padding: 0 28px; border-bottom: 1px solid var(--line); }
+.main { flex: 1; width: 100%; max-width: 1104px; margin: 0 auto; padding: 20px 32px 32px; }
+.main h1:focus { outline: 0; }
+.progress { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; font-size: var(--fs-sm); font-weight: 600; color: var(--mute); }
+.progress progress { flex: 1; max-width: 240px; height: 6px; appearance: none; border: 0; border-radius: 3px; overflow: hidden; background: var(--line); }
+.progress progress::-webkit-progress-bar { background: var(--line); }
+.progress progress::-webkit-progress-value { background: var(--navy); border-radius: 3px; }
+.progress progress::-moz-progress-bar { background: var(--navy); }
+.sub { margin: 4px 0 18px; }
+.done { display: grid; gap: 12px; justify-items: start; max-width: 520px; margin: 48px auto 0; }
+.tick { color: var(--ok); }
+@media (max-width: 1020px) { .top { padding: 0 20px; } .main { padding: 20px 20px 32px; } }
+@media (max-width: 699px) {
+  .top { height: 56px; padding: 0 16px; }
+  .main { padding: 16px 16px 28px; }
+  .done { justify-items: stretch; margin-top: 24px; }
+}

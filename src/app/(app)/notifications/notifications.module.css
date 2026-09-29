@@ -1,0 +1,10 @@
+.list { margin-top: 16px; max-width: 760px; }
+.row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 16px; border-bottom: 1px solid var(--line); text-decoration: none; }
+[role="listitem"]:last-child .row { border-bottom: 0; }
+a.row:hover { background: var(--hover); }
+.text { display: grid; gap: 2px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.text > span { color: var(--ink2); }
+.text small { color: var(--mute); font-size: var(--fs-sm); }
+.new { margin-right: 8px; padding: 1px 6px; border-radius: 4px; background: var(--amber-soft); color: var(--amber-ink); font-size: var(--fs-xs); vertical-align: 2px; }
+.ghost { height: 44px; margin: 12px 16px; }
+.more { margin-top: 12px; max-width: 760px; }

@@ -1,0 +1,75 @@
+/* Auth frame + the few form pieces the auth screens share. Must fit 1366x768 with no page scroll. */
+.page { position: relative; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; background: var(--canvas); }
+.band {
+  position: absolute; left: 0; right: 0; bottom: -30vh; height: 72vh;
+  transform: skewY(-8deg); transform-origin: 100% 0;
+  background:
+    radial-gradient(rgba(255, 255, 255, .1) 1px, transparent 1.2px) 0 0 / 18px 18px,
+    linear-gradient(115deg, var(--navy-d), var(--navy));
+}
+.top { position: relative; z-index: 1; display: flex; justify-content: center; padding: 20px 16px 0; }
+.main { position: relative; z-index: 1; flex: 1; display: grid; place-items: center; padding: 16px 16px 32px; }
+.card { width: 100%; max-width: 440px; padding: 28px 32px; border-radius: 16px; background: var(--canvas); border: 1px solid var(--line); box-shadow: 0 30px 60px -12px rgba(15, 26, 46, .22), 0 18px 36px -18px rgba(15, 26, 46, .25); }
+.card:has(.wide) { max-width: 560px; }
+
+.head { margin-bottom: 20px; }
+.head h1 { margin-bottom: 4px; }
+.form { display: grid; gap: 14px; }
+.foot { margin-top: 18px; text-align: center; font-size: var(--fs-sm); color: var(--mute); }
+.link { color: var(--navy); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.alert { padding: 10px 12px; border-radius: var(--r); background: var(--bad-soft); color: var(--bad); font-size: var(--fs-sm); font-weight: 500; }
+.note { padding: 10px 12px; border-radius: var(--r); background: var(--navy-soft); color: var(--ink2); font-size: var(--fs-sm); }
+
+/* label row with a link on the right ("Forgot password") */
+.labelRow { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.labelRow span { font-size: var(--fs-sm); font-weight: 600; }
+.labelRow a { font-size: var(--fs-sm); }
+
+/* password with show/hide */
+.pw { position: relative; }
+.pw .input { padding-right: 48px; }
+.eye { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; color: var(--mute); border-radius: var(--r); }
+.eye:hover { color: var(--ink); }
+
+/* +1 phone prefix */
+.phone { display: flex; }
+.phone > b { display: grid; place-items: center; padding: 0 12px; border: 1px solid var(--line); border-right: 0; border-radius: var(--r) 0 0 var(--r); background: var(--soft); font-weight: 500; font-size: 16px; color: var(--ink2); }
+.phone .input { border-radius: 0 var(--r) var(--r) 0; }
+
+/* 18+ and Terms tick box */
+.check { display: flex; align-items: flex-start; gap: 10px; font-size: var(--fs-sm); color: var(--ink2); cursor: pointer; }
+.check input { flex-shrink: 0; width: 20px; height: 20px; margin-top: 1px; accent-color: var(--navy); cursor: pointer; }
+.check + :global(.err) { margin: 4px 0 0 30px; }
+
+/* six code boxes */
+.boxes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+.boxes input { width: 100%; height: 56px; padding: 0; text-align: center; font-size: 24px; font-weight: 600; border: 1px solid var(--line); border-radius: var(--r); background: var(--canvas); }
+.boxes input:focus { outline: 0; border-color: var(--navy); box-shadow: 0 0 0 3px var(--navy-soft); }
+.boxes input[aria-invalid="true"] { border-color: var(--bad); }
+.resend { display: flex; align-items: center; justify-content: center; min-height: 44px; font-size: var(--fs-sm); color: var(--mute); }
+.textBtn { min-height: 44px; padding: 0 8px; border: 0; background: none; color: var(--navy); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.textBtn[disabled] { opacity: .5; cursor: not-allowed; }
+
+@media (prefers-color-scheme: dark) {
+  .band { background: radial-gradient(rgba(255, 255, 255, .06) 1px, transparent 1.2px) 0 0 / 18px 18px, linear-gradient(115deg, var(--navy-soft), var(--soft)); }
+  .card { box-shadow: 0 30px 60px -12px rgba(0, 0, 0, .5); }
+}
+/* Short laptop windows (1366x768 minus browser bars): tighter rhythm, no page scroll. */
+@media (max-height: 820px) and (min-width: 700px) {
+  .top { padding-top: 12px; }
+  .main { padding: 8px 16px 16px; }
+  .card { padding: 22px 30px; }
+  .head { margin-bottom: 14px; }
+  .form { gap: 12px; }
+  .foot { margin-top: 12px; }
+}
+/* Phones: slim band along the bottom, form on white with no card chrome. */
+@media (max-width: 699px) {
+  .band { bottom: -56px; height: 120px; transform: skewY(-4deg); }
+  .top { justify-content: flex-start; padding: 8px 16px 0; }
+  .main { place-items: start center; padding: 24px 16px 88px; }
+  .card { padding: 0; border: 0; border-radius: 0; box-shadow: none; background: none; }
+  .boxes { gap: 6px; }
+}
+/* Phones: text links keep a 44px tap area without changing the line. */
+@media (max-width: 699px) { .check { min-height: 44px; } .labelRow a, .foot a, .check a { display: inline-block; padding: 12px 0; margin: -12px 0; } }

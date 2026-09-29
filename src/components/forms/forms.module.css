@@ -1,0 +1,84 @@
+/* Setup forms: two columns on laptops so each form fits one 1366x768 screen, one column below 1020px. */
+.form { display: grid; gap: 16px; max-width: 1040px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.narrow { max-width: 640px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; align-items: start; }
+.stack { display: grid; gap: 12px; align-content: start; }
+.row3 { display: grid; grid-template-columns: 1.3fr 1.3fr 1fr; gap: 12px; }
+.label { font-size: var(--fs-sm); font-weight: 600; }
+.about { min-height: 132px; }
+.short { min-height: 72px; }
+
+.actions { display: grid; gap: 8px; justify-items: end; padding-top: 4px; }
+.buttons { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.link { border: 0; background: none; padding: 0; color: inherit; font-weight: 600; text-decoration: underline; }
+label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--navy); outline-offset: 2px; }
+
+.photo { display: flex; align-items: center; gap: 14px; }
+.photo img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: var(--soft); }
+.photo svg { color: var(--mute); flex: none; }
+.photo > div { display: grid; gap: 4px; justify-items: start; }
+
+/* lists inside a box: services, weekly hours, break and time off */
+.list { list-style: none; padding: 0; overflow: hidden; }
+.list > * + * { border-top: 1px solid var(--line); }
+.empty { display: flex; gap: 10px; align-items: center; padding: 16px; color: var(--mute); }
+.item { display: grid; gap: 12px; padding: 12px 16px; }
+.itemHead { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.day { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; min-height: 56px; padding: 6px 16px; }
+.times { display: inline-flex; align-items: center; gap: 8px; }
+.times .input { width: auto; height: 40px; }
+.full { flex-basis: 100%; }
+.toggle { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.sw { position: relative; flex: none; width: 40px; height: 24px; border-radius: 12px; background: var(--mute); transition: background .2s; }
+.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--canvas); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .2s var(--ease); }
+.toggle input:checked + .sw { background: var(--navy); }
+.toggle input:checked + .sw::after { transform: translateX(16px); }
+
+.docs { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.doc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; }
+.doc p { overflow-wrap: anywhere; }
+.ok { font-size: var(--fs-sm); color: var(--ok); }
+.check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; font-weight: 500; }
+.check input { width: 20px; height: 20px; accent-color: var(--navy); flex: none; }
+.note { padding: 10px 14px; border-radius: var(--r); font-size: var(--fs-sm); font-weight: 500; }
+.saved { display: grid; gap: 2px; padding: 12px 16px; background: var(--soft); }
+.radios { border: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: center; }
+.radios legend { float: left; margin-right: 12px; }
+
+@media (max-width: 1020px) {
+  .cols, .docs { grid-template-columns: 1fr; }
+}
+@media (max-width: 699px) {
+  .row3 { grid-template-columns: 1fr 1fr; }
+  .row3 > :first-child { grid-column: 1 / -1; }
+  .actions { justify-items: stretch; }
+  .buttons { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+  .actions .buttons { grid-auto-flow: row; }
+  .actions .buttons > :last-child { order: -1; }
+  .times .input { height: 44px; }
+  .doc { flex-wrap: wrap; }
+  .radios legend { float: none; width: 100%; }
+}
+
+.back { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; margin-top: -12px; color: var(--mute); font-weight: 600; font-size: var(--fs-sm); text-decoration: none; }
+.back:hover { color: var(--ink); }
+.pageSub { margin: 4px 0 20px; }
+
+/* Section heading row: title left, its action right; both columns' headings share one height. */
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+.head h2 { margin: 0; }
+/* Add time off: date, note, button on one line; stacked on phones. */
+.addoff { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto; gap: 8px; align-items: center; padding: 10px 16px; }
+.addoff .err { grid-column: 1 / -1; }
+@media (max-width: 699px) {
+  .head { flex-wrap: wrap; }
+  .addoff { grid-template-columns: 1fr; }
+}
+
+/* Clash warning before saving hours (D-47) */
+.clash { display: grid; gap: 10px; padding: 16px; border-color: var(--amber-ink); background: var(--amber-soft); color: var(--ink); }
+.clash ul { display: grid; gap: 6px; padding-left: 18px; }
+.clash a { font-weight: 600; color: var(--navy); }
+.clash small { display: block; color: var(--ink2); }
+.clashActions { display: flex; flex-wrap: wrap; gap: 8px; }
