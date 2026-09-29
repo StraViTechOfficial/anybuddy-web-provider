@@ -21,17 +21,15 @@ export const clock = (hhmm?: string | null) => {
 export const hourMark = (h: number) => `${h % 12 || 12} ${h % 24 < 12 ? "AM" : "PM"}`;
 export const day = (d: string | Date) => fmt({ weekday: "short", day: "numeric", month: "short" }).format(new Date(d));
 
-/** "47:10" under an hour, "3 h 12 min" above. */
-export const countdown = (ms: number) => {
-  ms = Math.max(0, ms);
-  const h = Math.floor(ms / 36e5), m = Math.floor((ms % 36e5) / 6e4), s = Math.floor((ms % 6e4) / 1e3);
-  return h ? `${h} hr ${m} min` : `${m}:${String(s).padStart(2, "0")}`;
+/** Durations for Buddies and customers: hours and minutes only, never seconds (owner, 29 Sep). "2 hr 5 min", "45 min". */
+const hrMin = (min: number) => {
+  const h = Math.floor(min / 60), m = min % 60;
+  return h ? (m ? `${h}\u00a0hr ${m}\u00a0min` : `${h}\u00a0hr`) : `${m}\u00a0min`; // a number never wraps away from its unit
 };
-/** Elapsed job time, "1:04:09" or "41:05". */
-export const elapsed = (ms: number) => {
-  const h = Math.floor(ms / 36e5), m = Math.floor((ms % 36e5) / 6e4), s = Math.floor((ms % 6e4) / 1e3);
-  return (h ? `${h}:${String(m).padStart(2, "0")}` : `${m}`) + `:${String(s).padStart(2, "0")}`;
-};
+/** Time left, rounded up so it never shows "0 min" while time remains: "1 hr 12 min", "3 min". */
+export const countdown = (ms: number) => hrMin(Math.ceil(Math.max(0, ms) / 6e4));
+/** Time worked so far, rounded down: "1 hr 4 min", "Just started" in the first minute. */
+export const elapsed = (ms: number) => (ms < 6e4 ? "Just started" : hrMin(Math.floor(ms / 6e4)));
 
 /** Who ended a cancelled booking, in plain words. One rule for every screen. */
 export const cancelLabel = (b: { cancelledBy?: string | null; acceptedAt?: string | null }) =>

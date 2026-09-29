@@ -31,7 +31,7 @@
 .wait .rp { stroke: var(--amber-ink); }
 .done .rp { stroke: var(--ok); }
 .rtxt { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 0 18px; }
-.rtxt b { font-size: 32px; font-weight: 600; letter-spacing: -.02em; }
+.rtxt b { max-width: 112px; margin-inline: auto; font-size: 26px; font-weight: 600; line-height: 1.15; letter-spacing: -.02em; } /* "2 hr 14 min" may wrap to two lines inside the ring */
 .rtxt small { color: var(--mute); font-size: var(--fs-sm); line-height: 1.3; }
 
 /* slide to confirm */
