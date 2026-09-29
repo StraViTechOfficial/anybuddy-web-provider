@@ -4,12 +4,11 @@ import { UserCircle } from "@phosphor-icons/react";
 import { api, upload } from "@/lib/api";
 import type { VendorProfile } from "@/lib/types";
 import { useVendor } from "@/components/Vendor";
-import { Actions, Field, RequiredNote, SelectField, errText, hasErrors, rateError, type Errors, type FormProps } from "./Field";
-import { RateField } from "./RateField";
+import { Actions, Field, RequiredNote, SelectField, errText, hasErrors, type Errors, type FormProps } from "./Field";
 import s from "./forms.module.css";
 
 type State = { name: string; isoCode: string };
-const EMPTY = { firstName: "", lastName: "", street: "", city: "", state: "", zip: "", rate: "", about: "", areas: "" };
+const EMPTY = { firstName: "", lastName: "", street: "", city: "", state: "", zip: "", about: "", areas: "" };
 
 // Step 1 and Account › Profile. The address is turned into a map point on save (services need one).
 export function ProfileForm({ mode, onDone, onBack }: FormProps) {
@@ -33,7 +32,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
         setV({
           firstName: p.firstName ?? "", lastName: p.lastName ?? "",
           street: p.address?.street ?? "", city: p.address?.city ?? "", state: p.address?.state ?? "", zip: p.postalCode ?? "",
-          rate: p.price ? String(Math.round(p.price)) : "", about: p.description ?? "", areas: p.serviceArea ?? "",
+          about: p.description ?? "", areas: p.serviceArea ?? "",
         });
         setLogoUrl(p.logoUrl ?? "");
       })
@@ -57,7 +56,6 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
     city: v.city.trim().length < 2 ? "Enter your city." : undefined,
     state: !v.state ? "Choose your state." : undefined,
     zip: !/^\d{5}$/.test(v.zip) ? "Enter a 5-digit ZIP code." : undefined,
-    rate: rateError(v.rate),
   });
   const errs: Errors = tried ? check() : {};
 
@@ -93,7 +91,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
         body: {
           step: 1, firstName: v.firstName.trim(), lastName: v.lastName.trim(), logoUrl,
           address: { street: v.street.trim(), city: v.city.trim(), state: v.state, country: "United States" },
-          postalCode: v.zip, price: +v.rate, latitude: point.latitude, longitude: point.longitude,
+          postalCode: v.zip, latitude: point.latitude, longitude: point.longitude,
           ...(v.about.trim() && { description: v.about.trim() }),
           ...(v.areas.trim() && { serviceArea: v.areas.trim() }),
         },
@@ -146,8 +144,6 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
           <Field id="areas" label="Areas you serve (optional)">
             <input autoComplete="off" value={v.areas} onChange={set("areas")} maxLength={100} placeholder="Boston, Cambridge" />
           </Field>
-          <RateField id="rate" value={v.rate} error={errs.rate} onChange={(rate) => setV((o) => ({ ...o, rate }))}
-            hint="Used for new services. Drag the slider, or type an exact rate from $1 to $1,000." />
         </div>
       </div>
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
