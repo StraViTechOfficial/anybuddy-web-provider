@@ -8,7 +8,7 @@ import { Actions, Field, RequiredNote, SelectField, errText, hasErrors, type Err
 import s from "./forms.module.css";
 
 type State = { name: string; isoCode: string };
-const EMPTY = { firstName: "", lastName: "", street: "", city: "", state: "", zip: "", about: "", areas: "" };
+const EMPTY = { firstName: "", lastName: "", street: "", city: "", state: "", zip: "", about: "" };
 
 // Step 1 and Account › Profile. The address is turned into a map point on save (services need one).
 export function ProfileForm({ mode, onDone, onBack }: FormProps) {
@@ -32,7 +32,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
         setV({
           firstName: p.firstName ?? "", lastName: p.lastName ?? "",
           street: p.address?.street ?? "", city: p.address?.city ?? "", state: p.address?.state ?? "", zip: p.postalCode ?? "",
-          about: p.description ?? "", areas: p.serviceArea ?? "",
+          about: p.description ?? "",
         });
         setLogoUrl(p.logoUrl ?? "");
       })
@@ -93,7 +93,6 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
           address: { street: v.street.trim(), city: v.city.trim(), state: v.state, country: "United States" },
           postalCode: v.zip, latitude: point.latitude, longitude: point.longitude,
           ...(v.about.trim() && { description: v.about.trim() }),
-          ...(v.areas.trim() && { serviceArea: v.areas.trim() }),
         },
       });
       await reload().catch(() => {});
@@ -138,9 +137,9 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
           options={states.map((x) => ({ value: x.isoCode, label: x.name }))} />
         <Field id="zip" label="ZIP code" required error={errs.zip}><input autoComplete="postal-code" inputMode="numeric" value={v.zip} onChange={set("zip")} maxLength={5} /></Field>
       </div>
-      <Field id="areas" label="Areas you serve (optional)" hint="Towns or neighborhoods, separated by commas.">
-        <input autoComplete="off" value={v.areas} onChange={set("areas")} maxLength={100} placeholder="Boston, Cambridge" />
-      </Field>
+      {/* Contract (SPA register: "Location, Complete Address"; CMA listing: within 10 km first, then by distance).
+          The address is the service area: search reaches 100 km, nearest first. No separate area field. */}
+      <p className="hint">This is your home base. Customers find you by distance from here, the closest first. They never see your street address.</p>
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
       </fieldset>
     </form>

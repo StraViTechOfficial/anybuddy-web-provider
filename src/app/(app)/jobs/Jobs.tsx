@@ -103,6 +103,7 @@ export function Jobs() {
 
   return (
     <>
+      <div className={s.top}>
       <h1>Jobs</h1>
       <nav className={s.segs} aria-label="Job lists">
         {TABS.map(([k, label, st]) => (
@@ -111,7 +112,8 @@ export function Jobs() {
           </Link>
         ))}
       </nav>
-      <div className={`${s.split} ${id ? s.has : ""}`}>
+      </div>
+      <div className={`${s.split} ${id ? s.has : ""} fill`}>
         <div className={s.list}>
           <div className="box" role="list" aria-label={`${tab[1]} jobs`} aria-busy={rows === null}>
             {rows === null && !error && [0, 1, 2].map((i) => <div key={i} className={`skeleton ${s.ghost}`} />)}

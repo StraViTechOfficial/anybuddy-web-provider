@@ -56,8 +56,7 @@ function Earnings() {
   if (!data) {
     return (
       <>
-        <h1>Earnings</h1>
-        {filters}
+        <div className={s.top}><h1>Earnings</h1>{filters}</div>
         {error ? <p className="err" role="alert">{error} <button className="btn" onClick={() => { setError(""); refresh(); }}>Try again</button></p>
           : <div className={`skeleton ${s.loading}`} aria-label="Loading earnings" />}
       </>
@@ -88,25 +87,23 @@ function Earnings() {
 
   return (
     <>
-      <h1>Earnings</h1>
-      {filters}
+      <div className={s.top}><h1>Earnings</h1>{filters}</div>
       <dl className={`box ${s.kpis}`}>
         <div><dt>Ready to withdraw</dt><dd>{money(bal.available)}</dd><dd>From finished jobs</dd></div>
         <div><dt>On its way to your bank</dt><dd>{money(bal.pending)}</dd><dd>You asked, not paid yet</dd></div>
         <div><dt>Paid to your bank</dt><dd>{money(paid)}</dd><dd>{PERIODS[period]}</dd></div>
         <div><dt>Taken off</dt><dd>{money(taken)}</dd><dd>Card fees for jobs you canceled after accepting</dd></div>
       </dl>
-      <div className={s.grid}>
+      <div className={`${s.grid} fill`}>
         <Withdraw available={bal.available} open={payouts.find((p) => p.type === "withdrawal" && p.status === "requested")} last4={last4} onDone={refresh} />
-        <div className={s.left}>
-          <section className="box pad" aria-labelledby="chart-h">
+          <section className={`box pad ${s.left}`} aria-labelledby="chart-h">
             <h2 id="chart-h" className={s.ch}>Earned {label} <b>{money(earned)}</b></h2>
             <p className="hint">{period === "week" ? "Per day" : period === "all" ? "Per month" : "Per week, Monday to Sunday"}. Your share of finished jobs.</p>
             <Chart key={period} bars={fill(bars, earnedItems)} title={`Earned ${label}, ${money(earned)}`} />
           </section>
-          <section aria-labelledby="feed-h">
+          <section className={s.feedSec} aria-labelledby="feed-h">
             <h2 id="feed-h" className={s.fh}>Money in and out</h2>
-            <div className="box">
+            <div className={`box ${s.feedBox}`}>
               {rows.length ? (
                 <ul className={s.feed}>
                   {rows.map((r) => (
@@ -119,7 +116,6 @@ function Earnings() {
               ) : <p className="pad muted">{period === "all" ? "Nothing yet" : `Nothing ${label}`}. Finished jobs, withdrawals and fees show up here.</p>}
             </div>
           </section>
-        </div>
       </div>
     </>
   );

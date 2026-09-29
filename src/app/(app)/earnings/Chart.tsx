@@ -71,10 +71,12 @@ export function Chart({ bars, title }: { bars: Bar[]; title: string }) {
           </span>
         ))}
       </div>
-      <table className="sr">
-        <caption>{title}</caption>
-        <tbody>{bars.filter((b) => !b.later).map((b) => <tr key={b.from}><th scope="row">{b.name}</th><td>{money(b.total)}</td></tr>)}</tbody>
-      </table>
+      <div className="sr">{/* a table ignores the 1px box, so the div holds it */}
+        <table>
+          <caption>{title}</caption>
+          <tbody>{bars.filter((b) => !b.later).map((b) => <tr key={b.from}><th scope="row">{b.name}</th><td>{money(b.total)}</td></tr>)}</tbody>
+        </table>
+      </div>
     </div>
   );
 }

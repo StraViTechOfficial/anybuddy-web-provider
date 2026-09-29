@@ -97,6 +97,22 @@
 .vnow { position: absolute; left: -6px; right: 0; height: 2px; background: var(--bad); z-index: 3; pointer-events: none; }
 .vnow::before { content: ""; position: absolute; left: 0; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--bad); }
 
+/* Laptop: the board fills the screen (see Shell .fill). Day rows share the height; the job panel scrolls inside. */
+@media (min-width: 1021px) {
+  .board { align-items: stretch; grid-template-rows: minmax(0, 1fr); }
+  .col { grid-template-rows: auto minmax(0, 1fr); }
+  .lanes { display: grid; grid-template-rows: auto repeat(var(--n), minmax(42px, 1fr)); grid-auto-rows: auto; min-height: 0; }
+  .lanes .lane { min-height: 0; }
+  .week .lab { padding: 0 16px; line-height: 1.25; }
+  .track { container-type: size; }
+  .focus { position: static; align-self: start; max-height: 100%; overflow: auto; }
+  .legend .keys { flex-basis: auto; margin-left: auto; }
+}
+/* Short day rows (small laptop screens): the block keeps the job name; the time is in the hover card. */
+@container (max-height: 56px) {
+  .blk small { display: none; }
+  .blk b { -webkit-line-clamp: 1; }
+}
 @media (max-width: 1020px) { .board { grid-template-columns: 1fr; } .focus { position: static; } .legend .keys { display: none; } }
 @media (max-width: 699px) {
   .lanes, .wideOnly { display: none; }

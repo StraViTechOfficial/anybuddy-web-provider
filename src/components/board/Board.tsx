@@ -57,7 +57,7 @@ export function Board({ items, days, today, avail, sel, onSel, now, nowMin, unit
     return () => removeEventListener("scroll", hide, true);
   }, []);
   return (
-    <section className={`box ${s.lanes} ${days.length > 3 ? s.week : ""}`} aria-label={`Your ${unit}`}>
+    <section className={`box ${s.lanes} ${days.length > 3 ? s.week : ""}`} style={{ "--n": days.length } as CSSProperties} aria-label={`Your ${unit}`}>
       <div className={s.axis} aria-hidden>
         <span />
         <div className={s.ticks}>{TICKS.map((i) => <span key={i} style={{ left: `${(i * 60 / SPAN) * 100}%` }}>{hourMark(7 + i)}</span>)}</div>

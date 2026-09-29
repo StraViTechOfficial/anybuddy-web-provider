@@ -37,3 +37,5 @@
   .x [data-skip] { visibility: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .chart { animation: none; } .bar { transition: none; } }
+/* Laptop: the chart takes whatever height the Earnings screen leaves, so the page never scrolls. */
+@media (min-width: 1021px) { .chart { flex: 1; min-height: 0; grid-template-rows: minmax(120px, 1fr) auto; } }

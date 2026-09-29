@@ -14,6 +14,13 @@
 .banner a { font-weight: 700; }
 /* Content column centred on the page, text left-aligned inside it (Stripe/Linear/Airbnb standard). */
 .main { flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: 24px 32px; }
+/* A screen whose main block has the global class "fill" is exactly one laptop screen tall: the block takes what is left
+   and scrolls inside itself (Home board, Earnings history). Floor of 620px so tiny windows fall back to a page scroll. */
+@media (min-width: 1021px) {
+  .app:has(:global(.fill)) { height: max(100dvh, 620px); }
+  .app:has(:global(.fill)) .main { min-height: 0; display: flex; flex-direction: column; }
+  .main :global(.fill) { flex: 1; min-height: 0; }
+}
 .tabbar { display: none; }
 @media (max-width: 1020px) { .top { gap: 12px; padding: 0 20px; } .nav a { padding: 0 10px; } .main { padding: 24px 20px 40px; } }
 @media (max-width: 699px) {

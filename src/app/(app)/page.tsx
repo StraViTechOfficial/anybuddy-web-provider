@@ -181,7 +181,7 @@ function Home() {
         </p>
       </div>
       {err && <p className="err" role="alert">{err}</p>}
-      <div className={s.board}>
+      <div className={`${s.board} fill`}>
         <div className={s.col}>
           {nav(s.wideOnly)}
           <Board items={items} days={days} today={today} avail={avail} sel={current} onSel={pick} now={now} nowMin={nowMin} unit={unit} />
