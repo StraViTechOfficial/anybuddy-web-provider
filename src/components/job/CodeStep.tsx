@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Camera, Timer } from "@phosphor-icons/react";
+import { Camera } from "@phosphor-icons/react";
 import { api, ApiError, upload } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import s from "./JobActions.module.css";
@@ -86,39 +86,41 @@ export function CodeStep({ bookingId, finish, onDone, onClose }: { bookingId: st
 
   return (
     <div className={s.panel}>
-      <p className={s.gate}><Timer size={20} aria-hidden />{finish ? "The timer stops when you enter the finish code." : "The timer starts when you enter the start code."}</p>
+      {/* Compact (owner 29 Sep): instruction first, code and resend on one row, photos and close on one row. */}
       <fieldset className={s.codeSet} disabled={busy}>
         <legend>{finish ? "Finish code" : "Start code"}</legend>
-        <div className={s.code} onPaste={onPaste}>
-          {digits.map((d, i) => (
-            <input
-              key={i}
-              ref={(el) => { boxes.current[i] = el; }}
-              inputMode="numeric"
-              autoComplete={i === 0 ? "one-time-code" : "off"}
-              maxLength={1}
-              aria-label={`Digit ${i + 1}`}
-              aria-invalid={!!err}
-              value={d}
-              onChange={(e) => onInput(i, e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Backspace" && !d && i > 0) boxes.current[i - 1]?.focus(); }}
-            />
-          ))}
+        <p className="hint" id="code-hint">The customer has it by text and email.</p>
+        <div className={s.codeRow}>
+          <div className={s.code} onPaste={onPaste}>
+            {digits.map((d, i) => (
+              <input
+                key={i}
+                ref={(el) => { boxes.current[i] = el; }}
+                inputMode="numeric"
+                autoComplete={i === 0 ? "one-time-code" : "off"}
+                maxLength={1}
+                aria-label={`Digit ${i + 1}`}
+                aria-describedby={i === 0 ? "code-hint" : undefined}
+                aria-invalid={!!err}
+                value={d}
+                onChange={(e) => onInput(i, e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Backspace" && !d && i > 0) boxes.current[i - 1]?.focus(); }}
+              />
+            ))}
+          </div>
+          <button type="button" className={`btn ${locked ? "p" : ""}`} onClick={resend}>Send again</button>
         </div>
       </fieldset>
-      <p className="hint">The customer got the code by text and email.</p>
       {err && <p className="err" role="alert">{err}</p>}
-      {finish && (
-        <label className={`btn lg ${s.photoBtn}`} aria-busy={uploading}>
-          <Camera size={20} aria-hidden />
-          {uploading ? "Uploading" : photos.length ? `${photos.length} photo${photos.length > 1 ? "s" : ""} added. Add more` : "Add photos of the finished work"}
-          <span className={s.opt}>Optional</span>
-          <input type="file" accept="image/*" multiple className="sr" disabled={uploading || photos.length >= 20} onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} />
-        </label>
-      )}
-      <div className={s.row}>
-        <button type="button" className={`btn lg ${locked ? "p" : ""}`} onClick={resend}>Send the code again</button>
-        <button type="button" className="btn lg" onClick={onClose}>Close</button>
+      <div className={s.codeRow}>
+        {finish && (
+          <label className="btn" aria-busy={uploading}>
+            <Camera size={20} aria-hidden />
+            {uploading ? "Uploading" : photos.length ? `${photos.length} photo${photos.length > 1 ? "s" : ""} added, add more` : "Add photos, optional"}
+            <input type="file" accept="image/*" multiple className="sr" disabled={uploading || photos.length >= 20} onChange={(e) => { addPhotos(e.target.files); e.target.value = ""; }} />
+          </label>
+        )}
+        <button type="button" className={`btn ${s.close}`} onClick={onClose}>Close</button>
       </div>
     </div>
   );
