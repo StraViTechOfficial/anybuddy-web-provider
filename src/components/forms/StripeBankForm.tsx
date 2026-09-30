@@ -27,6 +27,8 @@ const STRUCTURES = [
   { value: "private_corporation", label: "Corporation" },
 ];
 const KINDS: [Kind, string][] = [["individual", "Individual — paid with your SSN or ITIN"], ["company", "Business — paid through your company's EIN"]];
+// Owner, 1 Oct 2026: business (EIN) payouts are built but not offered yet; shown as coming soon. Set to true to open them.
+const BUSINESS_OPEN = false;
 const einText = (d: string) => (d.length > 2 ? `${d.slice(0, 2)}-${d.slice(2)}` : d);
 // Same words as the iOS app (Payouts.statusRows). Pending and verified have their own boxes below.
 const STATUS: Record<"needs_info" | "disabled", [string, string, string]> = {
@@ -250,7 +252,9 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
         <legend className={s.label}>How you're paid</legend>
         {KINDS.map(([k, label]) => (
           <label key={k} className={s.check}>
-            <input type="radio" name="kind" value={k} checked={kind === k} onChange={() => choose(k)} /> {label}
+            <input type="radio" name="kind" value={k} checked={kind === k} onChange={() => choose(k)}
+              disabled={k === "company" && !BUSINESS_OPEN && kind !== "company"} /> {label}
+            {k === "company" && !BUSINESS_OPEN && kind !== "company" && <span className="hint"> · Coming soon</span>}
           </label>
         ))}
       </fieldset>
