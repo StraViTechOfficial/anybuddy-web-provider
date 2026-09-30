@@ -116,7 +116,7 @@ function Earnings() {
         <div><dt>Taken off</dt><dd>{money(taken)}</dd><dd>{pk ? "All time. " : ""}Card fees for jobs you canceled after accepting</dd></div>
       </dl>
       <div className={`${s.grid} fill`}>
-        <Payouts available={bal.instantAvailable ?? bal.available} last4={last4} acct={acct} pk={pk} onDone={refresh} />
+        <Payouts available={bal.instantAvailable ?? bal.available} pending={bal.pending} last4={last4} acct={acct} pk={pk} onDone={refresh} />
           <section className={`box pad ${s.left}`} aria-labelledby="chart-h">
             <h2 id="chart-h" className={s.ch}>Earned {label} <b>{money(earned)}</b></h2>
             <p className="hint">{period === "week" ? "Per day" : period === "all" ? "Per month" : "Per week, Monday to Sunday"}. Your share of finished jobs.</p>

@@ -11,11 +11,11 @@ import type { PayoutAccount } from "@/lib/types";
 import e from "./earnings.module.css";
 import s from "./payouts.module.css";
 
-type Props = { available: number; last4: string | null; acct: PayoutAccount | null; pk?: string; onDone: () => void };
+type Props = { available: number; pending?: number; last4: string | null; acct: PayoutAccount | null; pk?: string; onDone: () => void };
 
 // Owner 30 Sep: payouts are automatic after each job, in both modes; no withdraw button, no approval.
 // Stripe mode can also pay the ready balance to a debit card now ("Get paid now", instant payout).
-export function Payouts({ available, last4, acct, pk, onDone }: Props) {
+export function Payouts({ available, pending = 0, last4, acct, pk, onDone }: Props) {
   const [panel, setPanel] = useState<"" | "instant" | "card" | "add">("");
   // Owner, 1 Oct 2026: the debit card can be added any time (not only once money is ready), and the Buddy is told
   // when "Get paid now" appears, instead of the whole option staying hidden.
@@ -33,7 +33,7 @@ export function Payouts({ available, last4, acct, pk, onDone }: Props) {
         <p className="hint">Bank ending {last4}. <Link href="/account/bank">Bank details</Link></p>
         {acct?.requirements.some((r) => r.fix) && <p className="err">{ASKS_LEAD}. <Link href="/account/bank">Send it to Stripe</Link></p>}
         {instant && <button className="btn p lg block" onClick={() => setPanel("instant")}>Get paid now</button>}
-        {canInstant && acct?.card && !instant && <p className="hint">Get paid now appears when money is ready, usually about 2 days after a job.</p>}
+        {canInstant && acct?.card && !instant && <p className="hint">{pending > 0 ? `${money(pending)} from your jobs is on its way. Get paid now appears as soon as Stripe makes it ready.` : "Get paid now appears after your next job."}</p>}
         {canInstant && !acct?.card && (
           <>
             <button className="btn lg block" onClick={() => setPanel("add")}>Add a debit card for instant payouts</button>
