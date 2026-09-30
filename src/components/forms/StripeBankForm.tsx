@@ -8,13 +8,25 @@ import { loadStripe, payoutAccount, token } from "@/lib/stripe";
 import type { PayoutAccount, VendorProfile } from "@/lib/types";
 import { validAba } from "./BankForm";
 import { Actions, Field, RequiredNote, SelectField, errText, hasErrors, type Errors, type FormProps } from "./Field";
+import { StripeAsks } from "./StripeAsks";
 import s from "./forms.module.css";
 
 type State = { name: string; isoCode: string };
 const EMPTY = {
   first: "", last: "", dob: "", ssn: "", phone: "", line1: "", line2: "", city: "", state: "", zip: "",
   holder: "", routing: "", account: "", confirm: "", password: "",
+  // Paid through a business: the business, and the Buddy's email and title as its representative.
+  bname: "", ein: "", structure: "", bphone: "", bline1: "", bline2: "", bcity: "", bstate: "", bzip: "", email: "", title: "",
 };
+type Kind = "individual" | "company";
+const STRUCTURES = [
+  { value: "sole_proprietorship", label: "Sole proprietorship" },
+  { value: "single_member_llc", label: "Single-member LLC" },
+  { value: "multi_member_llc", label: "Multi-member LLC" },
+  { value: "private_corporation", label: "Corporation" },
+];
+const KINDS: [Kind, string][] = [["individual", "Individual — paid with your SSN or ITIN"], ["company", "Business — paid through your company's EIN"]];
+const einText = (d: string) => (d.length > 2 ? `${d.slice(0, 2)}-${d.slice(2)}` : d);
 const STATUS: Record<PayoutAccount["status"], [string, string, string]> = {
   not_started: ["", "", ""],
   // Same words as the iOS app (Payouts.statusRows).
@@ -34,6 +46,9 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [kind, setKind] = useState<Kind>("individual");
+  const [switchNote, setSwitchNote] = useState(false);
+  const [einFocus, setEinFocus] = useState(false);
 
   useEffect(() => {
     api<State[]>("list-location", { query: { country: "United States" } })
@@ -43,13 +58,17 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     Promise.all([payoutAccount(), api<VendorProfile>("vendor/auth/get-profile-details", { query: { type: 1 } })])
       .then(([a, { data: p }]) => {
         setAcct(a);
-        const id = a.identity, ad = id?.address;
+        setKind(a.type ?? "individual");
+        const id = a.identity, ad = id?.address, b = a.business, ba = b?.address;
         setV((o) => ({
           ...o, first: id?.firstName || p.firstName || "", last: id?.lastName || p.lastName || "",
           phone: (id?.phone || p.phone || "").replace(/\D/g, "").slice(-10),
           line1: ad?.line1 || p.address?.street || "", line2: ad?.line2 || "", city: ad?.city || p.address?.city || "",
           state: ad?.state || p.address?.state || "", zip: (ad?.postalCode || p.postalCode || "").slice(0, 5),
-          holder: [p.firstName, p.lastName].filter(Boolean).join(" "),
+          holder: b?.name || [p.firstName, p.lastName].filter(Boolean).join(" "),
+          bname: b?.name || "", structure: b?.structure || "", bphone: (b?.phone || "").replace(/\D/g, "").slice(-10),
+          bline1: ba?.line1 || "", bline2: ba?.line2 || "", bcity: ba?.city || "", bstate: ba?.state || "", bzip: (ba?.postalCode || "").slice(0, 5),
+          email: id?.email || p.email || "", title: id?.title || "",
         }));
       })
       .catch((e) => setError(errText(e)));
@@ -65,12 +84,32 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   const dob = parseDob(v.dob);
   // Already with Stripe: optional, sent only when typed again (server rule).
   const dobOnFile = !!acct?.identity?.dobProvided, ssnOnFile = !!acct?.identity?.ssnLast4Provided;
+  const biz = kind === "company", einOnFile = !!acct?.business?.einProvided;
+  const ein = v.ein.replace(/\D/g, "");
+  // Stripe can't change how an existing account is paid.
+  const locked = !!acct && acct.status !== "not_started";
+  const choose = (k: Kind) => { if (locked && k !== acct!.type) return setSwitchNote(true); setSwitchNote(false); setKind(k); };
+  const tenDigits = (t: string) => /^\d{10}$/.test(t.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, ""));
   const check = (): Errors => ({
+    ...(biz && {
+      bname: !v.bname.trim() ? "Enter the business's legal name." : undefined,
+      ein: einOnFile && !ein ? undefined : ein.length !== 9 ? "Enter the 9-digit EIN." : undefined,
+      structure: !v.structure ? "Choose the business structure." : undefined,
+      bline1: v.bline1.trim().length < 3 ? "Enter the business's street address." : undefined,
+      bcity: v.bcity.trim().length < 2 ? "Enter the city." : undefined,
+      bstate: !v.bstate ? "Choose the state." : undefined,
+      bzip: !/^\d{5}$/.test(v.bzip) ? "Enter a 5-digit ZIP code." : undefined,
+      bphone: !tenDigits(v.bphone) ? "Enter a 10-digit US phone number." : undefined,
+    }),
     first: !v.first.trim() ? "Enter your legal first name." : undefined,
     last: !v.last.trim() ? "Enter your legal last name." : undefined,
     dob: dobOnFile && !v.dob ? undefined : !dob ? "Enter your date of birth as MM/DD/YYYY." : age(dob) < 18 ? "You must be 18 or older to be paid." : age(dob) > 120 ? "Check the year." : undefined,
-    ssn: ssnOnFile && !v.ssn ? undefined : !/^\d{4}$/.test(v.ssn) ? "Enter the last 4 digits of your SSN or ITIN." : undefined,
-    phone: !/^\d{10}$/.test(v.phone.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "")) ? "Enter a 10-digit US phone number." : undefined,
+    ssn: (ssnOnFile || biz) && !v.ssn ? undefined : !/^\d{4}$/.test(v.ssn) ? "Enter the last 4 digits of your SSN or ITIN." : undefined,
+    phone: !tenDigits(v.phone) ? "Enter a 10-digit US phone number." : undefined,
+    ...(biz && {
+      email: !/^\S+@\S+\.\S+$/.test(v.email.trim()) ? "Enter your email address." : undefined,
+      title: !v.title.trim() ? "Enter your title, for example Owner." : undefined,
+    }),
     line1: v.line1.trim().length < 3 ? "Enter your street address." : undefined,
     city: v.city.trim().length < 2 ? "Enter your city." : undefined,
     state: !v.state ? "Choose your state." : undefined,
@@ -89,24 +128,34 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     setError("");
     if (hasErrors(check())) return;
     setBusy(true);
+    const person = {
+      firstName: v.first.trim(), lastName: v.last.trim(), ...(dob && { dob }), ...(v.ssn && { ssnLast4: v.ssn }),
+      phone: "+1" + v.phone.replace(/\D/g, "").slice(-10),
+      address: { line1: v.line1.trim(), ...(v.line2.trim() && { line2: v.line2.trim() }), city: v.city.trim(), state: v.state, postalCode: v.zip },
+    };
     try {
       const bankToken = newBank
         ? await token((await loadStripe(pk)).createToken("bank_account", {
             country: "US", currency: "usd", routing_number: v.routing, account_number: v.account,
-            account_holder_name: v.holder.trim(), account_holder_type: "individual",
+            account_holder_name: v.holder.trim(), account_holder_type: biz ? "company" : "individual",
           }))
         : undefined;
       const { data } = await api<PayoutAccount>("vendor/payouts/account", {
         method: "POST",
         body: {
-          firstName: v.first.trim(), lastName: v.last.trim(), ...(dob && { dob }), ...(v.ssn && { ssnLast4: v.ssn }),
-          phone: "+1" + v.phone.replace(/\D/g, "").slice(-10),
-          address: { line1: v.line1.trim(), ...(v.line2.trim() && { line2: v.line2.trim() }), city: v.city.trim(), state: v.state, postalCode: v.zip },
+          ...(biz ? {
+            type: "company",
+            company: {
+              name: v.bname.trim(), ...(ein && { ein }), structure: v.structure, phone: "+1" + v.bphone.replace(/\D/g, "").slice(-10),
+              address: { line1: v.bline1.trim(), ...(v.bline2.trim() && { line2: v.bline2.trim() }), city: v.bcity.trim(), state: v.bstate, postalCode: v.bzip },
+            },
+            representative: { ...person, email: v.email.trim(), title: v.title.trim() },
+          } : person),
           ...(bankToken && { bankToken }), ...(hasBank && bankToken && { password: v.password }), tosAccepted: true,
         },
       });
       setAcct(data);
-      setV((o) => ({ ...o, ssn: "", routing: "", account: "", confirm: "", password: "" }));
+      setV((o) => ({ ...o, ssn: "", ein: "", routing: "", account: "", confirm: "", password: "" }));
       setTried(false);
       // Onboarding moves on once Stripe has what it needs (server step 4 → 5); needs info / disabled stay here.
       if (mode !== "onboarding" || data.status === "verified" || data.status === "pending") onDone();
@@ -118,22 +167,66 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     }
   }
 
+  // The ask card sends one thing to Stripe; onboarding moves on once Stripe is checking it (same rule as submit).
+  const asked = (a: PayoutAccount) => {
+    setAcct(a);
+    if (mode === "onboarding" && (a.status === "verified" || a.status === "pending")) onDone();
+  };
+
   const digits = { inputMode: "numeric" as const, autoComplete: "off", spellCheck: false };
   const [word, tag, line] = STATUS[acct?.status ?? "not_started"];
   return (
+    <div className={s.form}>
+    {word && (
+      <div className={`box ${s.saved} ${s.status}`} role="status">
+        <span className={`tag ${tag}`}>{word}</span>
+        <span>{line}</span>
+        {acct?.status === "needs_info" && <Needs reqs={acct.requirements} />}
+        {acct?.bank && <span className="hint">Paid to {acct.bank.bankName ? `${acct.bank.bankName}, ` : ""}account ending {acct.bank.last4}</span>}
+      </div>
+    )}
+    {acct && <StripeAsks acct={acct} onSaved={asked} />}
     <form method="post" onSubmit={submit} noValidate>
       <fieldset className={s.form} disabled={!acct}>
-      {word && (
-        <div className={`box ${s.saved} ${s.status}`} role="status">
-          <span className={`tag ${tag}`}>{word}</span>
-          <span>{line}</span>
-          {acct?.status === "needs_info" && <Needs reqs={acct.requirements} />}
-          {acct?.bank && <span className="hint">Paid to {acct.bank.bankName ? `${acct.bank.bankName}, ` : ""}account ending {acct.bank.last4}</span>}
-        </div>
-      )}
       <RequiredNote />
-      <h2 className={s.label}>About you</h2>
-      <p className="hint">Required by US law to pay you: your name, date of birth, address and the last 4 digits of your SSN or ITIN. It goes straight to Stripe; we never store it.</p>
+      <fieldset className={s.radios}>
+        <legend className={s.label}>How you're paid</legend>
+        {KINDS.map(([k, label]) => (
+          <label key={k} className={s.check}>
+            <input type="radio" name="kind" value={k} checked={kind === k} onChange={() => choose(k)} /> {label}
+          </label>
+        ))}
+      </fieldset>
+      {switchNote && <p className="hint" role="status"><Link href={`/account/help?subject=${encodeURIComponent("Switch how I'm paid")}`}>Contact support</Link> to switch how you're paid.</p>}
+      {biz && (
+        <>
+          <h2 className={s.label}>Your business</h2>
+          <p className="hint">The business Stripe pays, as registered with the IRS. The EIN goes straight to Stripe; we never store it.</p>
+          <div className={s.row3}>
+            <Field id="bname" label="Business legal name" required error={errs.bname}><input autoComplete="organization" value={v.bname} onChange={set("bname")} maxLength={100} /></Field>
+            <Field id="ein" label="EIN" required={!einOnFile} error={errs.ein} hint={einOnFile ? "On file. Leave empty to keep it." : "9 digits, XX-XXXXXXX."}>
+              <input {...digits} value={einFocus || ein.length < 9 ? einText(ein) : `••-•••${ein.slice(5)}`} onChange={(e) => setV((o) => ({ ...o, ein: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                onFocus={() => setEinFocus(true)} onBlur={() => setEinFocus(false)} maxLength={10} placeholder="XX-XXXXXXX" />
+            </Field>
+            <SelectField id="structure" label="Business structure" required error={errs.structure} value={v.structure} onChange={(structure) => setV((o) => ({ ...o, structure }))} options={STRUCTURES} />
+          </div>
+          <div className={s.addrRow}>
+            <Field id="bline1" label="Business street address" required error={errs.bline1}><input autoComplete="off" value={v.bline1} onChange={set("bline1")} maxLength={100} /></Field>
+            <Field id="bcity" label="City" required error={errs.bcity}><input autoComplete="off" value={v.bcity} onChange={set("bcity")} maxLength={50} /></Field>
+            <SelectField id="bstate" label="State" required error={errs.bstate} value={v.bstate} onChange={(bstate) => setV((o) => ({ ...o, bstate }))}
+              options={states.map((x) => ({ value: x.isoCode, label: x.name }))} />
+            <Field id="bzip" label="ZIP code" required error={errs.bzip}><input autoComplete="off" inputMode="numeric" value={v.bzip} onChange={set("bzip")} maxLength={5} /></Field>
+          </div>
+          <div className={s.row3}>
+            <Field id="bline2" label="Suite (optional)"><input autoComplete="off" value={v.bline2} onChange={set("bline2")} maxLength={100} /></Field>
+            <Field id="bphone" label="Business phone" required error={errs.bphone}><input type="tel" autoComplete="off" value={v.bphone} onChange={set("bphone")} maxLength={14} /></Field>
+          </div>
+        </>
+      )}
+      <h2 className={s.label}>{biz ? "You, running the business" : "About you"}</h2>
+      <p className="hint">{biz
+        ? "Required by US law from the person running the business: your name, date of birth, home address and, if you have one, the last 4 digits of your SSN or ITIN (without it, Stripe asks for a photo ID). It goes straight to Stripe; we never store it."
+        : "Required by US law to pay you: your name, date of birth, address and the last 4 digits of your SSN or ITIN. It goes straight to Stripe; we never store it."}</p>
       <div className={s.row3}>
         <Field id="first" label="Legal first name" required error={errs.first}><input autoComplete="given-name" value={v.first} onChange={set("first")} maxLength={50} /></Field>
         <Field id="last" label="Legal last name" required error={errs.last}><input autoComplete="family-name" value={v.last} onChange={set("last")} maxLength={50} /></Field>
@@ -142,9 +235,15 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
         </Field>
       </div>
       <div className={s.row3}>
-        <Field id="ssn" label="SSN or ITIN, last 4 digits" required={!ssnOnFile} error={errs.ssn} hint={ssnOnFile ? "On file. Leave empty to keep it." : "Your US tax ID: Social Security or Individual Taxpayer ID number."}><input {...digits} type="password" value={v.ssn} onChange={set("ssn")} maxLength={4} /></Field>
+        <Field id="ssn" label={biz ? "SSN or ITIN, last 4 digits (optional)" : "SSN or ITIN, last 4 digits"} required={!ssnOnFile && !biz} error={errs.ssn} hint={ssnOnFile ? "On file. Leave empty to keep it." : "Your US tax ID: Social Security or Individual Taxpayer ID number."}><input {...digits} type="password" value={v.ssn} onChange={set("ssn")} maxLength={4} /></Field>
         <Field id="phone" label="Mobile phone" required error={errs.phone}><input type="tel" autoComplete="tel-national" value={v.phone} onChange={set("phone")} maxLength={14} /></Field>
       </div>
+      {biz && (
+        <div className={s.row3}>
+          <Field id="email" label="Email" required error={errs.email}><input type="email" autoComplete="email" value={v.email} onChange={set("email")} maxLength={100} /></Field>
+          <Field id="title" label="Your title" required error={errs.title} hint="For example Owner, Managing member or CEO."><input autoComplete="organization-title" value={v.title} onChange={set("title")} maxLength={60} /></Field>
+        </div>
+      )}
       <div className={s.addrRow}>
         <Field id="line1" label="Home street address" required error={errs.line1}><input autoComplete="address-line1" value={v.line1} onChange={set("line1")} maxLength={100} /></Field>
         <Field id="city" label="City" required error={errs.city}><input autoComplete="address-level2" value={v.city} onChange={set("city")} maxLength={50} /></Field>
@@ -156,10 +255,11 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
         <Field id="line2" label="Apartment or suite (optional)"><input autoComplete="address-line2" value={v.line2} onChange={set("line2")} maxLength={100} /></Field>
       </div>
 
-      <h2 className={s.label}>Bank account</h2>
+      <h2 className={s.label}>{biz ? "Business bank account" : "Bank account"}</h2>
+      {biz && <p className="hint">The business's checking account, in its name.</p>}
       {hasBank && <p className="hint">Leave these empty to keep account ending {acct!.bank!.last4}. To change it, enter the new account.</p>}
       <div className={s.row3}>
-        <Field id="holder" label="Account holder name" required={newBank} error={errs.holder}><input autoComplete="name" value={v.holder} onChange={set("holder")} maxLength={100} /></Field>
+        <Field id="holder" label="Account holder name" required={newBank} error={errs.holder} hint={biz ? "The business's name, as the bank has it." : undefined}><input autoComplete="name" value={v.holder} onChange={set("holder")} maxLength={100} /></Field>
         <Field id="routing" label="Routing number" required={newBank} error={errs.routing} hint="9 digits, on your checks or on your bank's website.">
           <input {...digits} value={v.routing} onChange={set("routing")} maxLength={9} />
         </Field>
@@ -185,14 +285,16 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
       </fieldset>
     </form>
+    </div>
   );
 }
 
-/** What Stripe still needs: the words the form below answers, then what goes through support (same as iOS). */
+/** What Stripe still needs: the ask card below, the words the form answers, then what goes through support (same as iOS). */
 function Needs({ reqs }: { reqs: PayoutAccount["requirements"] }) {
   const { inForm, support } = needs(reqs);
   return (
     <>
+      {reqs.some((r) => r.fix) && <span className="hint">Send what Stripe asks for below.</span>}
       {inForm.length > 0 && <ul>{inForm.map((t) => <li key={t}>{t}</li>)}</ul>}
       {inForm.length > 0 && <span className="hint">Add the missing details below, then save.</span>}
       {support.length > 0 && (

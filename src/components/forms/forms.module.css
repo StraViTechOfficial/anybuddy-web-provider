@@ -144,3 +144,5 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 /* Stripe payouts status (Account › Bank) */
 .status :global(.tag) { justify-self: start; }
 .status ul { padding-left: 18px; }
+.asks { display: grid; gap: 16px; }
+.asks h3 { font-size: var(--fs-sm); font-weight: 600; }

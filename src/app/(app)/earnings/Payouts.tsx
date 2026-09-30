@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
 import { money } from "@/lib/format";
-import { instantFee } from "@/lib/pay";
+import { ASKS_LEAD, instantFee } from "@/lib/pay";
 import { loadStripe, token, type CardElement, type Stripe } from "@/lib/stripe";
 import { useToast } from "@/components/Toast";
 import { errText } from "@/components/forms/Field";
@@ -28,6 +28,7 @@ export function Payouts({ available, last4, acct, pk, onDone }: Props) {
       <>
         <p>Paid to your bank after each job.</p>
         <p className="hint">Bank ending {last4}. <Link href="/account/bank">Bank details</Link></p>
+        {acct?.requirements.some((r) => r.fix) && <p className="err">{ASKS_LEAD}. <Link href="/account/bank">Send it to Stripe</Link></p>}
         {instant && <button className="btn p lg block" onClick={() => setPanel("instant")}>{acct?.card ? "Get paid now" : "Add a debit card"}</button>}
         {pk && acct?.card && (
           <p className="hint">

@@ -5,16 +5,22 @@ type Money = { price?: number; vendorPriceAfterDetection?: number; commissionAmo
 /** The Buddy's share after Any-Buddy's fee. null when unknown (0 is how old rows say unknown); never falls back to price. */
 export const shareOf = (j: Money) => (j.vendorPriceAfterDetection ?? 0) > 0 ? j.vendorPriceAfterDetection! : null;
 
-// Stripe requirements (contract "Changes", 30 Sep): the codes the bank form's own fields answer, by prefix. Anything
-// else (photo ID, full SSN, proof of address, "More information") goes through support. Same list and words as iOS.
+// Stripe requirements (contract "Changes", 30 Sep): the codes the bank form's own fields answer, by prefix. Ones with a
+// `fix` (full SSN, photo ID, proof of address) have their own card (StripeAsks); anything else goes through support.
+// Same list and words as iOS.
 const IN_FORM = ["individual.first_name", "individual.last_name", "individual.dob", "individual.ssn_last_4", "individual.phone",
-  "individual.address", "external_account", "tos_acceptance"];
-/** Stripe's list (one entry per key, so "Date of birth" can come 3 times) → unique words, split by who can fix them. */
-export function needs(reqs: { code: string; text: string }[]) {
-  const words = (inForm: boolean) => [...new Set(reqs.filter((r) => IN_FORM.some((p) => r.code.startsWith(p)) === inForm).map((r) => r.text))];
+  "individual.address", "external_account", "tos_acceptance",
+  "company.name", "company.tax_id", "company.structure", "company.phone", "company.address"];
+// Business accounts: the representative (the Buddy), `representative.*` or `person_xxx.*`.
+const REP_IN_FORM = /^(representative|person_[^.]+)\.(first_name|last_name|dob|ssn_last_4|phone|address|email|relationship\.title)/;
+/** Stripe's list (one entry per key, so "Date of birth" can come 3 times) → unique words, split by who can fix them.
+ * Requirements with a `fix` are in neither list: the StripeAsks card answers them. */
+export function needs(reqs: { code: string; text: string; fix?: string }[]) {
+  const words = (inForm: boolean) => [...new Set(reqs.filter((r) => !r.fix && (IN_FORM.some((p) => r.code.startsWith(p)) || REP_IN_FORM.test(r.code)) === inForm).map((r) => r.text))];
   return { inForm: words(true), support: words(false) };
 }
 export const NEEDS_LEAD = "Stripe needs a few more details before it can pay you:";
+export const ASKS_LEAD = "Stripe needs one more thing to pay you";
 export const SUPPORT_LEAD = "Contact support to send these:";
 
 // Instant payout fee, the server's estimate of Stripe's rate (helper/stripePayouts.ts): 1.5%, at least $0.50.

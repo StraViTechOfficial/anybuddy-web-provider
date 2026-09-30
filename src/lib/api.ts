@@ -36,6 +36,9 @@ export const UPLOAD_MAX_MB = 10;
 const EXT: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", pdf: "application/pdf" };
 export const FILES = {
   photo: { types: ["image/jpeg", "image/png", "image/webp"], accept: "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp", words: "JPG, PNG or WebP" },
+  // Stripe's own limits (POST vendor/payouts/document): an ID is a JPG or PNG; proof of address may also be a PDF.
+  idPhoto: { types: ["image/jpeg", "image/png"], accept: "image/jpeg,image/png,.jpg,.jpeg,.png", words: "JPG or PNG" },
+  proof: { types: ["image/jpeg", "image/png", "application/pdf"], accept: "image/jpeg,image/png,application/pdf,.jpg,.jpeg,.png,.pdf", words: "JPG, PNG or PDF" },
   document: { types: Object.values(EXT), accept: "image/jpeg,image/png,image/webp,image/heic,application/pdf,.jpg,.jpeg,.png,.webp,.heic,.pdf", words: "JPG, PNG, WebP, HEIC or PDF" },
 };
 export type FileKind = keyof typeof FILES;

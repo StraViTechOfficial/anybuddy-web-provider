@@ -130,10 +130,22 @@ export type PayoutStatus = "pending" | "sent" | "paid" | "failed" | "reversed";
 // vendor/payouts/account: the Buddy's Stripe account as our server sees it. Only last 4 digits ever come back.
 export interface PayoutAccount {
   status: "not_started" | "pending" | "needs_info" | "verified" | "disabled";
-  requirements: { code: string; text: string }[]; // one per Stripe key, e.g. {code: "individual.dob.day", text: "Date of birth"}
-  // What Stripe has, to prefill the form. Never the date of birth or SSN digits, only whether Stripe has them.
+  // Paid as a person (SSN/ITIN) or through a business (EIN). Stripe can't switch it once the account exists.
+  type?: "individual" | "company";
+  // Business accounts: never the EIN, only whether Stripe has it.
+  business?: {
+    name: string | null; einProvided: boolean; structure: string | null; phone: string | null;
+    address: { line1: string | null; line2: string | null; city: string | null; state: string | null; postalCode: string | null } | null;
+  } | null;
+  // One per Stripe key, e.g. {code: "individual.dob.day", text: "Date of birth"}; `fix` on the ones the Buddy answers in
+  // the "Stripe needs one more thing" card (full SSN/ITIN, photo ID, proof of address).
+  requirements: { code: string; text: string; fix?: "id_number" | "id_document" | "address_document" }[];
+  savedId?: boolean; // the onboarding photo ID can be sent to Stripe as is
+  // What Stripe has, to prefill the form (business accounts: the representative's). Never the date of birth or SSN
+  // digits, only whether Stripe has them.
   identity: {
     firstName: string | null; lastName: string | null; dobProvided: boolean; ssnLast4Provided: boolean; phone: string | null;
+    email?: string | null; title?: string | null;
     address: { line1: string | null; line2: string | null; city: string | null; state: string | null; postalCode: string | null } | null;
   } | null;
   bank: { last4: string; bankName?: string } | null;
