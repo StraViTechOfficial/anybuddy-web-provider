@@ -9,7 +9,7 @@
 .progress progress::-moz-progress-bar { background: var(--brand); }
 .sub { margin: 4px 0 18px; }
 .done { display: grid; gap: 12px; justify-items: start; max-width: 520px; margin: 48px auto 0; }
-.tick { color: var(--ok); }
+.wait { color: var(--mute); }
 @media (max-width: 1020px) { .top { padding: 0 20px; } .main { padding: 20px 20px 32px; } }
 @media (max-width: 699px) {
   .top { height: 56px; padding: 0 16px; }

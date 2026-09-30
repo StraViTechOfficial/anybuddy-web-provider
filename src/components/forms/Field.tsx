@@ -52,14 +52,15 @@ export function hasErrors(e: Errors) {
   return Boolean(first);
 }
 
-/** Back (onboarding), the busy submit button, and the server error next to them. */
-export function Actions({ mode, busy, onBack, error, label }: { mode: Mode; busy: boolean; onBack?: () => void; error?: string; label?: string }) {
+/** Back (onboarding), the busy submit button, and the server error next to them. `wait` holds the submit button and says why. */
+export function Actions({ mode, busy, onBack, error, label, wait }: { mode: Mode; busy: boolean; onBack?: () => void; error?: string; label?: string; wait?: string }) {
   return (
     <div className={s.actions}>
       {error && <p className="err" role="alert">{error}</p>}
+      {wait && <p id="submit-wait" className="hint" role="status">{wait}</p>}
       <div className={s.buttons}>
         {onBack && <button type="button" className="btn lg" onClick={onBack}>Back</button>}
-        <button className="btn p lg" disabled={busy} aria-busy={busy}>
+        <button className="btn p lg" disabled={busy || !!wait} aria-busy={busy} aria-describedby={wait ? "submit-wait" : undefined}>
           {label ?? (mode === "edit" ? "Save" : "Continue")}
         </button>
       </div>

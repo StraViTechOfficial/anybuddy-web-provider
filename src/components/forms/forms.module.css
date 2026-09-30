@@ -23,6 +23,7 @@ textarea.input.short { min-height: 72px; } /* beats the global textarea.input 96
 .actions { display: grid; gap: 8px; justify-items: end; padding-top: 4px; }
 .buttons { display: inline-flex; flex-wrap: wrap; gap: 8px; }
 .link { border: 0; background: none; padding: 0; color: inherit; font-weight: 600; text-decoration: underline; }
+.link:hover { text-decoration-thickness: 2px; }
 label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 .photo { display: flex; align-items: center; gap: 12px; height: 44px; }
@@ -45,11 +46,13 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: var(--canvas); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .2s var(--ease); }
 .toggle input:checked + .sw { background: var(--brand); }
 .toggle input:checked + .sw::after { transform: translateX(16px); }
+.toggle:hover .sw { box-shadow: 0 0 0 3px var(--brand-soft); }
 
 .docs { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .doc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; }
 .doc p { overflow-wrap: anywhere; }
-.ok { font-size: var(--fs-sm); color: var(--ok); }
+.ok { font-size: var(--fs-sm); color: var(--ok); overflow-wrap: anywhere; }
+.ok svg { vertical-align: -3px; }
 .check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; font-weight: 500; }
 .check input { width: 20px; height: 20px; accent-color: var(--brand); flex: none; }
 .note { padding: 10px 14px; border-radius: var(--r); font-size: var(--fs-sm); font-weight: 500; }

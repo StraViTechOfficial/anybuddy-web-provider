@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle } from "@phosphor-icons/react";
+import { HourglassMedium } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import type { VendorBank, VendorDocs, VendorHours, VendorProfile, VendorService } from "@/lib/types";
 import { Logo } from "@/components/Logo";
@@ -88,10 +88,11 @@ export default function Onboarding() {
           <div className="skeleton" style={{ height: 320 }} aria-label="Loading" />
         ) : screen === 6 ? (
           <div className={s.done}>
-            <CheckCircle size={56} weight="fill" className={s.tick} aria-hidden />
-            <h1 tabIndex={-1}>You&apos;re all set up</h1>
-            <p className="sub">Our team is reviewing your documents. Customers can book you once you&apos;re approved.</p>
-            <button className="btn p lg" onClick={finish} disabled={leaving} aria-busy={leaving}>Go to Today</button>
+            {/* D-51: the Buddy can't take jobs until an admin approves them, so this says "under review", not "all set". */}
+            <HourglassMedium size={56} className={s.wait} aria-hidden />
+            <h1 tabIndex={-1}>Your application is under review</h1>
+            <p className="sub">Thanks, we have everything we need. Our team is checking your documents now. Customers can&apos;t book you until you&apos;re approved; we email you as soon as that happens.</p>
+            <button className="btn p lg" onClick={finish} disabled={leaving} aria-busy={leaving}>See your application status</button>
           </div>
         ) : (
           <>

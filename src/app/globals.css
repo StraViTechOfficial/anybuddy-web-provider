@@ -31,15 +31,19 @@ h2 { font-size: var(--fs-body); font-weight: 600; }
 .hint { font-size: var(--fs-xs); color: var(--mute); }
 
 /* buttons: 36px on laptop, 44px on phones (tap target) */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--r); border: 1px solid var(--line); background: var(--canvas); font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; text-decoration: none; transition: background .15s, border-color .15s, transform .1s; }
-.btn:hover { background: var(--hover); }
+.btn { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--r); border: 1px solid var(--line); background: var(--canvas); font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; text-decoration: none; transition: background .15s, border-color .15s, transform .1s; }
+.btn:hover:not(:disabled) { background: var(--hover); }
 .btn:active { transform: translateY(1px); }
 .btn.p { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
-.btn.p:hover { background: var(--brand-d); }
+/* --brand-d is almost the same as --brand in both themes, so hover blends toward the canvas instead (same mix as the earnings chart). */
+.btn.p:hover:not(:disabled) { background: color-mix(in srgb, var(--brand) 82%, var(--canvas)); border-color: color-mix(in srgb, var(--brand) 82%, var(--canvas)); }
 .btn.d { color: var(--bad); }
 .btn.lg { height: 44px; padding: 0 18px; font-size: var(--fs-body); }
 .btn.block { width: 100%; }
-.btn[disabled], .btn[aria-busy="true"] { opacity: .5; cursor: not-allowed; }
+/* :disabled also matches buttons inside a disabled <fieldset> (forms stay disabled until their saved values load); [disabled] did not.
+   A file picker is a <label class="btn"> around a hidden input, so it takes the input's disabled state. */
+.btn:disabled, .btn[aria-busy="true"], label.btn:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+label.btn:has(input:disabled):hover { background: var(--canvas); }
 
 .box { border: 1px solid var(--line); border-radius: var(--r2); background: var(--canvas); }
 .pad { padding: 20px 22px; }
@@ -65,6 +69,9 @@ td { padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: m
 
 .skeleton { background: linear-gradient(90deg, var(--soft), var(--hover), var(--soft)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; border-radius: var(--r); }
 @keyframes shimmer { to { background-position: -200% 0; } }
+/* In-progress ring (uploads). Reduced motion stops it; the "Uploading…" text beside it still says so. */
+.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -2px; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 
 @media (max-width: 699px) {

@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
 import { UserCircle } from "@phosphor-icons/react";
-import { api, upload } from "@/lib/api";
+import { api, FILES, fileRule } from "@/lib/api";
 import type { VendorProfile } from "@/lib/types";
 import { useVendor } from "@/components/Vendor";
 import { Actions, Field, RequiredNote, SelectField, errText, hasErrors, type Errors, type FormProps } from "./Field";
+import { UploadNote, useUploads } from "./Upload";
 import s from "./forms.module.css";
 
 type State = { name: string; isoCode: string };
@@ -17,8 +18,8 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
   const { reload } = useVendor();
   const [v, setV] = useState(EMPTY);
   const [logoUrl, setLogoUrl] = useState("");
-  const [preview, setPreview] = useState("");
-  const [photo, setPhoto] = useState<{ busy?: boolean; error?: string }>({});
+  const { slots, pick } = useUploads<"photo">("profile", "photo");
+  const photo = slots.photo;
   const [states, setStates] = useState<State[]>([]);
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -66,19 +67,6 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
   const addrKey = [v.street, v.city, v.state, v.zip].join("|");
   const errs: Errors = tried ? { ...check(), ...(where?.for === addrKey && { [where.field]: where.message }) } : {}; // the lookup's note clears once the address changes
 
-  async function pickPhoto(file?: File) {
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) return setPhoto({ error: "Choose a photo under 10 MB." });
-    setPhoto({ busy: true });
-    try {
-      setLogoUrl(await upload(file, "profile"));
-      setPreview(URL.createObjectURL(file));
-      setPhoto({});
-    } catch (e) {
-      setPhoto({ error: errText(e) });
-    }
-  }
-
   async function submit(e: FormEvent) {
     e.preventDefault();
     setTried(true);
@@ -97,7 +85,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
       await api("vendor/auth/update-register-profile", {
         method: "POST",
         body: {
-          step: 1, firstName: v.firstName.trim(), lastName: v.lastName.trim(), logoUrl,
+          step: 1, firstName: v.firstName.trim(), lastName: v.lastName.trim(), logoUrl: photo?.url || logoUrl,
           address: { street: v.street.trim(), city: v.city.trim(), state: v.state, country: "United States" },
           postalCode: v.zip, latitude: point.latitude, longitude: point.longitude,
           ...(v.about.trim() && { description: v.about.trim() }),
@@ -112,7 +100,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
     }
   }
 
-  const img = preview || logoUrl;
+  const img = photo?.local || logoUrl;
   return (
     <form method="post" onSubmit={submit} noValidate>
       <fieldset className={s.form} disabled={!loaded}>
@@ -121,15 +109,15 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
       <div className={s.nameRow}>
         <div className="field">
           <span className={s.label} id="photo-l">Photo (optional)</span>
-          <div className={s.photo} aria-labelledby="photo-l" role="group">
+          <div className={s.photo} aria-labelledby="photo-l" role="group" aria-busy={photo?.busy || undefined}>
             {img ? <img src={img} alt="" width={44} height={44} /> : <UserCircle size={44} weight="light" aria-hidden />}
-            <label className="btn" aria-busy={photo.busy}>
-              {photo.busy ? "Uploading" : img ? "Change" : "Add photo"}
-              <input className="sr" type="file" accept="image/jpeg,image/png,image/webp" disabled={photo.busy}
-                onChange={(e) => pickPhoto(e.target.files?.[0])} />
+            <label className="btn">
+              {img ? "Change" : "Add photo"}
+              <input className="sr" type="file" accept={FILES.photo.accept} disabled={photo?.busy}
+                aria-describedby={photo?.error ? "photo-err" : undefined} onChange={(e) => { pick("photo", e.target.files?.[0]); e.target.value = ""; }} />
             </label>
           </div>
-          {photo.error && <small className="err">{photo.error}</small>}
+          <UploadNote slot={photo} id="photo-err" idle={<small className="hint">{fileRule("photo")}</small>} onRetry={(f) => pick("photo", f)} />
         </div>
         <Field id="firstName" label="First name" required error={errs.firstName}><input autoComplete="given-name" value={v.firstName} onChange={set("firstName")} maxLength={50} /></Field>
         <Field id="lastName" label="Last name" required error={errs.lastName}><input autoComplete="family-name" value={v.lastName} onChange={set("lastName")} maxLength={50} /></Field>
@@ -148,7 +136,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
       {/* Contract (SPA register: "Location, Complete Address"; CMA listing: within 10 km first, then by distance).
           Owner (29 Sep): the address the Buddy works from. It is the service area: search reaches 100 km, nearest first. No separate area field. */}
       <p className="hint">The address you work from. Customers find you by distance from here, the closest first. They see your city, never your street address.</p>
-      <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
+      <Actions mode={mode} busy={busy} onBack={onBack} error={error} wait={photo?.busy ? "Wait for the upload to finish." : undefined} />
       </fieldset>
     </form>
   );

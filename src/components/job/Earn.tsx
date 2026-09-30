@@ -5,7 +5,8 @@ import { breakdown, PAYOUT_WORD, shareOf } from "@/lib/pay";
 import type { Booking } from "@/lib/types";
 import s from "./JobActions.module.css";
 
-/** "You earn $X" big, then "Customer paid $Y · Any-Buddy fee $Z · Tax $T" only when the server's numbers add up (iOS wording). */
+/** "You earn $X" big, then "Job price $Y · Any-Buddy fee $Z" only when the server's numbers add up (iOS wording).
+ *  Owner, 30 Sep 2026: the Buddy sees their price and our fee, never the customer's total or sales tax. */
 export function Earn({ b }: { b: Booking }) {
   const share = shareOf(b);
   if (share === null) return null;
@@ -13,7 +14,7 @@ export function Earn({ b }: { b: Booking }) {
   return (
     <div className={s.earn}>
       <p>You earn <b>{money(share)}</b></p>
-      {br && <small>Customer paid {money(br.paid)} · Any-Buddy fee {money(br.fee)}{br.tax > 0 && ` · Tax ${money(br.tax)}`}</small>}
+      {br && <small>Job price {money(br.paid - br.tax)} · Any-Buddy fee {money(br.fee)}</small>}
     </div>
   );
 }

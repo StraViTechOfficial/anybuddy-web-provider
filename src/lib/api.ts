@@ -30,13 +30,34 @@ export async function api<T = unknown>(path: string, { method = "GET", body, que
   return { data: json.data as T, count: json.count, message: json.message };
 }
 
+// What uploads/presign accepts: the backend (controller/common/uploads) takes JPG, PNG, WebP, HEIC and PDF up to 10 MB in
+// every folder. A profile photo is shown in browsers, so it takes the image types browsers can all show.
+export const UPLOAD_MAX_MB = 10;
+const EXT: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", pdf: "application/pdf" };
+export const FILES = {
+  photo: { types: ["image/jpeg", "image/png", "image/webp"], accept: "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp", words: "JPG, PNG or WebP" },
+  document: { types: Object.values(EXT), accept: "image/jpeg,image/png,image/webp,image/heic,application/pdf,.jpg,.jpeg,.png,.webp,.heic,.pdf", words: "JPG, PNG, WebP, HEIC or PDF" },
+};
+export type FileKind = keyof typeof FILES;
+/** The rule shown under a file slot before anything is picked. */
+export const fileRule = (kind: FileKind) => `${FILES[kind].words}, up to ${UPLOAD_MAX_MB} MB.`;
+/** Browsers often leave a HEIC file's type empty, so the extension decides then. */
+const typeOf = (f: File) => f.type || EXT[f.name.split(".").pop()?.toLowerCase() ?? ""] || "";
+/** Why this file can't be sent for this kind of slot, or undefined when it can. Checked before asking for an upload link. */
+export function fileError(f: File, kind: FileKind) {
+  if (!FILES[kind].types.includes(typeOf(f))) return `Use a ${FILES[kind].words} file.`;
+  if (f.size > UPLOAD_MAX_MB * 1024 * 1024) return `This file is ${Math.ceil(f.size / 1024 / 1024)} MB. Use a file up to ${UPLOAD_MAX_MB} MB.`;
+  if (!f.size) return "This file is empty. Choose another one.";
+}
+
 // Presigned upload straight to S3 (the file never passes through our servers).
 export async function upload(file: File, folder: "profile" | "documents" | "jobs"): Promise<string> {
+  const type = typeOf(file);
   const { data } = await api<{ uploadUrl: string; fileUrl: string }>("uploads/presign", {
     method: "POST",
-    body: { folder, contentType: file.type, size: file.size },
+    body: { folder, contentType: type, size: file.size },
   });
-  const put = await fetch(data.uploadUrl, { method: "PUT", body: file, headers: { "content-type": file.type } });
+  const put = await fetch(data.uploadUrl, { method: "PUT", body: file, headers: { "content-type": type } });
   if (!put.ok) throw new ApiError("The upload didn't finish. Try again.", put.status);
   return data.fileUrl;
 }

@@ -1,14 +1,13 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
-import { api, upload } from "@/lib/api";
+import { api, FILES, fileRule } from "@/lib/api";
 import type { DocKey, VendorDocs, VendorService } from "@/lib/types";
 import { useVendor } from "@/components/Vendor";
 import { Actions, Req, RequiredNote, errText, hasErrors, type FormProps } from "./Field";
+import { UploadNote, useUploads } from "./Upload";
 import s from "./forms.module.css";
 
-type Slot = { url: string; name?: string; local?: string; busy?: boolean; error?: string };
 const LICENSED = ["Plumbing", "Electrical"]; // D-30: these trades must send a license
-const TYPES = "image/jpeg,image/png,image/webp,image/heic,application/pdf";
 const DOCS: [DocKey, string, string][] = [
   ["IdProofFront", "Government ID, front", "Add the front of your ID."],
   ["IdProofBack", "Government ID, back", "Add the back of your ID."],
@@ -19,7 +18,7 @@ const DOCS: [DocKey, string, string][] = [
 // Screen 4 and Account › Documents. Files go to the private "documents" folder; saved ones come back as 10-minute links.
 export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   const { vendor, reload } = useVendor();
-  const [docs, setDocs] = useState<Partial<Record<DocKey, Slot>>>({});
+  const { slots: docs, setSlots: setDocs, put, pick, busy: uploading } = useUploads<DocKey>("documents", "document");
   const [trades, setTrades] = useState<string[]>([]);
   const [tick, setTick] = useState(false);
   const [tried, setTried] = useState(false);
@@ -48,24 +47,10 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   });
   const errs: Record<string, string | undefined> = tried ? check() : {};
 
-  const put = (k: DocKey, v: Slot | undefined) => setDocs((d) => ({ ...d, [k]: v }));
-  async function pick(k: DocKey, file?: File) {
-    if (!file) return;
-    const old = docs[k];
-    if (file.size > 10 * 1024 * 1024) return put(k, { ...(old ?? { url: "" }), error: "Choose a file under 10 MB." });
-    put(k, { url: old?.url ?? "", busy: true });
-    try {
-      put(k, { url: await upload(file, "documents"), name: file.name, local: URL.createObjectURL(file) });
-    } catch (e) {
-      put(k, { ...(old ?? { url: "" }), error: errText(e) });
-    }
-  }
-
   async function submit(e: FormEvent) {
     e.preventDefault();
     setTried(true);
     setError("");
-    if (DOCS.some(([k]) => docs[k]?.busy)) return setError("Wait for the uploads to finish.");
     if (hasErrors(check())) return;
     setBusy(true);
     try {
@@ -90,19 +75,21 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
         {DOCS.map(([k, label]) => {
           const d = docs[k];
           const err = d?.error ?? errs[`doc-${k}`];
+          const missing = !d?.error && errs[`doc-${k}`];
           const view = d?.local ?? (d?.url || undefined); // fresh upload: the local copy; saved: the signed link
           return (
-            <li key={k} className={`box ${s.doc}`}>
+            <li key={k} className={`box ${s.doc}`} aria-busy={d?.busy || undefined}>
               <div>
                 <b>{label}{required(k) && <Req />}</b>
-                <p className={d?.url ? s.ok : "hint"}>{d?.busy ? "Uploading" : d?.url ? d.name ?? "Uploaded" : note(k)}</p>
-                {err && <p id={`err-${k}`} className="err">{err}</p>}
+                <UploadNote slot={d} id={`err-${k}`} idle={<p className="hint">{note(k)}</p>} onRetry={(f) => pick(k, f)} />
+                <p className="hint">{fileRule("document")}</p>
+                {missing && <p id={`err-${k}`} className="err">{missing}</p>}
               </div>
               <span className={s.buttons}>
                 {view && !d?.busy && <a className="btn" href={view} target="_blank" rel="noopener noreferrer">View<span className="sr"> {label}</span></a>}
-                <label className="btn" aria-busy={d?.busy}>
+                <label className="btn">
                   {d?.url ? "Replace" : "Upload"}
-                  <input id={`doc-${k}`} className="sr" type="file" accept={TYPES} disabled={d?.busy} aria-required={required(k) || undefined}
+                  <input id={`doc-${k}`} className="sr" type="file" accept={FILES.document.accept} disabled={d?.busy} aria-required={required(k) || undefined}
                     aria-invalid={err ? true : undefined} aria-describedby={err ? `err-${k}` : undefined}
                     onChange={(e) => { pick(k, e.target.files?.[0]); e.target.value = ""; }} />
                   <span className="sr"> {label}</span>
@@ -115,7 +102,7 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
           );
         })}
       </ul>
-      <p className="hint">Photos or PDF files, up to 10 MB each. Only our review team can open them.</p>
+      <p className="hint">Only our review team can open these files.</p>
       <div className="field">
         <label className={s.check}>
           <input id="tick" type="checkbox" required checked={tick} onChange={(e) => setTick(e.target.checked)}
@@ -127,7 +114,7 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
       {mode === "edit" && vendor?.verificationStatus === 1 && (
         <p className={`${s.note} t-wait`}>Saving changed documents sends your account back to review. Customers cannot book you until it is approved again.</p>
       )}
-      <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
+      <Actions mode={mode} busy={busy} onBack={onBack} error={error} wait={uploading ? "Wait for the upload to finish." : undefined} />
       </fieldset>
     </form>
   );
