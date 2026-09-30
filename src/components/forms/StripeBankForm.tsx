@@ -69,7 +69,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     first: !v.first.trim() ? "Enter your legal first name." : undefined,
     last: !v.last.trim() ? "Enter your legal last name." : undefined,
     dob: dobOnFile && !v.dob ? undefined : !dob ? "Enter your date of birth as MM/DD/YYYY." : age(dob) < 18 ? "You must be 18 or older to be paid." : age(dob) > 120 ? "Check the year." : undefined,
-    ssn: ssnOnFile && !v.ssn ? undefined : !/^\d{4}$/.test(v.ssn) ? "Enter the last 4 digits of your SSN." : undefined,
+    ssn: ssnOnFile && !v.ssn ? undefined : !/^\d{4}$/.test(v.ssn) ? "Enter the last 4 digits of your SSN or ITIN." : undefined,
     phone: !/^\d{10}$/.test(v.phone.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "")) ? "Enter a 10-digit US phone number." : undefined,
     line1: v.line1.trim().length < 3 ? "Enter your street address." : undefined,
     city: v.city.trim().length < 2 ? "Enter your city." : undefined,
@@ -133,7 +133,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
       )}
       <RequiredNote />
       <h2 className={s.label}>About you</h2>
-      <p className="hint">Required by US law to pay you: your name, date of birth, address and the last 4 digits of your SSN.</p>
+      <p className="hint">Required by US law to pay you: your name, date of birth, address and the last 4 digits of your SSN or ITIN. It goes straight to Stripe; we never store it.</p>
       <div className={s.row3}>
         <Field id="first" label="Legal first name" required error={errs.first}><input autoComplete="given-name" value={v.first} onChange={set("first")} maxLength={50} /></Field>
         <Field id="last" label="Legal last name" required error={errs.last}><input autoComplete="family-name" value={v.last} onChange={set("last")} maxLength={50} /></Field>
@@ -142,7 +142,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
         </Field>
       </div>
       <div className={s.row3}>
-        <Field id="ssn" label="SSN, last 4 digits" required={!ssnOnFile} error={errs.ssn} hint={ssnOnFile ? "On file. Leave empty to keep it." : undefined}><input {...digits} type="password" value={v.ssn} onChange={set("ssn")} maxLength={4} /></Field>
+        <Field id="ssn" label="SSN or ITIN, last 4 digits" required={!ssnOnFile} error={errs.ssn} hint={ssnOnFile ? "On file. Leave empty to keep it." : "Your US tax ID: Social Security or Individual Taxpayer ID number."}><input {...digits} type="password" value={v.ssn} onChange={set("ssn")} maxLength={4} /></Field>
         <Field id="phone" label="Mobile phone" required error={errs.phone}><input type="tel" autoComplete="tel-national" value={v.phone} onChange={set("phone")} maxLength={14} /></Field>
       </div>
       <div className={s.addrRow}>

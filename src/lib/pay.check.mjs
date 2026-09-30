@@ -1,15 +1,7 @@
 // Run: node --experimental-strip-types --no-warnings src/lib/pay.check.mjs
 import assert from "node:assert/strict";
-import { breakdown, shareOf } from "./pay.ts";
+import { shareOf } from "./pay.ts";
 
-assert.deepEqual(breakdown({ price: 85, commissionAmount: 9, vendorPriceAfterDetection: 71, taxAmount: 5 }), { paid: 85, fee: 9, tax: 5 }); // D-67
-assert.deepEqual(breakdown({ price: 85, commissionAmount: 9, vendorPriceAfterDetection: 72, taxAmount: 5 }), { paid: 85, fee: 9, tax: 5 }); // ±$1 rounding
-assert.equal(breakdown({ price: 85, commissionAmount: 9, vendorPriceAfterDetection: 76, taxAmount: 5 }), null); // old rule (tax to Buddy) no longer adds up
-assert.deepEqual(breakdown({ price: 85, commissionAmount: 9, vendorPriceAfterDetection: 76 }), { paid: 85, fee: 9, tax: 0 }); // no tax
-assert.deepEqual(breakdown({ price: 85, billedAmount: 127, commissionAmount: 12, vendorPriceAfterDetection: 108, taxAmount: 7 }), { paid: 127, fee: 12, tax: 7 });
-assert.equal(breakdown({ price: 85, commissionAmount: 9, vendorPriceAfterDetection: 70 }), null); // doesn't add up
-assert.equal(breakdown({ price: 85, commissionAmount: 0, vendorPriceAfterDetection: 85 }), null); // fee unknown
-assert.equal(breakdown({ price: 85, commissionAmount: 9 }), null);
 assert.equal(shareOf({ vendorPriceAfterDetection: 0 }), null);
 assert.equal(shareOf({ vendorPriceAfterDetection: 76 }), 76);
 console.log("pay ok");

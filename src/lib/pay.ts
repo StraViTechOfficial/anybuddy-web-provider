@@ -1,19 +1,9 @@
-// The Buddy's money on a job, from server numbers only (same rule as the iOS app, JobText.breakdown). Pure.
+// The Buddy's money on a job, from server numbers only (same rule as the iOS app, JobText.share). Pure.
 // Checked by pay.check.mjs (node --experimental-strip-types).
 type Money = { price?: number; vendorPriceAfterDetection?: number; commissionAmount?: number; taxAmount?: number; billedAmount?: number };
 
 /** The Buddy's share after Any-Buddy's fee. null when unknown (0 is how old rows say unknown); never falls back to price. */
 export const shareOf = (j: Money) => (j.vendorPriceAfterDetection ?? 0) > 0 ? j.vendorPriceAfterDetection! : null;
-
-/** Customer paid / fee / sales tax, only when they add up. D-67: AnyBuddy pays the tax to the state, so
- *  paid − fee − tax = share (±$1: the server rounds the share to dollars). Tax is `taxAmount` (set at booking; not
- *  recomputed at check-out, so a billed job whose tax moved won't add up and falls back). null: show "You earn" alone. */
-export function breakdown(j: Money) {
-  const share = shareOf(j), billed = j.billedAmount ?? 0, paid = billed > 0 ? billed : j.price ?? 0, fee = j.commissionAmount ?? 0;
-  const tax = Math.max(0, j.taxAmount ?? 0);
-  if (share === null || paid <= 0 || fee <= 0 || Math.abs(paid - fee - tax - share) > 1) return null;
-  return { paid, fee, tax };
-}
 
 // Stripe requirements (contract "Changes", 30 Sep): the codes the bank form's own fields answer, by prefix. Anything
 // else (photo ID, full SSN, proof of address, "More information") goes through support. Same list and words as iOS.
