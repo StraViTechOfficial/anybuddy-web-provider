@@ -168,26 +168,14 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
     ? <CancelJob id={b._id} onClose={() => to(null)} onSubmit={(reason) => settle(() => api("vendor/bookings/cancel", { method: "PUT", body: { bookingId: b._id, reason } }), "Job canceled. The customer gets a full refund.")} />
     : <button className={`btn lg ${s.quiet}`} onClick={() => to("cancel")}>Cancel job</button>;
 
-  if (day > today) {
-    return (
-      <div className={s.wrap}>
-        <span className="tag t-info">Confirmed</span>
-        {facts(dayLabel(day))}
-        {contact}
-        {note}
-        <p className="hint">On my way and start open on the day of the job.</p>
-        {cancel}
-      </div>
-    );
-  }
-
+  // Owner, 1 Oct 2026: On my way and Start are open any day once the job is confirmed (Buddies can go early).
   const until = msUntil(b, now);
   const eta = b.onTheWayAt && b.etaMinutes ? new Date(Date.parse(b.onTheWayAt) + b.etaMinutes * 6e4) : null;
   const sendEta = (m: number) => run(() => api("vendor/bookings/on-the-way", { method: "PUT", body: { bookingId: b._id, etaMinutes: m } }), `Sent. The customer knows you arrive in ${m} min.`);
   return (
     <div className={s.wrap}>
       <span className={`tag ${eta ? "t-wait" : "t-info"}`}>{eta ? `On the way, arriving by ${hm(minuteOf(eta))}` : "Confirmed"}</span>
-      {facts(until > 0 ? `Today, in ${countdown(until)}` : "Today, due now")}
+      {facts(day > today ? dayLabel(day) : until > 0 ? `Today, in ${countdown(until)}` : "Today, due now")}
       {contact}
       {note}
       {mode === "code" ? code : (

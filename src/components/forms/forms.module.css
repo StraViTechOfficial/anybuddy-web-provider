@@ -144,5 +144,10 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 /* Stripe payouts status (Account › Bank) */
 .status :global(.tag) { justify-self: start; }
 .status ul { padding-left: 18px; }
+.status b { display: inline-flex; align-items: center; gap: 8px; }
+.status :global(.btn) { justify-self: start; margin-top: 6px; }
+.done { background: var(--ok-soft); }
+.live:empty { margin-bottom: -16px; } /* kept mounted for screen readers; takes no room while empty */
+.done b { color: var(--ok); }
 .asks { display: grid; gap: 16px; }
 .asks h3 { font-size: var(--fs-sm); font-weight: 600; }

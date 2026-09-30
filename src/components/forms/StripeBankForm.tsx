@@ -1,6 +1,7 @@
 "use client";
 import { CheckCircle } from "@phosphor-icons/react";
 import { useEffect, useState, type FormEvent } from "react";
+import { useToast } from "@/components/Toast";
 import { api } from "@/lib/api";
 import Link from "next/link";
 import { age, needs, NEEDS_LEAD, parseDob, SUPPORT_LEAD } from "@/lib/pay";
@@ -27,14 +28,14 @@ const STRUCTURES = [
 ];
 const KINDS: [Kind, string][] = [["individual", "Individual — paid with your SSN or ITIN"], ["company", "Business — paid through your company's EIN"]];
 const einText = (d: string) => (d.length > 2 ? `${d.slice(0, 2)}-${d.slice(2)}` : d);
-const STATUS: Record<PayoutAccount["status"], [string, string, string]> = {
-  not_started: ["", "", ""],
-  // Same words as the iOS app (Payouts.statusRows).
-  pending: ["Pending", "t-wait", "Stripe is checking your details, usually a few minutes."],
+// Same words as the iOS app (Payouts.statusRows). Pending and verified have their own boxes below.
+const STATUS: Record<"needs_info" | "disabled", [string, string, string]> = {
   needs_info: ["Needs info", "t-bad", NEEDS_LEAD],
-  verified: ["Verified", "t-ok", "Earnings go to your bank after each job."],
   disabled: ["Disabled", "t-bad", "Payouts are paused on this account. Contact support to turn them back on."],
 };
+// After a save Stripe checks in the background; GET vendor/payouts/account re-checks with Stripe on each call.
+const POLL_MS = 3000, POLL_FOR_MS = 60000;
+const waiting = (st?: PayoutAccount["status"]) => st === "pending" || st === "not_started";
 
 // Account › Bank and onboarding step 5 in Stripe mode (contract 30 Sep). Bank numbers go straight from this page to
 // Stripe as a token; our server gets the token, the identity US law asks for, and the Buddy's consent. The saved bank
@@ -49,6 +50,26 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   const [kind, setKind] = useState<Kind>("individual");
   const [switchNote, setSwitchNote] = useState(false);
   const [einFocus, setEinFocus] = useState(false);
+  const [poll, setPoll] = useState(0); // bumped to start a 60 s round of checks
+  const [slow, setSlow] = useState(false); // the round ended with Stripe still checking
+  const toast = useToast();
+
+  useEffect(() => {
+    if (!poll) return;
+    let gone = false, t: ReturnType<typeof setTimeout>;
+    const end = Date.now() + POLL_FOR_MS;
+    const tick = async () => {
+      const a = await payoutAccount().catch(() => null); // a failed check just waits for the next one
+      if (gone) return;
+      if (a) setAcct(a);
+      if (a && !waiting(a.status)) return void (a.status === "verified" && toast("Payout details saved"));
+      if (Date.now() >= end) return setSlow(true);
+      t = setTimeout(tick, POLL_MS);
+    };
+    setSlow(false);
+    t = setTimeout(tick, POLL_MS);
+    return () => { gone = true; clearTimeout(t); };
+  }, [poll, toast]);
 
   useEffect(() => {
     api<State[]>("list-location", { query: { country: "United States" } })
@@ -58,6 +79,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     Promise.all([payoutAccount(), api<VendorProfile>("vendor/auth/get-profile-details", { query: { type: 1 } })])
       .then(([a, { data: p }]) => {
         setAcct(a);
+        if (a.status === "pending") setPoll((n) => n + 1);
         setKind(a.type ?? "individual");
         const id = a.identity, ad = id?.address, b = a.business, ba = b?.address;
         setV((o) => ({
@@ -158,10 +180,14 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
       setV((o) => ({ ...o, ssn: "", ein: "", routing: "", account: "", confirm: "", password: "" }));
       setTried(false);
       // Onboarding moves on once Stripe has what it needs (server step 4 → 5); needs info / disabled stay here.
-      if (mode !== "onboarding" || data.status === "verified" || data.status === "pending") onDone();
-      else window.scrollTo({ top: 0, behavior: "smooth" });
+      if (mode === "onboarding" && (data.status === "verified" || data.status === "pending")) return onDone();
+      // Account › Bank: the status box above the form tells how it went, so it scrolls into view.
+      if (data.status === "verified") toast("Payout details saved");
+      else if (waiting(data.status)) setPoll((n) => n + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       setError(errText(e));
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setBusy(false);
     }
@@ -171,23 +197,54 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   const asked = (a: PayoutAccount) => {
     setAcct(a);
     if (mode === "onboarding" && (a.status === "verified" || a.status === "pending")) onDone();
+    else if (waiting(a.status)) setPoll((n) => n + 1);
   };
 
   const digits = { inputMode: "numeric" as const, autoComplete: "off", spellCheck: false };
-  const [word, tag, line] = STATUS[acct?.status ?? "not_started"];
-  return (
-    <div className={s.form}>
-    {word && (
-      <div className={`box ${s.saved} ${s.status}`} role="status">
+  const st = acct?.status;
+  const paidTo = acct?.bank && <span className="hint">Paid to {acct.bank.bankName ? `${acct.bank.bankName}, ` : ""}account ending {acct.bank.last4}</span>;
+  let status = null;
+  if (st === "verified") {
+    status = (
+      <div className={`box ${s.saved} ${s.status} ${s.done}`}>
+        <b><CheckCircle size={20} weight="fill" aria-hidden />Verified. You're ready to get paid after each job.</b>
+        {paidTo}
+      </div>
+    );
+  } else if (st === "needs_info" || st === "disabled") {
+    const [word, tag, line] = STATUS[st];
+    status = (
+      <div className={`box ${s.saved} ${s.status}`}>
         <span className={`tag ${tag}`}>{word}</span>
         <span>{line}</span>
-        {acct?.status === "needs_info" && <Needs reqs={acct.requirements} />}
-        {acct?.bank && <span className="hint">Paid to {acct.bank.bankName ? `${acct.bank.bankName}, ` : ""}account ending {acct.bank.last4}</span>}
+        {st === "needs_info" && <Needs reqs={acct!.requirements} />}
+        {paidTo}
       </div>
-    )}
+    );
+  } else if (st === "pending" || (poll > 0 && waiting(st))) {
+    status = slow ? (
+      <div className={`box ${s.saved} ${s.status}`}>
+        <b>Stripe is still checking.</b>
+        <span>We&apos;ll update this page when it&apos;s done, usually within a few minutes.</span>
+        {paidTo}
+        <button type="button" className="btn" onClick={() => setPoll((n) => n + 1)}>Check again</button>
+      </div>
+    ) : (
+      <div className={`box ${s.saved} ${s.status}`}>
+        <b><span className="spin" aria-hidden />Stripe is checking your details</b>
+        <span>This usually takes under a minute. You can leave this page; we&apos;ll keep your place.</span>
+        {paidTo}
+      </div>
+    );
+  }
+  return (
+    <div className={s.form}>
+    {/* Always mounted so screen readers hear each change of status. */}
+    <div className={s.live} role="status" aria-live="polite">{status}</div>
+    {error && <p className="err" role="alert">{error}</p>}
     {acct && <StripeAsks acct={acct} onSaved={asked} />}
     <form method="post" onSubmit={submit} noValidate>
-      <fieldset className={s.form} disabled={!acct}>
+      <fieldset className={s.form} disabled={!acct || busy}>
       <RequiredNote />
       <fieldset className={s.radios}>
         <legend className={s.label}>How you're paid</legend>
@@ -282,7 +339,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
         Payouts are processed by Stripe. By saving, you agree to the{" "}
         <a href="https://stripe.com/legal/connect-account" target="_blank" rel="noopener noreferrer">Stripe Connected Account Agreement</a>.
       </p>
-      <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
+      <Actions mode={mode} busy={busy} onBack={onBack} label={busy ? <><span className="spin" aria-hidden /> Sending to Stripe…</> : undefined} />
       </fieldset>
     </form>
     </div>

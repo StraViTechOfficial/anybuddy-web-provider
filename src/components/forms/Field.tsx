@@ -53,7 +53,7 @@ export function hasErrors(e: Errors) {
 }
 
 /** Back (onboarding), the busy submit button, and the server error next to them. `wait` holds the submit button and says why. */
-export function Actions({ mode, busy, onBack, error, label, wait }: { mode: Mode; busy: boolean; onBack?: () => void; error?: string; label?: string; wait?: string }) {
+export function Actions({ mode, busy, onBack, error, label, wait }: { mode: Mode; busy: boolean; onBack?: () => void; error?: string; label?: ReactNode; wait?: string }) {
   return (
     <div className={s.actions}>
       {error && <p className="err" role="alert">{error}</p>}
