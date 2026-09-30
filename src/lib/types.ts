@@ -44,6 +44,7 @@ export interface Booking {
 
 export interface Balance {
   available: number;
+  instantAvailable?: number; // Stripe mode: what can go to the debit card now, incl. money still settling
   pending: number;
   paidTotal: number;
   deductions: number;
