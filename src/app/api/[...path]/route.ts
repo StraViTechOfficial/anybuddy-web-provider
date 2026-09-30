@@ -29,9 +29,13 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
   const token = code && CODE_ROUTES.test(path) ? code : jar.get(SESSION)?.value;
   const headers = new Headers({ "content-type": "application/json" });
   if (token) headers.set("authtoken", token);
-  // The Buddy's IP for Stripe's terms acceptance (payouts account): pass the browser's address through the proxy.
+  // The browser's address, for per-person rate limits and Stripe's terms acceptance. The backend trusts it only with
+  // the shared key; unset, nothing extra is sent and the backend sees this server's address.
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip");
-  if (ip) headers.set("x-forwarded-for", ip);
+  if (process.env.PROXY_SHARED_SECRET && ip) {
+    headers.set("x-ab-proxy-key", process.env.PROXY_SHARED_SECRET);
+    headers.set("x-ab-client-ip", ip);
+  }
 
   let upstream: Response;
   try {
