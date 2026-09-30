@@ -2,6 +2,8 @@
 import { CheckCircle } from "@phosphor-icons/react";
 import { useEffect, useState, type FormEvent } from "react";
 import { api } from "@/lib/api";
+import { payoutsConfig, type PayoutsConfig } from "@/lib/stripe";
+import { StripeBankForm } from "./StripeBankForm";
 import type { VendorBank } from "@/lib/types";
 import { Actions, Field, Req, RequiredNote, errText, hasErrors, type Errors, type FormProps } from "./Field";
 import s from "./forms.module.css";
@@ -11,8 +13,17 @@ export const validAba = (n: string) => /^\d{9}$/.test(n) && [...n].reduce((t, d,
 
 const EMPTY = { holder: "", bank: "", routing: "", account: "", confirm: "", type: "Checking", password: "" };
 
-// Screen 5 and Account › Bank. The saved account shows only as its last 4; changing it needs the password (server rule).
-export function BankForm({ mode, onDone, onBack }: FormProps) {
+// Screen 5 and Account › Bank. Stripe mode (server flag, contract 30 Sep) gets its own form; manual mode, or no answer
+// from the server, keeps this one.
+export function BankForm(p: FormProps) {
+  const [cfg, setCfg] = useState<PayoutsConfig | null>(null);
+  useEffect(() => { payoutsConfig().then(setCfg); }, []);
+  if (!cfg) return <div className="skeleton" style={{ height: 320 }} aria-label="Loading bank details" />;
+  return cfg.mode === "stripe" && cfg.publishableKey ? <StripeBankForm {...p} pk={cfg.publishableKey} /> : <ManualBankForm {...p} />;
+}
+
+// Manual mode. The saved account shows only as its last 4; changing it needs the password (server rule).
+function ManualBankForm({ mode, onDone, onBack }: FormProps) {
   const [v, setV] = useState(EMPTY);
   const [last4, setLast4] = useState("");
   const [tried, setTried] = useState(false);

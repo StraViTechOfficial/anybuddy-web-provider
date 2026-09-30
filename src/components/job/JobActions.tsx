@@ -9,6 +9,7 @@ import { CodeStep } from "./CodeStep";
 import { Reason } from "./Reason";
 import { Slide } from "./Slide";
 import { Fit } from "./Fit";
+import { Earn, PayoutLine } from "./Earn";
 import { bookedHours, dayLabel, hm, minuteOf, msUntil, slotMin, useNow, ymd } from "./when";
 import s from "./JobActions.module.css";
 
@@ -70,8 +71,9 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
         <dl className={s.kv}>
           <dt>When</dt><dd>{dayLabel(day)}, {hm(start)} to {hm(start + hrs * 60)}</dd>
           {b.address && <><dt>Where</dt><dd>{b.address}</dd></>}
-          <dt>Pays</dt><dd>{money(b.vendorPriceAfterDetection ?? b.price)} to you, already paid by the customer</dd>
         </dl>
+        <Earn b={b} />
+        {b.payment_status === 2 && <p className="hint">Customer has paid. You&apos;re paid after the job.</p>}
         {note}
         <Fit b={b} />
         {mode === "decline" ? (
@@ -103,10 +105,11 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
         <p className={`${s.fit} ${s.ok}`}>
           <CheckCircle size={20} weight="fill" aria-hidden />
           <span>
-            Finished.{worked !== null && ` Worked ${elapsed(worked)}.`}{b.hoursBilled ? ` Billed ${b.hoursBilled} of ${hrsText} booked.` : ""}
-            {b.vendorPriceAfterDetection != null && ` ${money(b.vendorPriceAfterDetection)} added to your balance.`}
+            Finished.{worked !== null && ` Worked ${worked < 6e4 ? "less than a minute" : elapsed(worked)}.`}{b.hoursBilled ? ` Billed ${b.hoursBilled} of ${hrsText} booked.` : ""}
           </span>
         </p>
+        <Earn b={b} />
+        <PayoutLine b={b} />
       </div>
     );
   }

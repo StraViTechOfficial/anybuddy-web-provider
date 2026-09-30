@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Clock, CurrencyDollar, Lifebuoy, MapPin, Star } from "@phosphor-icons/react";
 import { JobActions } from "@/components/job/JobActions";
+import { Earn } from "@/components/job/Earn";
 import { api } from "@/lib/api";
 import { clock, day, money } from "@/lib/format";
 import type { Job } from "@/lib/types";
@@ -52,6 +53,7 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
           {job.endAddress && <li><MapPin size={20} aria-hidden />Then to {job.endAddress}</li>}
           <li><CurrencyDollar size={20} aria-hidden />{hours(job)} booked{rate ? ` at ${money(rate)}/hr` : ""}, {PAID[job.payment_status ?? 0]}</li>
         </ul>
+        {job.status === 2 && <Earn b={job} />}
 
         <div className={s.actions}>
           <JobActions booking={job} onChange={() => { load(); onChange?.(); }} />
@@ -60,7 +62,7 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
         <dl className={s.kv}>
           <div><dt>Customer</dt><dd>{u.firstName || "Customer"}</dd></div>
           {!open && job.userDesc && <div><dt>Note</dt><dd>{job.userDesc}</dd></div>}
-          {job.bookingId && <div><dt>Booking</dt><dd>{job.bookingId}</dd></div>}
+          {job.bookingId && <div><dt>Job #</dt><dd>{job.bookingId}</dd></div>}
         </dl>
 
         {job.rating != null && (

@@ -102,7 +102,7 @@ export default function Page() {
         {del && (
           <form method="post" id="del-panel" className={s.del} onSubmit={remove} noValidate>
             <p><b>Deleting your account can&apos;t be undone.</b> Your profile comes off Any-Buddy, customers can no longer book you and you are logged out.</p>
-            <p>Withdraw your money first. Once the account is deleted you can&apos;t log in to withdraw it.</p>
+            <p>Your balance is paid to your bank after each job. Wait until the last payout is in your bank: once the account is deleted you can&apos;t log in to check it.</p>
             <div className="field">
               <span><label htmlFor="del-confirm">Type DELETE to confirm</label></span>
               <input id="del-confirm" className="input" autoComplete="off" autoCapitalize="characters" value={confirm}

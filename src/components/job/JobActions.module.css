@@ -74,3 +74,9 @@
 @keyframes livePulse { 50% { opacity: .35; } }
 .note { display: grid; gap: 2px; padding: 10px 12px; border-radius: var(--r); background: var(--soft); color: var(--ink2); font-size: var(--fs-sm); }
 .note b { color: var(--ink); }
+
+/* the Buddy's pay: "You earn $X" big, the split under it */
+.earn { display: grid; gap: 2px; }
+.earn p { color: var(--mute); font-size: var(--fs-sm); }
+.earn b { display: block; font-size: var(--fs-h3); font-weight: 600; color: var(--ink); }
+.earn small { color: var(--mute); font-size: var(--fs-sm); }

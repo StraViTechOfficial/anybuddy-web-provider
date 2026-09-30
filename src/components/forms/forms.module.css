@@ -137,3 +137,7 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 .ask { padding-top: 14px; border-top: 1px solid var(--line); }
 
 .match { display: inline-flex; align-items: center; gap: 4px; color: var(--ok); font-weight: 600; }
+
+/* Stripe payouts status (Account › Bank) */
+.status :global(.tag) { justify-self: start; }
+.status ul { padding-left: 18px; }

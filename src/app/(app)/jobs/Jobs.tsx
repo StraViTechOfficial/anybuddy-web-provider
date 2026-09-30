@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { clock, day, money } from "@/lib/format";
 import type { Job } from "@/lib/types";
 import { area, group, hours, JobTag, service, TABS, useNow } from "./bits";
+import { payoutShort } from "@/components/job/Earn";
 import { JobDetail } from "./JobDetail";
 import s from "./jobs.module.css";
 
@@ -82,7 +83,7 @@ export function Jobs() {
 
   const row = (j: Job, i: number, all: Job[]) => {
     const g = group(j.scheduledDate, now);
-    const sub = [status !== 2 ? clock(j.selectedSlot) : g === "Today" || g === "Tomorrow" ? null : day(j.scheduledDate), area(j), hours(j)];
+    const sub = [status !== 2 ? clock(j.selectedSlot) : g === "Today" || g === "Tomorrow" ? null : day(j.scheduledDate), area(j), hours(j), status === 3 ? payoutShort(j) : null];
     const heading = status === 2 && (i === 0 || group(all[i - 1].scheduledDate, now) !== g) ? <div className={s.day}>{g}</div> : null;
     return (
       <div key={j._id} role="listitem">

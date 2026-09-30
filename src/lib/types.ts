@@ -29,6 +29,16 @@ export interface Booking {
   etaMinutes?: number | null;
   expiresAt?: string | null;
   acceptedAt?: string | null; // set when the Buddy accepts: tells a decline from a cancel after accepting
+  payment_status?: 0 | 1 | 2 | 3 | 4; // 0 pending, 1 processing, 2 paid, 3 cancelled, 4 refunded
+  // Money split (server numbers): price = what the customer paid (tax included), commissionAmount = Any-Buddy's fee.
+  vendorPriceAfterDetection?: number; // the Buddy's share (recomputed at check-out)
+  commissionAmount?: number;
+  taxAmount?: number;
+  billedAmount?: number; // set at check-out for the hours billed
+  // Stripe payouts (contract 30 Sep): the Buddy's pay for this job. null before check-out or in manual mode.
+  payoutStatus?: PayoutStatus | null;
+  payoutAmount?: number | null;
+  payoutArrivesBy?: string | null;
   [key: string]: unknown; // service, slot, customer and address fields: read from the API docs per screen
 }
 
@@ -75,7 +85,6 @@ export interface Job extends Booking {
   endAddress?: string;
   user_details?: { firstName?: string; lastName?: string; phone?: string; countryCode?: string };
   userDesc?: string; // the customer's note (returned by /detail since BUG-80 work)
-  payment_status?: 0 | 1 | 2 | 3 | 4; // 0 pending, 1 processing, 2 paid, 3 cancelled, 4 refunded
   cancelReason?: string | null;
   checkOutAt?: string | null;
   hoursWorked?: number;
@@ -108,6 +117,28 @@ export interface Payout {
   reference?: string;
   note?: string;
   createdAt: string;
+}
+// vendor/earnings/payouts in Stripe mode: the connected account's payouts (to the bank, or instant to the card).
+export interface StripePayout {
+  date: string;
+  amount: number;
+  status: "sent" | "paid" | "failed";
+  method: "standard" | "instant";
+  arrivesBy?: string | null;
+}
+export type PayoutStatus = "pending" | "sent" | "paid" | "failed" | "reversed";
+// vendor/payouts/account: the Buddy's Stripe account as our server sees it. Only last 4 digits ever come back.
+export interface PayoutAccount {
+  status: "not_started" | "pending" | "needs_info" | "verified" | "disabled";
+  requirements: { code: string; text: string }[]; // one per Stripe key, e.g. {code: "individual.dob.day", text: "Date of birth"}
+  // What Stripe has, to prefill the form. Never the date of birth or SSN digits, only whether Stripe has them.
+  identity: {
+    firstName: string | null; lastName: string | null; dobProvided: boolean; ssnLast4Provided: boolean; phone: string | null;
+    address: { line1: string | null; line2: string | null; city: string | null; state: string | null; postalCode: string | null } | null;
+  } | null;
+  bank: { last4: string; bankName?: string } | null;
+  card: { last4: string; brand?: string } | null;
+  instantAvailable: boolean; // verified; card null → offer "Add a debit card"
 }
 // vendor/bookings/list?status=3: a finished job and the Buddy's net share of it (the balance counts the same field).
 export interface FinishedJob {

@@ -11,6 +11,7 @@ import { ServicesEditor } from "@/components/forms/ServicesEditor";
 import { HoursEditor } from "@/components/forms/HoursEditor";
 import { DocumentsForm } from "@/components/forms/DocumentsForm";
 import { BankForm } from "@/components/forms/BankForm";
+import { payoutAccount, payoutsConfig } from "@/lib/stripe";
 import type { FormProps } from "@/components/forms/Field";
 import s from "./onboarding.module.css";
 
@@ -37,8 +38,14 @@ async function resume(): Promise<number> {
   if (!(svc.count ?? svc.data.length)) return 2;
   if (!h?.availability?.length) return 3;
   if (!d?.IdProofFront || !d?.IdProofBack) return 4;
-  if (!b?.account_number) return 5;
+  if (!b?.account_number && !(await stripeReady())) return 5;
   return 6;
+}
+
+/** Stripe mode: the payout step is done once Stripe is checking or has verified the Buddy (server moves step 4 → 5). */
+async function stripeReady() {
+  if ((await payoutsConfig()).mode !== "stripe") return false;
+  return ["verified", "pending"].includes((await payoutAccount()).status);
 }
 
 export default function Onboarding() {

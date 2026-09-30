@@ -16,10 +16,11 @@ const FAQ: [string, string][] = [
 ];
 
 function Help() {
-  const booking = useSearchParams().get("booking");
+  const q = useSearchParams();
+  const booking = q.get("booking");
   const { vendor } = useVendor();
   const toast = useToast();
-  const [subject, setSubject] = useState(booking ? `Booking ${booking}` : "");
+  const [subject, setSubject] = useState(booking ? `Booking ${booking}` : q.get("subject") ?? "");
   const [message, setMessage] = useState("");
   const [err, setErr] = useState<{ subject?: string; message?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
