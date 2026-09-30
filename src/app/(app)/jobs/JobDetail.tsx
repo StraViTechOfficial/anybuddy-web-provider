@@ -5,7 +5,7 @@ import { ArrowLeft, Clock, CurrencyDollar, Lifebuoy, MapPin, Star } from "@phosp
 import { JobActions } from "@/components/job/JobActions";
 import { Earn } from "@/components/job/Earn";
 import { api } from "@/lib/api";
-import { clock, day, money } from "@/lib/format";
+import { clock, day } from "@/lib/format";
 import type { Job } from "@/lib/types";
 import { hours, service } from "./bits";
 import s from "./jobs.module.css";
@@ -32,7 +32,6 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
   if (!job) return <>{backLink}<div className={`skeleton ${s.ghostBig}`} aria-busy /></>;
 
   const u = job.user_details ?? {};
-  const rate = job.services?.price;
   const photos = [...(job.checkInImages ?? []), ...(job.checkOutImages ?? [])].filter((p) => p.url);
 
   // JobActions shows the status, when and where and the customer's note while a job is open (request or confirmed),
@@ -51,7 +50,7 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
           )}
           {!open && job.address && <li><MapPin size={20} aria-hidden />{job.address}</li>}
           {job.endAddress && <li><MapPin size={20} aria-hidden />Then to {job.endAddress}</li>}
-          <li><CurrencyDollar size={20} aria-hidden />{hours(job)} booked{rate ? ` at ${money(rate)}/hr` : ""}, {PAID[job.payment_status ?? 0]}</li>
+          <li><CurrencyDollar size={20} aria-hidden />{hours(job)} booked, {PAID[job.payment_status ?? 0]}</li>
         </ul>
         {job.status === 2 && <Earn b={job} />}
 
