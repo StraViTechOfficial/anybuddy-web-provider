@@ -1,0 +1,41 @@
+/* v3 Home before approval: banner, "Get verified", one small card, "Before your first job"; the email sheet. */
+.wrap { display: grid; gap: 16px; max-width: 640px; margin-inline: auto; min-width: 0; }
+.banner { padding: 12px 16px; border-radius: var(--r2); background: var(--amber-soft); color: var(--amber-ink); font-size: var(--fs-sm); font-weight: 500; }
+.banner.bad { background: var(--bad-soft); color: var(--bad); }
+.banner a { font-weight: 700; color: inherit; }
+.card { display: grid; gap: 14px; padding: 18px 20px; }
+.head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.head h2 { font-size: var(--fs-lead); }
+.head span { font-size: var(--fs-sm); }
+.card h3 { font-size: var(--fs-lead); font-weight: 600; }
+.bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.bar span { height: 6px; border-radius: 3px; background: var(--line); }
+.bar span.on { background: var(--ok); }
+.label { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+.small { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; font-size: var(--fs-sm); }
+.list { list-style: none; padding: 0; margin: 0 -20px -18px; border-top: 1px solid var(--line); }
+.list li + li { border-top: 1px solid var(--line); }
+.list a { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 20px; text-decoration: none; }
+.list a:hover { background: var(--hover); }
+.list a > span { flex: 1; display: grid; }
+.list small { color: var(--mute); font-size: var(--fs-sm); }
+.done { color: var(--ok); flex: none; }
+.open { color: var(--mute); flex: none; }
+.go { color: var(--mute); flex: none; }
+.above { max-width: 640px; margin-bottom: 16px; }
+.sent { display: grid; gap: 12px; justify-items: start; max-width: 520px; margin: 48px auto 0; }
+
+/* Email sheet: centred dialog on laptops, bottom sheet on phones. */
+.sheet { width: min(420px, calc(100% - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--canvas); color: var(--ink); box-shadow: 0 16px 48px -12px rgba(16, 24, 40, .3); }
+.sheet::backdrop { background: rgba(15, 26, 46, .45); }
+.sheetHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -6px 0 12px; }
+.sheetHead h2 { font-size: var(--fs-h3); }
+.x { display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px; border: 0; border-radius: var(--r); background: none; color: var(--mute); }
+.x:hover { background: var(--hover); color: var(--ink); }
+.stack { display: grid; gap: 14px; }
+.fieldLabel { font-size: var(--fs-sm); font-weight: 600; }
+.textBtn { min-height: 44px; padding: 0; border: 0; background: none; color: var(--brand); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+@media (max-width: 699px) {
+  .sent { justify-items: stretch; margin-top: 24px; }
+  .sheet { width: 100%; max-width: none; margin: auto 0 0; border-radius: 16px 16px 0 0; border-bottom: 0; padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+}

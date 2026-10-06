@@ -6,12 +6,14 @@ import { payoutsConfig, type PayoutsConfig } from "@/lib/stripe";
 import { StripeBankForm } from "./StripeBankForm";
 import type { VendorBank } from "@/lib/types";
 import { Actions, Field, Req, RequiredNote, errText, hasErrors, type Errors, type FormProps } from "./Field";
+import { ChangeCode, CODE_MISSING } from "./ChangeCode";
+import { EMPTY_CODE } from "@/components/Code";
 import s from "./forms.module.css";
 
 /** US routing (ABA) number: 9 digits whose 3-7-1 weighted sum is a multiple of 10 (same rule as the server). */
 export const validAba = (n: string) => /^\d{9}$/.test(n) && [...n].reduce((t, d, i) => t + +d * [3, 7, 1][i % 3], 0) % 10 === 0;
 
-const EMPTY = { holder: "", bank: "", routing: "", account: "", confirm: "", type: "Checking", password: "" };
+const EMPTY = { holder: "", bank: "", routing: "", account: "", confirm: "", type: "Checking" };
 
 // Screen 5 and Account › Bank. Stripe mode (server flag, contract 30 Sep) gets its own form; manual mode, or no answer
 // from the server, keeps this one.
@@ -22,7 +24,7 @@ export function BankForm(p: FormProps) {
   return cfg.mode === "stripe" && cfg.publishableKey ? <StripeBankForm {...p} pk={cfg.publishableKey} /> : <ManualBankForm {...p} />;
 }
 
-// Manual mode. The saved account shows only as its last 4; changing it needs the password (server rule).
+// Manual mode. The saved account shows only as its last 4; changing it needs a code sent to the Buddy (v2 §8).
 function ManualBankForm({ mode, onDone, onBack }: FormProps) {
   const [v, setV] = useState(EMPTY);
   const [last4, setLast4] = useState("");
@@ -30,6 +32,7 @@ function ManualBankForm({ mode, onDone, onBack }: FormProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [loaded, setLoaded] = useState(false); // inputs stay disabled until the saved values are in
+  const [code, setCode] = useState(EMPTY_CODE);
 
   useEffect(() => {
     api<VendorBank>("vendor/auth/get-profile-details", { query: { type: 4 } })
@@ -51,7 +54,7 @@ function ManualBankForm({ mode, onDone, onBack }: FormProps) {
     routing: !validAba(v.routing) ? "Enter a valid 9-digit routing number." : undefined,
     account: !/^\d{4,17}$/.test(v.account) ? "Enter an account number of 4 to 17 digits." : undefined,
     confirm: /^\d{4,17}$/.test(v.account) && v.confirm !== v.account ? "The account numbers don't match." : undefined,
-    password: last4 && !v.password ? "Enter your password to change payout details." : undefined,
+    changeCode: last4 && !/^\d{6}$/.test(code.join("")) ? CODE_MISSING : undefined,
   });
   const errs: Errors = tried ? check() : {};
 
@@ -66,11 +69,12 @@ function ManualBankForm({ mode, onDone, onBack }: FormProps) {
         method: "POST",
         body: {
           step: 4, account_holder_name: v.holder.trim(), bank_name: v.bank.trim(), routing_number: v.routing,
-          account_number: v.account, account_type: v.type, ...(last4 && { password: v.password }),
+          account_number: v.account, account_type: v.type, ...(last4 && { changeCode: code.join("") }),
         },
       });
       setLast4(v.account.slice(-4));
-      setV((o) => ({ ...o, account: "", confirm: "", password: "" }));
+      setV((o) => ({ ...o, account: "", confirm: "" }));
+      setCode(EMPTY_CODE);
       setTried(false);
       onDone();
     } catch (e) {
@@ -111,13 +115,7 @@ function ManualBankForm({ mode, onDone, onBack }: FormProps) {
         ))}
       </fieldset>
       </div>
-      {last4 && (
-        <div className={s.row3}>
-        <Field id="password" label="Your Any-Buddy password" required error={errs.password} hint="Needed to change where your earnings go.">
-          <input type="password" autoComplete="current-password" value={v.password} onChange={set("password")} maxLength={128} />
-        </Field>
-        </div>
-      )}
+      {last4 && <ChangeCode value={code} onChange={setCode} error={errs.changeCode} />}
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} />
       </fieldset>
     </form>

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useState, type FormEvent, type ReactNode } from "react";
 import {
-  Bank, Bell, CaretRight, Clock, FileText, Lifebuoy, Lock, Scroll, SealCheck, SignOut, Star, Trash, User, Wrench, type Icon,
+  Bank, Bell, CaretRight, Clock, Envelope, FileText, Lifebuoy, MapPin, Scroll, SealCheck, SignOut, Star, Trash, User, Wrench, type Icon,
 } from "@phosphor-icons/react";
 import { api, ApiError } from "@/lib/api";
 import { useToast } from "@/components/Toast";
@@ -10,7 +10,7 @@ import { useVendor } from "@/components/Vendor";
 import s from "./account.module.css";
 
 const BUSINESS: [string, string, Icon][] = [
-  ["/account/profile", "Profile", User], ["/account/services", "Services and rates", Wrench], ["/hours", "Working hours", Clock],
+  ["/account/profile", "Profile", User], ["/account/service-area", "Service area", MapPin], ["/account/services", "Services and rates", Wrench], ["/hours", "Working hours", Clock],
   ["/account/documents", "Documents", FileText], ["/account/bank", "Bank details", Bank],
 ];
 const HELP: [string, string, Icon][] = [["/account/reviews", "Reviews", Star], ["/account/help", "Help and support", Lifebuoy], ["/account/legal", "Terms and privacy", Scroll]];
@@ -24,7 +24,7 @@ const Group = ({ id, title, children }: { id: string; title: string; children: R
 const signOut = () => api("vendor/auth/logout", { method: "POST" }).catch(() => {}).then(() => window.location.assign("/login"));
 
 export default function Page() {
-  const { vendor, reload } = useVendor();
+  const { vendor, onboarding, reload } = useVendor();
   const toast = useToast();
   const [notify, setNotify] = useState<boolean | null>(null);
   const [del, setDel] = useState(false);
@@ -66,11 +66,13 @@ export default function Page() {
         {vendor.logoUrl ? <img src={vendor.logoUrl} alt="" width={64} height={64} /> : <span className={s.initials} aria-hidden>{(vendor.firstName?.[0] ?? "") + (vendor.lastName?.[0] ?? "")}</span>}
         <div>
           <p className={s.name}>{name}</p>
-          <p className="muted">{vendor.email}</p>
+          <p className="muted">{vendor.email || vendor.phone}</p>
           {vendor.verificationStatus === 1 ? (
             <p className={s.verified}><SealCheck size={18} weight="fill" aria-hidden /><b>Verified Buddy</b><span>Your ID and documents were checked by Any-Buddy.</span></p>
           ) : vendor.verificationStatus === 2 ? (
             <p><span className="tag t-bad">Changes needed</span> <Link href="/account/help">Contact support</Link></p>
+          ) : onboarding?.verify && !onboarding.verify.submitted ? ( // v3: not sent for verification yet
+            <p><span className="tag t-wait">Not verified yet</span> <Link href="/">Get verified</Link></p>
           ) : (
             <p><span className="tag t-wait">Under review</span> <span className="muted">We email you when you&apos;re approved.</span></p>
           )}
@@ -86,7 +88,7 @@ export default function Page() {
           <input type="checkbox" role="switch" className="sr" checked={on} onChange={toggle} aria-describedby="notify-hint" />
           <span className={s.sw} aria-hidden />
         </label>
-        <Row href="/account/password" label="Password" I={Lock} />
+        <Row href="/account/email" label="Email" I={Envelope} />
       </Group>
       </div>
       <div className={s.col}>

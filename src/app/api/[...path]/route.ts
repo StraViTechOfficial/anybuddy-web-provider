@@ -4,10 +4,11 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
 const BACKEND = process.env.BACKEND_URL;
-const SESSION = "ab_pro"; // full 30-day token
-const CODE = "ab_pro_code"; // 15-minute code-step token (sign-up, forgot password, unverified login)
+const SESSION = "ab_pro"; // full Buddy token: 90-day sliding session (v2 §3)
+const SESSION_AGE = 90 * 24 * 3600;
+const CODE = "ab_pro_code"; // 15-minute code-step token ("Can't use this number?" email code)
 // Only what a Buddy may call. Admin routes are never reachable through this app.
-const ALLOWED = /^(vendor\/|uploads\/presign$|list-location$|user\/(cms|support|conversation|booking\/list-cancellation-reasons|services\/list-rating-reviews))/;
+const ALLOWED = /^(vendor\/|uploads\/presign$|list-location$|config$|user\/(cms|support|conversation|booking\/list-cancellation-reasons|services\/list-rating-reviews))/;
 const CODE_ROUTES = /^vendor\/auth\/(verify-otp|resend-otp)$/;
 const cookieBase = { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax" as const, path: "/" };
 
@@ -62,17 +63,19 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
     }
   }
 
-  // Take any token out of the reply and store it as a cookie instead.
-  const fresh: unknown = path === "vendor/auth/change-password" ? json.data : json.data?.token;
-  if (typeof fresh === "string") {
+  // Take any token out of the reply and store it as a cookie instead. Sliding session (v2 §3): a renewed token comes in
+  // the X-Auth-Token header of an ordinary reply.
+  const inBody: unknown = path === "vendor/auth/change-password" ? json.data : json.data?.token;
+  if (typeof inBody === "string") {
     if (typeof json.data === "object") delete json.data.token;
     else json.data = null;
   }
+  const fresh = typeof inBody === "string" ? inBody : upstream.headers.get("x-auth-token");
   const res = NextResponse.json(json, { status: upstream.status });
-  if (typeof fresh === "string") {
+  if (fresh) {
     if (stageOf(fresh) === "otp") res.cookies.set(CODE, fresh, { ...cookieBase, maxAge: 15 * 60 });
     else {
-      res.cookies.set(SESSION, fresh, { ...cookieBase, maxAge: 30 * 24 * 3600 });
+      res.cookies.set(SESSION, fresh, { ...cookieBase, maxAge: SESSION_AGE });
       res.cookies.delete(CODE);
     }
   }

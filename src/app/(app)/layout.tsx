@@ -1,10 +1,10 @@
 import { Shell } from "@/components/Shell";
 import { VendorProvider } from "@/components/Vendor";
 
-// Signed-in, onboarded Buddy screens. Unfinished onboarding is sent to /onboarding.
+// Signed-in Buddy screens. v3: everyone lands on Home, verified or not.
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <VendorProvider needs="onboarded">
+    <VendorProvider>
       <Shell>{children}</Shell>
     </VendorProvider>
   );

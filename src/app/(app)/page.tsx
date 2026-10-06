@@ -14,7 +14,7 @@ import { boardItems, pickDefault, urgent } from "@/components/board/items";
 import { JobActions } from "@/components/job/JobActions";
 import { addDays, daysFrom, hm, isDayKey, minuteOf, serviceOf, useNow, ymd } from "@/components/job/when";
 import s from "@/components/board/Board.module.css";
-import { ReviewScreen } from "@/components/ReviewScreen";
+import { Checklist, SetupNote } from "@/components/Checklist";
 import { useVendor } from "@/components/Vendor";
 
 type Lists = { reqs: JobBooking[]; jobs: JobBooking[] };
@@ -24,11 +24,11 @@ const longDate = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "long
 const TABLET = "(min-width: 700px) and (max-width: 1020px)";
 
 export default function Page() {
-  const { vendor } = useVendor();
-  if (!vendor) return null; // the app layout is loading the Buddy
-  // D-51: until admin approval, Home is the review screen (no board, jobs or earnings).
-  if (vendor.verificationStatus !== 1) return <ReviewScreen vendor={vendor} />;
-  return <Suspense><Home /></Suspense>;
+  const { vendor, onboarding } = useVendor();
+  if (!vendor || !onboarding) return null; // the app layout is loading the Buddy
+  // D-51: until admin approval, Home is "Get verified" (v3; no board, jobs or earnings).
+  if (vendor.verificationStatus !== 1) return <Checklist vendor={vendor} onboarding={onboarding} />;
+  return <><SetupNote onboarding={onboarding} /><Suspense><Home /></Suspense></>;
 }
 
 function Home() {

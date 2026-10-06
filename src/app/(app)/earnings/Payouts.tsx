@@ -7,6 +7,8 @@ import { ASKS_LEAD, instantFee } from "@/lib/pay";
 import { loadStripe, token, type CardElement, type Stripe } from "@/lib/stripe";
 import { useToast } from "@/components/Toast";
 import { errText } from "@/components/forms/Field";
+import { ChangeCode, CODE_MISSING } from "@/components/forms/ChangeCode";
+import { EMPTY_CODE } from "@/components/Code";
 import type { PayoutAccount } from "@/lib/types";
 import e from "./earnings.module.css";
 import s from "./payouts.module.css";
@@ -58,9 +60,9 @@ export function Payouts({ available, pending = 0, last4, acct, pk, onDone }: Pro
 }
 
 // Instant payout of the ready balance to the Buddy's debit card; adds the card first when there is none.
-// `replace`: only change the saved card, which needs the password (server rule: a new card receives instant payouts).
+// `replace`: only change the saved card, which needs a code sent to the Buddy (v2 §8; a new card receives instant payouts).
 // mode "pay": instant payout (adds the card first if there is none); "add": save the first card only; "change": replace the
-// saved card, which needs the password.
+// saved card, confirmed with that code.
 function Instant({ available, acct, pk, mode, onClose, onDone }: { available: number; acct: PayoutAccount; pk: string; mode: "pay" | "add" | "change"; onClose: () => void; onDone: () => void }) {
   const replace = mode === "change";
   const cardOnly = mode !== "pay";
@@ -71,7 +73,7 @@ function Instant({ available, acct, pk, mode, onClose, onDone }: { available: nu
   const box = useRef<HTMLDivElement>(null);
   const card = useRef<{ stripe: Stripe; el: CardElement } | null>(null);
   const needCard = cardOnly || !acct.card;
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState(EMPTY_CODE);
 
   useEffect(() => {
     if (!needCard) return;
@@ -90,7 +92,7 @@ function Instant({ available, acct, pk, mode, onClose, onDone }: { available: nu
   const ok = /^\d+(\.\d{1,2})?$/.test(amount.trim()) && n > 0;
   const submit = async (ev: FormEvent) => {
     ev.preventDefault();
-    const bad = cardOnly ? (replace && !password ? "Enter your password to change payout details." : "")
+    const bad = cardOnly ? (replace && !/^\d{6}$/.test(code.join("")) ? CODE_MISSING : "")
       : !ok ? "Enter an amount in dollars and cents, like 25.00." : n > available ? `You can get up to ${money(available)} now.`
       : n - instantFee(n) <= 0 ? "Instant payouts start above $0.51." : "";
     if (bad) return setError(bad);
@@ -100,7 +102,7 @@ function Instant({ available, acct, pk, mode, onClose, onDone }: { available: nu
       if (needCard) {
         if (!card.current) throw new Error("The card form is still loading. Try again in a moment.");
         const cardToken = await token(card.current.stripe.createToken(card.current.el, { currency: "usd" }));
-        await api("vendor/payouts/card", { method: "POST", body: { cardToken, ...(replace && { password }) } });
+        await api("vendor/payouts/card", { method: "POST", body: { cardToken, ...(replace && { changeCode: code.join("") }) } });
         if (cardOnly) { toast("Card saved"); return onDone(); }
       }
       // amount leaves the balance, Stripe takes the fee out, net reaches the card.
@@ -136,14 +138,7 @@ function Instant({ available, acct, pk, mode, onClose, onDone }: { available: nu
           <small className="hint">Instant payouts go to a US debit card. The card number goes straight to Stripe.</small>
         </div>
       )}
-      {replace && (
-        <div className="field">
-          <label htmlFor="card-pw">Your Any-Buddy password</label>
-          <input id="card-pw" className="input" type="password" autoComplete="current-password" maxLength={128} value={password} disabled={busy}
-            onChange={(x) => { setPassword(x.target.value); setError(""); }} />
-          <small className="hint">Needed to change where your earnings go.</small>
-        </div>
-      )}
+      {replace && <ChangeCode value={code} onChange={(d) => { setCode(d); setError(""); }} />}
       {error && <p className="err" role="alert">{error}</p>}
       <div className={s.inline}>
         <button className="btn p lg" aria-busy={busy} disabled={busy}>{cardOnly ? "Save card" : needCard ? "Save card and get paid" : "Get paid now"}</button>

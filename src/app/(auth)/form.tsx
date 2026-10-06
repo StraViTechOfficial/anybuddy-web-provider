@@ -1,9 +1,7 @@
 "use client";
-// What the auth screens share: field state and errors, the password box, server wording, the code timer.
-import { useRef, useState, type ChangeEvent, type FocusEvent, type InputHTMLAttributes } from "react";
-import { Eye, EyeSlash } from "@phosphor-icons/react";
+// What the auth screens share: field state and errors, server wording, where a signed-in Buddy goes.
+import { useRef, useState, type ChangeEvent, type FocusEvent } from "react";
 import { ApiError } from "@/lib/api";
-import s from "./auth.module.css";
 
 type Values<K extends string> = Record<K, string>;
 
@@ -44,23 +42,9 @@ export function useForm<K extends string>(initial: Values<K>, check: (v: Values<
   return { values, set, reveal, field, error, submit };
 }
 
-export function Password(props: InputHTMLAttributes<HTMLInputElement>) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={s.pw}>
-      <input {...props} className="input" type={open ? "text" : "password"} maxLength={128} />
-      <button type="button" className={s.eye} onClick={() => setOpen(!open)} aria-label={open ? "Hide password" : "Show password"} aria-pressed={open}>
-        {open ? <EyeSlash size={20} aria-hidden /> : <Eye size={20} aria-hidden />}
-      </button>
-    </div>
-  );
-}
-
 export const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 export const emailError = (v: string) =>
   !v.trim() ? "Enter your email address." : EMAIL.test(v.trim()) ? undefined : "Enter a valid email address, like name@example.com.";
-export const newPasswordError = (v: string) =>
-  v.length < 8 ? "Use at least 8 characters." : v.length > 128 ? "Use 128 characters or fewer." : undefined;
 
 // Backend wording that reads badly (or says too much) on screen, in our words. Everything else is shown as sent.
 const WORDS: [RegExp, string][] = [
@@ -68,24 +52,16 @@ const WORDS: [RegExp, string][] = [
   [/^otp expired$/i, "This code has expired. Send a new code."],
   [/^user not found\.?$/i, "That code isn't right. Check it and try again."], // unknown email in forgot: same as a wrong code
   [/^otp(invalid|required)$/i, "Enter all 6 digits."],
-  [/password and confirm password/i, "The passwords don't match."],
 ];
 export const say = (e: unknown) => {
   const m = e instanceof ApiError ? e.message : "Something went wrong. Try again.";
   return WORDS.find(([re]) => re.test(m))?.[1] ?? m;
 };
 
-// When the live code stops working, kept per tab so a reload keeps the countdown. A time, not a secret.
-const UNTIL = "ab_pro_code_until";
-export const startCode = (seconds?: number) => {
-  try { sessionStorage.setItem(UNTIL, String(Date.now() + (seconds || 600) * 1000)); } catch {}
-};
-export const codeUntil = () => {
-  try { return Number(sessionStorage.getItem(UNTIL)) || 0; } catch { return 0; }
-};
-
 // Only same-site paths after log in (no open redirect).
 export const safeNext = (next: string | null) => (next && /^\/(?![/\\])/.test(next) ? next : "/");
 
-// Where a signed-in Buddy goes: unfinished onboarding first (login and verify-otp both return `step`; 5 = done).
-export const landing = (step: number | undefined, done: string) => (step && step < 5 ? "/onboarding" : done);
+// v3: after any successful login on this device the 18+/Terms box shows ticked next time (localStorage; may be blocked).
+const AGREED = "ab_pro_terms";
+export const agreedBefore = () => { try { return localStorage.getItem(AGREED) === "1"; } catch { return false; } };
+export const rememberAgreed = () => { try { localStorage.setItem(AGREED, "1"); } catch { /* private mode: ask again next time */ } };

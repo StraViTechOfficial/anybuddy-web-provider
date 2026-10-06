@@ -177,15 +177,16 @@ export interface Reviews {
 }
 
 // Setup forms (onboarding + account edit). get-profile-details type=1 returns these on top of Vendor.
-export interface VendorProfile extends Vendor {
+export interface VendorProfile extends Vendor, VendorV2 {
   address?: { street?: string; city?: string; state?: string; country?: string };
   postalCode?: string;
   lat?: number | null;
   long?: number | null;
   serviceArea?: string | null;
 }
-export interface Category { _id: string; categoryName: string }
-export interface SubCategory { _id: string; serviceName: string; categoryId: string }
+// Categories carry the admin's licence rule and hourly range (v2 §6); null rate = no limit.
+export interface Category { _id: string; categoryName: string; licenceRequired?: boolean; licenceName?: string; rateMin?: number | null; rateMax?: number | null }
+export interface SubCategory { _id: string; serviceName: string; categoryId: string; categoryName?: string; rateMin?: number | null; rateMax?: number | null }
 export interface VendorService {
   _id: string;
   price: number;
@@ -197,7 +198,7 @@ export interface VendorService {
 export interface DayHours { day: number; isOpen: boolean; from: string; to: string }
 export interface Leave { date: string; description?: string }
 export interface VendorHours { availability?: DayHours[]; breakStart?: string | null; breakEnd?: string | null; leaves?: Leave[] }
-export type DocKey = "IdProofFront" | "IdProofBack" | "certificate" | "additionalDoc";
+export type DocKey = "IdProofFront" | "IdProofBack" | "selfieDoc" | "certificate" | "additionalDoc"; // selfieDoc: R13 live selfie
 export type VendorDocs = Partial<Record<DocKey, string | null>>;
 export interface VendorBank {
   account_holder_name?: string;
@@ -205,4 +206,33 @@ export interface VendorBank {
   account_number?: string;
   routing_number?: string;
   account_type?: string;
+}
+
+// Buddy onboarding v2 (§4, §9, §10). get-profile-details type=1 adds these to the profile.
+export type TravelMiles = number; // whole miles inside the admin's range (GET /api/config travelMiles); null = none stored
+export interface VendorV2 { middleName?: string | null; nickname?: string | null; /* R14 */ countryCode?: string; travelMiles?: TravelMiles | null; jobEmails?: boolean; offerEmails?: boolean; pendingEmail?: string | null }
+export type LicenceStatus = "missing" | "pending" | "approved" | "needs_changes";
+export interface LicenceItem { categoryId: string; categoryName: string; licenceName: string; status: LicenceStatus; note?: string | null }
+// GET vendor/auth/onboarding: where the Buddy resumes, and the home checklist.
+export interface Onboarding {
+  stage: "details" | "services" | "documents" | "submitted";
+  step: 1 | 2 | 3 | null;
+  review: "pending" | "approved" | "rejected";
+  bookable: boolean;
+  travelMiles?: TravelMiles | null;
+  checklist: { payouts: boolean; photo: boolean; hours: boolean; email: boolean; about: boolean; licences: LicenceItem[] };
+  // v3 (SPEC B3): Home's "Get verified" and "Before your first job". Missing on a server without v3.
+  verify?: {
+    details: boolean; services: boolean; id: boolean; done: number; total: number;
+    next: "details" | "services" | "id" | null; submitted: boolean; submittedAt: string | null;
+  };
+  firstJob?: { payouts: boolean; photo?: boolean; done: number; total: number }; // owner: total 1, photo no longer counts
+  signupFlow?: 3 | null;
+}
+// Owner 6 Oct "Request a new service": GET vendor/services/requests (pending and declined; an approved one comes back as a
+// normal service). A pending one counts as a service for sign-up.
+export interface ServiceRequest {
+  // null when the Buddy picked "Not in the list" (shown as "No category"; the rate is optional then)
+  _id: string; name: string; categoryId: string | null; categoryName: string | null; hourlyRate: number | null;
+  status: "pending" | "declined"; declineReason?: string | null;
 }

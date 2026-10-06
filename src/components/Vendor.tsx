@@ -2,28 +2,31 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
-import type { Vendor } from "@/lib/types";
+import type { Onboarding, Vendor, VendorV2 } from "@/lib/types";
 
-type Ctx = { vendor: Vendor | null; reload: () => Promise<void> };
-const VendorCtx = createContext<Ctx>({ vendor: null, reload: async () => {} });
+type Ctx = { vendor: (Vendor & VendorV2) | null; onboarding: Onboarding | null; reload: () => Promise<void> };
+const VendorCtx = createContext<Ctx>({ vendor: null, onboarding: null, reload: async () => {} });
 export const useVendor = () => useContext(VendorCtx);
 
-// Loads the signed-in Buddy once. `needs` decides where an unfinished or finished Buddy belongs.
-export function VendorProvider({ children, needs }: { children: ReactNode; needs: "onboarded" | "onboarding" }) {
+// Loads the signed-in Buddy once, with where they are in onboarding (v2 §9). v3: every Buddy lands on Home, which walks
+// them through "Get verified"; there is no separate onboarding route any more.
+export function VendorProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const path = usePathname();
-  const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [vendor, setVendor] = useState<Ctx["vendor"]>(null);
+  const [onboarding, setOnboarding] = useState<Onboarding | null>(null);
   const reload = useCallback(async () => {
-    const { data } = await api<Vendor>("vendor/auth/get-profile-details", { query: { type: 1 } });
-    setVendor(data);
+    const [p, o] = await Promise.all([
+      api<Vendor & VendorV2>("vendor/auth/get-profile-details", { query: { type: 1 } }),
+      api<Onboarding>("vendor/auth/onboarding"),
+    ]);
+    setVendor(p.data);
+    setOnboarding(o.data);
   }, []);
   useEffect(() => { reload().catch(() => router.replace("/login")); }, [reload, router]);
   useEffect(() => {
-    if (!vendor) return;
-    if (needs === "onboarded" && vendor.step < 5) router.replace("/onboarding");
-    if (needs === "onboarding" && vendor.step >= 5) router.replace("/");
     // D-51: work screens open only after admin approval.
-    if (needs === "onboarded" && vendor.verificationStatus !== 1 && /^\/(jobs|earnings|notifications)(\/|$)/.test(path)) router.replace("/");
-  }, [vendor, needs, router, path]);
-  return <VendorCtx.Provider value={{ vendor, reload }}>{children}</VendorCtx.Provider>;
+    if (vendor && vendor.verificationStatus !== 1 && /^\/(jobs|earnings|notifications)(\/|$)/.test(path)) router.replace("/");
+  }, [vendor, router, path]);
+  return <VendorCtx.Provider value={{ vendor, onboarding, reload }}>{children}</VendorCtx.Provider>;
 }

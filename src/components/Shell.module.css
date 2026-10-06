@@ -32,9 +32,6 @@
   .tabbar a { flex-direction: column; justify-content: center; gap: 2px; min-height: 52px; font-size: 11px; color: var(--mute); }
   .tabbar a[aria-current] { color: var(--brand); font-weight: 600; }
   .tabbar .n { position: absolute; top: 4px; left: calc(50% + 6px); }
+  /* v2.1: while typing (on-screen keyboard open) the tab bar steps aside so it never covers a field or its suggestions. */
+  .app:has(input:not([type=checkbox], [type=radio], [type=range], [type=file]):focus, textarea:focus) .tabbar { display: none; }
 }
-
-/* Review journey: done steps, then the one in progress */
-.steps { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; font-weight: 600; }
-.steps > span { display: inline-flex; align-items: center; gap: 4px; }
-.now { color: var(--ink); }

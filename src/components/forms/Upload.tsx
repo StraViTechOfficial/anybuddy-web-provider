@@ -12,12 +12,13 @@ export function useUploads<K extends string>(folder: "profile" | "documents", ki
   const [slots, setSlots] = useState<Partial<Record<K, Slot>>>({});
   const put = (k: K, v: Slot | undefined) => setSlots((d) => ({ ...d, [k]: v }));
 
-  async function pick(k: K, file?: File) {
+  /** Resolves to the slot as it ends (url set on success), so a form can save right after an upload. */
+  async function pick(k: K, file?: File): Promise<Slot | undefined> {
     if (!file) return;
     const old = slots[k];
     const kept: Slot = { url: old?.url ?? "", name: old?.name, local: old?.local }; // a failed pick keeps the file already there
     const bad = fileError(file, kind);
-    if (bad) return put(k, { ...kept, error: bad });
+    if (bad) { put(k, { ...kept, error: bad }); return { ...kept, error: bad }; }
     put(k, { ...kept, name: file.name, busy: true });
     let next: Slot = { ...kept, error: "Upload failed. Try again.", retry: file };
     try {
@@ -27,6 +28,7 @@ export function useUploads<K extends string>(folder: "profile" | "documents", ki
     } finally {
       put(k, next); // never leaves the slot on "Uploading"
     }
+    return next;
   }
 
   const busy = Object.values<Slot | undefined>(slots).some((x) => x?.busy);

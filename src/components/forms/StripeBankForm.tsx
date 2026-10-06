@@ -10,12 +10,14 @@ import type { PayoutAccount, VendorProfile } from "@/lib/types";
 import { validAba } from "./BankForm";
 import { Actions, Field, RequiredNote, SelectField, errText, hasErrors, type Errors, type FormProps } from "./Field";
 import { StripeAsks } from "./StripeAsks";
+import { ChangeCode, CODE_MISSING } from "./ChangeCode";
+import { EMPTY_CODE } from "@/components/Code";
 import s from "./forms.module.css";
 
 type State = { name: string; isoCode: string };
 const EMPTY = {
   first: "", last: "", dob: "", ssn: "", phone: "", line1: "", line2: "", city: "", state: "", zip: "",
-  holder: "", routing: "", account: "", confirm: "", password: "",
+  holder: "", routing: "", account: "", confirm: "",
   // Paid through a business: the business, and the Buddy's email and title as its representative.
   bname: "", ein: "", structure: "", bphone: "", bline1: "", bline2: "", bcity: "", bstate: "", bzip: "", email: "", title: "",
 };
@@ -26,7 +28,7 @@ const STRUCTURES = [
   { value: "multi_member_llc", label: "Multi-member LLC" },
   { value: "private_corporation", label: "Corporation" },
 ];
-const KINDS: [Kind, string][] = [["individual", "Individual — paid with your SSN or ITIN"], ["company", "Business — paid through your company's EIN"]];
+const KINDS: [Kind, string][] = [["individual", "As yourself, with your SSN or ITIN"], ["company", "As a business, with its EIN"]];
 // Owner, 1 Oct 2026: business (EIN) payouts are built but not offered yet; shown as coming soon. Set to true to open them.
 const BUSINESS_OPEN = false;
 const einText = (d: string) => (d.length > 2 ? `${d.slice(0, 2)}-${d.slice(2)}` : d);
@@ -41,7 +43,9 @@ const waiting = (st?: PayoutAccount["status"]) => st === "pending" || st === "no
 
 // Account › Bank and onboarding step 5 in Stripe mode (contract 30 Sep). Bank numbers go straight from this page to
 // Stripe as a token; our server gets the token, the identity US law asks for, and the Buddy's consent. The saved bank
-// shows only as its last 4; changing it needs the password (server rule).
+// shows only as its last 4; changing it needs a code sent to the Buddy (v2 §8, was the password).
+// R12 (release 1.3): typed bank details only, no Plaid. v2 R8 "Get paid": name, phone and address from sign-up in one card,
+// "Confirm it's you" (date of birth, SSN last 4), "Where to send your money", and the Stripe line above Finish (no tick box).
 export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: string }) {
   const [v, setV] = useState(EMPTY);
   const [acct, setAcct] = useState<PayoutAccount | null>(null);
@@ -54,6 +58,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   const [einFocus, setEinFocus] = useState(false);
   const [poll, setPoll] = useState(0); // bumped to start a 60 s round of checks
   const [slow, setSlow] = useState(false); // the round ended with Stripe still checking
+  const [code, setCode] = useState(EMPTY_CODE); // v2 §8: confirms a change of the saved bank
   const toast = useToast();
 
   useEffect(() => {
@@ -77,18 +82,20 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     api<State[]>("list-location", { query: { country: "United States" } })
       .then((r) => setStates(r.data.filter((x) => /^[A-Z]{2}$/.test(x.isoCode))))
       .catch(() => {});
-    // Prefill from what Stripe has (identity: never the DOB or SSN), else the profile; the Buddy checks it.
+    // Prefill (Stripe never returns the DOB or SSN). Name and home address: the profile first, as "Change" edits it (v3);
+    // a business keeps its representative as Stripe has it. Phone and the rest: Stripe first, else the profile.
     Promise.all([payoutAccount(), api<VendorProfile>("vendor/auth/get-profile-details", { query: { type: 1 } })])
       .then(([a, { data: p }]) => {
         setAcct(a);
         if (a.status === "pending") setPoll((n) => n + 1);
         setKind(a.type ?? "individual");
         const id = a.identity, ad = id?.address, b = a.business, ba = b?.address;
+        const mine = a.type !== "company", pick = (stripe?: string | null, own?: string) => (mine ? own || stripe : stripe || own) || "";
         setV((o) => ({
-          ...o, first: id?.firstName || p.firstName || "", last: id?.lastName || p.lastName || "",
+          ...o, first: pick(id?.firstName, p.firstName), last: pick(id?.lastName, p.lastName),
           phone: (id?.phone || p.phone || "").replace(/\D/g, "").slice(-10),
-          line1: ad?.line1 || p.address?.street || "", line2: ad?.line2 || "", city: ad?.city || p.address?.city || "",
-          state: ad?.state || p.address?.state || "", zip: (ad?.postalCode || p.postalCode || "").slice(0, 5),
+          line1: pick(ad?.line1, p.address?.street), line2: ad?.line2 || "", city: pick(ad?.city, p.address?.city),
+          state: pick(ad?.state, p.address?.state), zip: pick(ad?.postalCode, p.postalCode).slice(0, 5),
           holder: b?.name || [p.firstName, p.lastName].filter(Boolean).join(" "),
           bname: b?.name || "", structure: b?.structure || "", bphone: (b?.phone || "").replace(/\D/g, "").slice(-10),
           bline1: ba?.line1 || "", bline2: ba?.line2 || "", bcity: ba?.city || "", bstate: ba?.state || "", bzip: (ba?.postalCode || "").slice(0, 5),
@@ -104,7 +111,8 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
 
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) => setV((o) => ({ ...o, [k]: e.target.value }));
   const hasBank = !!acct?.bank;
-  const newBank = !hasBank || !!(v.routing || v.account || v.confirm); // with a bank on file, empty bank boxes keep it
+  // Bank boxes are checked when the Buddy types in them, or when no bank is on file (with one on file, empty boxes keep it).
+  const newBank = !!(v.routing || v.account || v.confirm) || !hasBank;
   const dob = parseDob(v.dob);
   // Already with Stripe: optional, sent only when typed again (server rule).
   const dobOnFile = !!acct?.identity?.dobProvided, ssnOnFile = !!acct?.identity?.ssnLast4Provided;
@@ -142,8 +150,11 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     routing: newBank && !validAba(v.routing) ? "Enter a valid 9-digit routing number." : undefined,
     account: newBank && !/^\d{4,17}$/.test(v.account) ? "Enter an account number of 4 to 17 digits." : undefined,
     confirm: newBank && /^\d{4,17}$/.test(v.account) && v.confirm !== v.account ? "The account numbers don't match." : undefined,
-    password: hasBank && newBank && !v.password ? "Enter your password to change payout details." : undefined,
+    changeCode: hasBank && newBank && !/^\d{6}$/.test(code.join("")) ? CODE_MISSING : undefined,
   });
+  // Name, phone and address from sign-up sit in one card while they are complete (R8.1); any gap opens the fields.
+  const idKeys = ["first", "last", "phone", "line1", "city", "state", "zip"];
+  const idFields = biz || idKeys.some((k) => check()[k]);
   const errs: Errors = tried ? check() : {};
 
   async function submit(e: FormEvent) {
@@ -175,11 +186,13 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
             },
             representative: { ...person, email: v.email.trim(), title: v.title.trim() },
           } : person),
-          ...(bankToken && { bankToken }), ...(hasBank && bankToken && { password: v.password }), tosAccepted: true,
+          ...(bankToken && { bankToken }),
+          ...(hasBank && bankToken && { changeCode: code.join("") }), tosAccepted: true,
         },
       });
       setAcct(data);
-      setV((o) => ({ ...o, ssn: "", ein: "", routing: "", account: "", confirm: "", password: "" }));
+      setV((o) => ({ ...o, ssn: "", ein: "", routing: "", account: "", confirm: "" }));
+      setCode(EMPTY_CODE);
       setTried(false);
       // Onboarding moves on once Stripe has what it needs (server step 4 → 5); needs info / disabled stay here.
       if (mode === "onboarding" && (data.status === "verified" || data.status === "pending")) return onDone();
@@ -203,6 +216,14 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   };
 
   const digits = { inputMode: "numeric" as const, autoComplete: "off", spellCheck: false };
+  const dobField = (
+    <Field id="dob" label="Date of birth" required={!dobOnFile} error={errs.dob} hint={dobOnFile ? "On file. Leave empty to keep it." : undefined}>
+      <input autoComplete="bday" inputMode="numeric" value={v.dob} onChange={set("dob")} maxLength={10} placeholder="MM/DD/YYYY" />
+    </Field>
+  );
+  const ssnField = (
+    <Field id="ssn" label={biz ? "SSN or ITIN, last 4 digits (optional)" : "SSN or ITIN, last 4 digits"} required={!ssnOnFile && !biz} error={errs.ssn} hint={ssnOnFile ? "On file. Leave empty to keep it." : "Your US tax ID: Social Security or Individual Taxpayer ID number."}><input {...digits} type="password" value={v.ssn} onChange={set("ssn")} maxLength={4} /></Field>
+  );
   const st = acct?.status;
   const paidTo = acct?.bank && <span className="hint">Paid to {acct.bank.bankName ? `${acct.bank.bankName}, ` : ""}account ending {acct.bank.last4}</span>;
   let status = null;
@@ -284,19 +305,29 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
           </div>
         </>
       )}
-      <h2 className={s.label}>{biz ? "You, running the business" : "About you"}</h2>
+      <h2 className={s.label}>{biz ? "You, running the business" : "Your details"}</h2>
       <p className="hint">{biz
         ? "Required by US law from the person running the business: your name, date of birth, home address and, if you have one, the last 4 digits of your SSN or ITIN (without it, Stripe asks for a photo ID). It goes straight to Stripe; we never store it."
-        : "Required by US law to pay you: your name, date of birth, address and the last 4 digits of your SSN or ITIN. It goes straight to Stripe; we never store it."}</p>
+        : "Needed to verify you for payouts."}</p>
+      {!idFields && (
+        <>
+          {/* Compact: name, then city and state (no phone, no street). "Change" edits them where they live: Your name and address. */}
+          <div className={`box ${s.saved} ${s.idCard} ${s.compact}`}>
+            <span><b>{v.first} {v.last}</b><span className="hint">{v.city}, {v.state}</span></span>
+            <Link className="btn" href="/account/bank/details">Change<span className="sr"> your name and address</span></Link>
+          </div>
+          <div className={s.row3}>{dobField}{ssnField}</div>
+        </>
+      )}
+      {idFields && (
+        <>
       <div className={s.row3}>
         <Field id="first" label="Legal first name" required error={errs.first}><input autoComplete="given-name" value={v.first} onChange={set("first")} maxLength={50} /></Field>
         <Field id="last" label="Legal last name" required error={errs.last}><input autoComplete="family-name" value={v.last} onChange={set("last")} maxLength={50} /></Field>
-        <Field id="dob" label="Date of birth" required={!dobOnFile} error={errs.dob} hint={dobOnFile ? "On file. Leave empty to keep it." : undefined}>
-          <input autoComplete="bday" inputMode="numeric" value={v.dob} onChange={set("dob")} maxLength={10} placeholder="MM/DD/YYYY" />
-        </Field>
+        {dobField}
       </div>
       <div className={s.row3}>
-        <Field id="ssn" label={biz ? "SSN or ITIN, last 4 digits (optional)" : "SSN or ITIN, last 4 digits"} required={!ssnOnFile && !biz} error={errs.ssn} hint={ssnOnFile ? "On file. Leave empty to keep it." : "Your US tax ID: Social Security or Individual Taxpayer ID number."}><input {...digits} type="password" value={v.ssn} onChange={set("ssn")} maxLength={4} /></Field>
+        {ssnField}
         <Field id="phone" label="Mobile phone" required error={errs.phone}><input type="tel" autoComplete="tel-national" value={v.phone} onChange={set("phone")} maxLength={14} /></Field>
       </div>
       {biz && (
@@ -316,34 +347,31 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
         <Field id="line2" label="Apartment or suite (optional)"><input autoComplete="address-line2" value={v.line2} onChange={set("line2")} maxLength={100} /></Field>
       </div>
 
-      <h2 className={s.label}>{biz ? "Business bank account" : "Bank account"}</h2>
+        </>
+      )}
+      <h2 className={s.label}>{biz ? "Business bank account" : "Where you'll receive your money"}</h2>
       {biz && <p className="hint">The business's checking account, in its name.</p>}
       {hasBank && <p className="hint">Leave these empty to keep account ending {acct!.bank!.last4}. To change it, enter the new account.</p>}
       <div className={s.row3}>
         <Field id="holder" label="Account holder name" required={newBank} error={errs.holder} hint={biz ? "The business's name, as the bank has it." : undefined}><input autoComplete="name" value={v.holder} onChange={set("holder")} maxLength={100} /></Field>
-        <Field id="routing" label="Routing number" required={newBank} error={errs.routing} hint="9 digits, on your checks or on your bank's website.">
+        <Field id="routing" label="Routing number" required={newBank} error={errs.routing}>
           <input {...digits} value={v.routing} onChange={set("routing")} maxLength={9} />
         </Field>
       </div>
       <div className={s.row3}>
         <Field id="account" label="Account number" required={newBank} error={errs.account}><input {...digits} value={v.account} onChange={set("account")} maxLength={17} /></Field>
-        <Field id="confirm" label="Confirm account number" required={newBank} error={errs.confirm}
+        {v.account && <Field id="confirm" label="Confirm account number" required={newBank} error={errs.confirm}
           hint={!v.confirm ? "Type it again to check." : v.confirm === v.account ? <span className={s.match}><CheckCircle size={16} weight="fill" aria-hidden />The numbers match.</span> : "Not the same yet."}>
           <input {...digits} type="password" value={v.confirm} onChange={set("confirm")} onPaste={(e) => e.preventDefault()} maxLength={17} />
-        </Field>
+        </Field>}
       </div>
-      {hasBank && newBank && (
-        <div className={s.row3}>
-          <Field id="password" label="Your Any-Buddy password" required error={errs.password} hint="Needed to change where your earnings go.">
-            <input type="password" autoComplete="current-password" value={v.password} onChange={set("password")} maxLength={128} />
-          </Field>
-        </div>
-      )}
+      {hasBank && newBank && <ChangeCode value={code} onChange={setCode} error={errs.changeCode} />}
+      {/* R8.5: one line above Finish, no tick box. */}
       <p className="hint">
-        Payouts are processed by Stripe. By saving, you agree to the{" "}
+        Payouts are handled by Stripe. By tapping Finish, you agree to the{" "}
         <a href="https://stripe.com/legal/connect-account" target="_blank" rel="noopener noreferrer">Stripe Connected Account Agreement</a>.
       </p>
-      <Actions mode={mode} busy={busy} onBack={onBack} label={busy ? <><span className="spin" aria-hidden /> Sending to Stripe…</> : undefined} />
+      <Actions mode={mode} busy={busy} onBack={onBack} label={busy ? <><span className="spin" aria-hidden /> Sending to Stripe…</> : "Finish"} />
       </fieldset>
     </form>
     </div>

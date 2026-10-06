@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { Bell, Briefcase, CheckCircle, CircleNotch, Clock, House, UserCircle, Wallet, type Icon } from "@phosphor-icons/react";
+import { Bell, Briefcase, Clock, House, UserCircle, Wallet, type Icon } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import { Logo } from "./Logo";
 import { useVendor } from "./Vendor";
@@ -54,18 +54,10 @@ export function Shell({ children }: { children: ReactNode }) {
           {unread > 0 && <b />}
         </Link>}
       </header>
-      {vendor && vendor.verificationStatus !== 1 && path !== "/" && (
-        <p className={`${s.banner} ${vendor.verificationStatus === 2 ? s.bad : ""}`} role="status">
-          {vendor.verificationStatus === 2
-            ? <>Your application needs changes. <Link href="/account/help">Contact support</Link> to continue.</>
-            : <>
-                {/* Onboarding is finished to reach this screen, so every setup step is done; only the admin review is left. */}
-                <span className={s.steps} aria-label="Setup progress">
-                  {["Profile", "Services", "Hours", "Documents", "Bank"].map((t) => <span key={t}><CheckCircle size={16} weight="fill" aria-hidden />{t}</span>)}
-                  <span className={s.now}><CircleNotch size={16} aria-hidden />Admin review</span>
-                </span>
-                <span>Customers can book you once you&apos;re approved. We email you when it&apos;s done.</span>
-              </>}
+      {/* v3: the review banner lives on Home ("Get verified"); other screens only say when changes are needed. */}
+      {vendor?.verificationStatus === 2 && path !== "/" && (
+        <p className={`${s.banner} ${s.bad}`} role="status">
+          Your application needs changes. <Link href="/account/help">Contact support</Link> to continue.
         </p>
       )}
       <main id="main" className={s.main}>{children}</main>

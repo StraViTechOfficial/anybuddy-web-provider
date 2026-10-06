@@ -52,6 +52,7 @@ label.btn:has(input:disabled):hover { background: var(--canvas); }
 .t-ok { background: var(--ok-soft); color: var(--ok); }
 .t-info { background: var(--brand-soft); color: var(--brand); }
 .t-bad { background: var(--bad-soft); color: var(--bad); }
+.t-mute { background: var(--soft); color: var(--mute); box-shadow: inset 0 0 0 1px var(--line); }
 
 /* form fields: visible label, error under the field (ui-ux-pro-max forms) */
 .field { display: grid; gap: 6px; align-content: start; } /* a hint or error under one field never shifts its neighbour */
@@ -75,6 +76,7 @@ td { padding: 14px 16px; border-bottom: 1px solid var(--line); vertical-align: m
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 
 @media (max-width: 699px) {
+  html { scroll-padding: 72px 0 24px; } /* a focused field scrolls clear of the sticky top bar */
   .btn { height: 44px; font-size: var(--fs-body); }
   h1 { font-size: 24px; }
   .row2 { grid-template-columns: 1fr; }
