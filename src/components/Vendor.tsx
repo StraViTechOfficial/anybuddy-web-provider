@@ -8,7 +8,7 @@ type Ctx = { vendor: (Vendor & VendorV2) | null; onboarding: Onboarding | null; 
 const VendorCtx = createContext<Ctx>({ vendor: null, onboarding: null, reload: async () => {} });
 export const useVendor = () => useContext(VendorCtx);
 
-// Loads the signed-in Buddy once, with where they are in onboarding (v2 §9). v3: every Buddy lands on Home, which walks
+// Loads the signed-in Buddy once, with where they are in onboarding. v3: every Buddy lands on Home, which walks
 // them through "Get verified"; there is no separate onboarding route any more.
 export function VendorProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -25,7 +25,7 @@ export function VendorProvider({ children }: { children: ReactNode }) {
   }, []);
   useEffect(() => { reload().catch(() => router.replace("/login")); }, [reload, router]);
   useEffect(() => {
-    // D-51: work screens open only after admin approval.
+    // Work screens open only after admin approval.
     if (vendor && vendor.verificationStatus !== 1 && /^\/(jobs|earnings|notifications)(\/|$)/.test(path)) router.replace("/");
   }, [vendor, router, path]);
   return <VendorCtx.Provider value={{ vendor, onboarding, reload }}>{children}</VendorCtx.Provider>;

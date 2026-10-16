@@ -1,5 +1,5 @@
 "use client";
-// The "Verify my email" button in the sign-up email lands here (D-53). Opening the page verifies nothing: mail
+// The "Verify my email" button in the sign-up email lands here. Opening the page verifies nothing: mail
 // scanners follow links, so the Buddy confirms with one tap (POST). Success signs them in; the app routes on.
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

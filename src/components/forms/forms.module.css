@@ -51,7 +51,7 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 .docs { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .doc { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; }
 .doc p { overflow-wrap: anywhere; }
-/* Owner: a thumbnail per uploaded file with an eye button in its corner that opens DocPreview. */
+/* A thumbnail per uploaded file with an eye button in its corner that opens DocPreview. */
 .docThumb { position: relative; flex: none; display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--r); border: 1px solid var(--line); background: var(--soft); color: var(--mute); overflow: hidden; }
 .docThumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .docThumb + div { flex: 1; min-width: 0; }
@@ -113,7 +113,7 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
   .addoff { grid-template-columns: 1fr; }
 }
 
-/* Clash warning before saving hours (D-47) */
+/* Clash warning before saving hours */
 .clash { display: grid; gap: 10px; padding: 16px; border-color: var(--amber-ink); background: var(--amber-soft); color: var(--ink); }
 .clash ul { display: grid; gap: 6px; padding-left: 18px; }
 .clash a { font-weight: 600; color: var(--brand); }
@@ -129,7 +129,7 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 .range:focus { outline: 0; }
 .range:focus-visible { outline: 2px solid var(--brand); outline-offset: -1px; }
 .range::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--brand) var(--fill), var(--line) var(--fill)); }
-/* Owner, 6 Oct: the bar starts and ends exactly at the knob's edges. The knob is a plain 24px circle (the input
+/* The bar starts and ends exactly at the knob's edges. The knob is a plain 24px circle (the input
    itself is 44px tall, so the tap area stays), its centre runs from 12px to (width - 12px), and the fill follows it. */
 .range { --fill: calc(12px + (100% - 24px) * var(--f, 0)); }
 .range::-moz-range-track { height: 6px; border-radius: 3px; background: var(--line); }
@@ -159,7 +159,7 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
   .itemHead { flex-wrap: wrap; }
   .itemHead > .buttons { width: 100%; }
 }
-/* D-50: the ask-for-a-service form sits under the add form, inside the same panel. */
+/* The ask-for-a-service form sits under the add form, inside the same panel. */
 .addPanel .addPanel { padding: 0; }
 
 .match { display: inline-flex; align-items: center; gap: 4px; color: var(--ok); font-weight: 600; }
@@ -204,14 +204,14 @@ fieldset.stack legend { padding: 0; margin-bottom: 4px; }
 .compact b, .compact :global(.hint) { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 /* Get paid: a section heading sits close to its own hint line. */
 h2.label + p:global(.hint) { margin-top: -10px; }
-/* R13 live selfie: the camera (mirrored, like a mirror) in a square with the face oval; the photo in the same square. */
+/* Live selfie: the camera (mirrored, like a mirror) in a square with the face oval; the photo in the same square. */
 .selfieView { position: relative; width: 100%; aspect-ratio: 1; border-radius: var(--r2); overflow: hidden; background: var(--soft); object-fit: cover; }
 .selfieView video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 /* OVAL_W/H/UP in Selfie.tsx: 42% x 56%, centre 8% above the middle. */
 .selfieRing { position: absolute; left: 29%; right: 29%; top: 14%; bottom: 30%; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 999px rgba(15, 26, 46, .45); }
 .selfieOk { border-color: var(--ok); }
 .selfieDark { border-color: #f5a524; } /* amber: too dark (Selfie.tsx DARK); bright enough to read on the dimmed camera */
-/* Owner 6 Oct "About you": flat sections (a small caps label and space, no boxes), names side by side, locate inside the address box. */
+/* "About you": flat sections (a small caps label and space, no boxes), names side by side, locate inside the address box. */
 .section { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin-top: 8px; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 .locWrap { position: relative; }
@@ -225,7 +225,7 @@ h2.label + p:global(.hint) { margin-top: -10px; }
 .pickedText b { font-weight: 600; }
 .picked > :global(.btn) { flex: none; }
 /* "Request a new service": one small link at the end of the service picker, tight to it. */
-/* Owner 6 Oct: "Request a new service" and "Browse all services" read as links (brand colour, underlined); hover and
+/* "Request a new service" and "Browse all services" read as links (brand colour, underlined); hover and
    press only tint very lightly, never the browser's grey tap box. */
 .askLink { justify-self: start; color: var(--brand); text-underline-offset: 3px; padding: 6px 8px; margin: -2px -8px 0; border-radius: var(--r); -webkit-tap-highlight-color: transparent; }
 .askLink:hover, .askLink:active { background: color-mix(in srgb, var(--brand) 5%, transparent); }

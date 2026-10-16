@@ -1,5 +1,5 @@
 "use client";
-// v2 R2.4 / R3.4 (v2.1): "Service area", how far the Buddy travels, as a slider whose range, step and starting value
+// v2: "Service area", how far the Buddy travels, as a slider whose range, step and starting value
 // come from GET /api/config (admin setting), with a circle around home once an address is picked: Google map with the
 // key, else a drawn circle to scale.
 import { useEffect, useRef, useState, type CSSProperties } from "react";
@@ -28,14 +28,14 @@ export function useTravelRange() {
 /** A saved value worth showing: any whole number of miles (one outside a later-narrowed range is kept, never changed). */
 export const savedMiles = (n: unknown): n is TravelMiles => typeof n === "number" && n > 0;
 
-// Owner 6 Oct: section label "Travel distance", the map above the slider (so Continue/Save follows it), "Up to N miles".
+// Section label "Travel distance", the map above the slider (so Continue/Save follows it), "Up to N miles".
 export function Travel({ value, onChange, center, error, range: r }: { value: TravelMiles; onChange: (m: TravelMiles) => void; center: LatLng | null; error?: string; range: TravelRange }) {
   const map = center && (MAPS_KEY ? <MapCircle miles={value} center={center} /> : <DrawnCircle miles={value} max={r.max} />);
   const pct = Math.min(100, Math.max(0, ((value - r.min) / (r.max - r.min)) * 100));
   return (
     <div className={`field ${s.rate}`}>
       <label className={s.section} htmlFor="miles">Travel distance</label>
-      {/* Owner: the map and circle show only once an address is picked; no default map before that. */}
+      {/* The map and circle show only once an address is picked; no default map before that. */}
       {map}
       <output htmlFor="miles" className={s.milesNow}>Up to {mi(value)}</output>
       <input id="miles" type="range" className={s.range} min={r.min} max={r.max} step={r.step} value={value}

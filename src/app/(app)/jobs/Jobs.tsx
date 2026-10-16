@@ -17,7 +17,6 @@ const EMPTY: Record<string, string> = {
   done: "No completed jobs yet. Finished jobs and what you earned show up here.",
   cancelled: "Nothing canceled.",
 };
-const when = (j: Job) => `${day(j.scheduledDate)}${j.selectedSlot ? `, ${clock(j.selectedSlot)}` : ""}`;
 
 // Laptop: list and detail side by side (?tab=&id=). Phone and tablet: the list; a tap opens /jobs/[id].
 export function Jobs() {
@@ -41,7 +40,7 @@ export function Jobs() {
     try {
       const r = await api<Job[]>("vendor/bookings/list", { query: { status, page: p, limit: LIMIT } });
       const got = r.data.map((j) => ({ ...j, status })); // the list omits status: it is the tab's
-      setRows((old) => (p === 1 ? got : [...(old ?? []), ...got])); // backend pages in a stable order (BUG-80)
+      setRows((old) => (p === 1 ? got : [...(old ?? []), ...got])); // backend pages in a stable order
       setCounts((c) => ({ ...c, [status]: r.count ?? 0 }));
       setPage(p);
       setEnd(got.length < LIMIT);

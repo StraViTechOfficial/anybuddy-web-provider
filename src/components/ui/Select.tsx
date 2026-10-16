@@ -1,5 +1,5 @@
 "use client";
-// Select field + anchored listbox (WAI-ARIA select-only combobox). Replaces every native <select> (owner, 29 Sep).
+// Select field + anchored listbox (WAI-ARIA select-only combobox). Replaces every native <select> on purpose.
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { CaretDown } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";

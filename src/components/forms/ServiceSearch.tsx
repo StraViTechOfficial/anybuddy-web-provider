@@ -1,5 +1,5 @@
 "use client";
-// Owner, search-first: typing searches services across every category (GET list-subcategories?search=, no categoryId);
+// Search-first: typing searches services across every category (GET list-subcategories?search=, no categoryId);
 // each result is "Service · Category" with Add, which adds it at once. No match: request the typed name as a new service.
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";

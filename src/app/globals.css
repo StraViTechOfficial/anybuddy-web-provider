@@ -1,7 +1,7 @@
 /* Design tokens + shared primitives only. Screen styles live next to their component as *.module.css. */
 :root {
   --ink: #0f1a2e; --ink2: #2b3a52; --mute: #5f6b7d; --line: #e3e8ee; --soft: #f6f8fb; --canvas: #fff; --hover: #f3f6fa;
-  /* Provider brand = charcoal, matching the black Pro logo (D-48). The customer apps stay navy. */
+  /* Provider brand = charcoal, matching the black Pro logo. The customer apps stay navy. */
   --brand: #17181c; --brand-d: #000; --brand-soft: #eef0f3; --on-brand: #fff;
   --amber-ink: #8a4a0b; --amber-soft: #fcf0e1; --ok: #0e6b40; --ok-soft: #e6f5ec; --bad: #b42318; --bad-soft: #fdeceb;
   --closed: #e6e8ec; --closed-line: #d3d6dc; /* closed hours on time grids: clearly not open */

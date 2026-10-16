@@ -9,8 +9,8 @@ import s from "./forms.module.css";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 
-// v2 R9 Add email (from the checklist and Account): a code to the address proves it; one email per Buddy (the server
-// says when another account has it). Two opt-ins, on for a new email (v3 B5). Also used for account recovery and payout changes.
+// v2 Add email (from the checklist and Account): a code to the address proves it; one email per Buddy (the server
+// says when another account has it). Two opt-ins, on for a new email (v3). Also used for account recovery and payout changes.
 export function EmailForm({ onDone }: FormProps) {
   const { vendor, reload } = useVendor();
   const toast = useToast();
@@ -23,7 +23,7 @@ export function EmailForm({ onDone }: FormProps) {
   const [fail, setFail] = useState("");
   const [tried, setTried] = useState(false);
   const has = !!vendor?.email;
-  // Buddies from before v2 have no setting and keep job emails until they change it. A new email: both on (v3 SPEC B5).
+  // Buddies from before v2 have no setting and keep job emails until they change it. A new email: both on (v3).
   useEffect(() => { if (vendor) { setJobs(!has || (vendor.jobEmails ?? true)); setOffers(!has || !!vendor.offerEmails); } }, [vendor, has]);
 
   const bad = !EMAIL.test(email.trim()) ? "Enter a valid email address, like name@example.com." : undefined;

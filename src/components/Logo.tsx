@@ -3,7 +3,7 @@ import s from "./Logo.module.css";
 
 // Buddy mark (the provider app icon, black) + wordmark. `compact` = mark only; `large` for sign-in and onboarding.
 export function Logo({ compact = false, large = false }: { compact?: boolean; large?: boolean }) {
-  const k = large ? 1.8 : 1.2; // 1.2 in the top bars (owner: a bit larger), 1.8 on sign-in pages
+  const k = large ? 1.8 : 1.2; // 1.2 in the top bars (a bit larger), 1.8 on sign-in pages
   return (
     <Link href="/" className={s.logo} aria-label="Any-Buddy, home">
       <img src="/mark.png" alt="" width={Math.round(31 * k)} height={Math.round(34 * k)} />

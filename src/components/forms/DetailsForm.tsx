@@ -19,10 +19,10 @@ const streetError = (v: string) => v.trim().length < 2 ? "Enter your street addr
   : undefined;
 const zipError = (v: string) => (!/^\d{5}$/.test(v) ? "Enter a 5-digit ZIP code." : undefined);
 
-// v3 "Your name and address", opened from Home (v2 R2, v2.1 wording): legal name once (first, optional middle, last), home address (search with suggestions,
-// "Use my location", or typed), how far the Buddy travels. The 18+/Terms tick is on the login screen now (SPEC B1). Outside the operating area the server says so; the Buddy can join the waitlist and
+// v3 "Your name and address", opened from Home: legal name once (first, optional middle, last), home address (search with suggestions,
+// "Use my location", or typed), how far the Buddy travels. The 18+/Terms tick is on the login screen now. Outside the operating area the server says so; the Buddy can join the waitlist and
 // sign-up stops there. Without the Maps key: typed fields, checked with the address lookup (/onboarding/geocode).
-// Owner, 6 Oct (Get verified "About you"): flat, two labelled sections (You, Where you work), no boxes; a live line shows
+// Get verified "About you": flat, two labelled sections (You, Where you work), no boxes; a live line shows
 // how customers see the name; Continue sits right after the slider.
 export function DetailsForm({ mode, onDone }: FormProps) {
   const [v, setV] = useState(EMPTY);
@@ -66,7 +66,7 @@ export function DetailsForm({ mode, onDone }: FormProps) {
   }, [states, v.state]);
 
   const addrKey = keyOf(v);
-  // Owner: a nickname shows alone; otherwise first name and last initial.
+  // A nickname shows alone; otherwise first name and last initial.
   const shown = `${v.nickname.trim() || `${v.firstName.trim() || "First"} ${v.lastName.trim()[0]?.toUpperCase() ?? "L"}.`}${v.city.trim() ? ` · ${v.city.trim()}` : ""}`;
   const at = point?.for === addrKey ? point : null;
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) => setV((o) => ({ ...o, [k]: e.target.value }));

@@ -1,5 +1,5 @@
 "use client";
-// D-47: before saving new hours, list upcoming bookings that no longer fit. They stay booked; the Buddy decides.
+// Before saving new hours, list upcoming bookings that no longer fit. They stay booked; the Buddy decides.
 import Link from "next/link";
 import type { JobBooking } from "@/lib/types";
 import { dayLabel, hm, serviceOf, slotMin, ymd } from "@/components/job/when";

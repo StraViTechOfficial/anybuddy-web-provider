@@ -1,11 +1,11 @@
 "use client";
-// v3 Home before approval (SPEC "Home before verification"): the amber banner, "Get verified" one next step at a time,
+// v3 Home before approval: the amber banner, "Get verified" one next step at a time,
 // one small card (email; the website has no web push, so no notifications card), and "Before your first job" once sent.
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { CaretRight, CheckCircle, Circle, HourglassMedium, X } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
-import { TZ } from "@/lib/format";
+import { longDate } from "@/lib/format";
 import type { Onboarding, Vendor } from "@/lib/types";
 import { emailError } from "@/app/(auth)/form";
 import { CodeInput, sendCode, type Sent } from "./Code";
@@ -20,7 +20,6 @@ const NEXT: Record<NonNullable<Verify["next"]>, [string, string, string]> = {
   id: ["A photo of your ID", "Driver's license, state ID or passport", "/get-verified/id"],
 };
 const LEFT = [" Three quick things to go.", " Two quick things to go.", " One quick thing to go."]; // by items done; 3 done: nothing
-const longDate = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" });
 
 // A server without v3 has no `verify`: the v2 stage says the same thing (v2 submits on the third item).
 function verifyOf(o: Onboarding): Verify {
@@ -70,7 +69,7 @@ export function Checklist({ vendor, onboarding: o }: { vendor: Vendor; onboardin
     <div className={s.wrap}>
       <div>
         <h1>{vendor.firstName ? `Hi, ${vendor.firstName}` : "Welcome"}</h1>
-        <p className="sub">{longDate.format(new Date())}</p>
+        <p className="sub">{longDate(new Date())}</p>
       </div>
       {o.review === "rejected" ? (
         <p className={`${s.banner} ${s.bad}`} role="status">
@@ -120,7 +119,7 @@ export function Checklist({ vendor, onboarding: o }: { vendor: Vendor; onboardin
   );
 }
 
-/** "Before your first job": Get paid only (owner: the profile photo is optional, in Account), ticked when done. */
+/** "Before your first job": Get paid only (the profile photo is optional, in Account), ticked when done. */
 function FirstJob({ o }: { o: Onboarding }) {
   const rows: [boolean, string, string, string][] = [[firstJobOf(o).payouts, "Get paid", "Where we send your money", "/account/bank"]];
   return (
@@ -148,7 +147,7 @@ export function SetupNote({ onboarding }: { onboarding: Onboarding }) {
 }
 
 /** Add your email: one field, Send code, then the code in the same sheet; closes with "Email added." No switches here
- *  (both email choices start on, SPEC B5; Account › Email keeps the switches). Native <dialog>: focus trap and Esc. */
+ *  (both email choices start on; Account › Email keeps the switches). Native <dialog>: focus trap and Esc. */
 function EmailSheet({ onClose }: { onClose: () => void }) {
   const { reload } = useVendor();
   const toast = useToast();
@@ -176,7 +175,7 @@ function EmailSheet({ onClose }: { onClose: () => void }) {
     setBusy(false);
   }
   async function verify(code: string) {
-    await api("vendor/auth/email/verify", { method: "POST", body: { code, jobEmails: true, offerEmails: true } }); // B5 defaults, also on a server without B5
+    await api("vendor/auth/email/verify", { method: "POST", body: { code, jobEmails: true, offerEmails: true } }); // both on by default, also on a server that doesn't default them
     await reload().catch(() => {});
     toast("Email added.");
     onClose();

@@ -15,16 +15,16 @@ import s from "./forms.module.css";
 const ID: ["IdProofFront" | "IdProofBack" | "selfieDoc", string, string][] = [
   ["IdProofFront", "ID front", "Add the front of your ID."],
   ["IdProofBack", "ID back", "Add the back of your ID."],
-  ["selfieDoc", "Selfie", "Take a selfie."], // R13: live camera only, saved like the ID photos; required only before sending for verification
+  ["selfieDoc", "Selfie", "Take a selfie."], // live camera only, saved like the ID photos; required only before sending for verification
 ];
 const STATUS: Record<LicenceItem["status"], [string, string]> = {
   missing: ["", ""], pending: ["In review", "t-wait"], approved: ["Approved", "t-ok"], needs_changes: ["Needs changes", "t-bad"],
 };
 const licenceName = (l: LicenceItem) => l.licenceName || `${l.categoryName} license`;
 
-// v2 Step 3 of 3 and Account › Documents (R5, R6). Government ID front and back; a licence row only for each licensed
+// v2 Step 3 of 3 and Account › Documents. Government ID front and back; a licence row only for each licensed
 // category the Buddy offers (admin's switch), which can be added later (those services stay hidden until approved).
-// Web has no document scanner: photo or PDF uploads; the selfie comes from the front camera only (R13). Files go to the private "documents" folder.
+// Web has no document scanner: photo or PDF uploads; the selfie comes from the front camera only. Files go to the private "documents" folder.
 export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   const { vendor, reload } = useVendor();
   const { slots, setSlots, pick, busy: uploading } = useUploads<string>("documents", "document");
@@ -36,14 +36,14 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   const [loaded, setLoaded] = useState(false); // inputs stay disabled until the saved values are in
   const [camera, setCamera] = useState(false);
   const [preview, setPreview] = useState<{ src: string; name: string; pdf: boolean } | null>(null);
-  // Owner: uploads were lost on leaving. Not approved yet: each upload saves at once. Approved (a new ID sends the
+  // Uploads must not be lost on leaving. Not approved yet: each upload saves at once. Approved (a new ID sends the
   // account back to review): saved on Submit only, and leaving with unsaved files asks Save / Discard.
   const approved = vendor?.verificationStatus === 1;
   const [stored, setStored] = useState<Record<string, string>>({}); // slot key → the URL the server has from this visit
   const [leaving, setLeaving] = useState(""); // the in-app link the Buddy clicked with unsaved files
   const router = useRouter();
   const [asPhoto, setAsPhoto] = useState<File | null>(null); // the selfie, also to be the public profile photo
-  const [selfieNeeded, setSelfieNeeded] = useState(false); // owner: new sign-ups only; sent or approved Buddies may skip it
+  const [selfieNeeded, setSelfieNeeded] = useState(false); // new sign-ups only; sent or approved Buddies may skip it
 
   useEffect(() => {
     Promise.all([
@@ -145,7 +145,7 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
           </span>
         )}
         <div>
-          {/* Owner: a Required / Optional tag on every row, as in the apps (no asterisk). */}
+          {/* A Required / Optional tag on every row, as in the apps (no asterisk). */}
           <b>{label}</b> <span className={`tag ${required ? "t-info" : "t-mute"}`}>{required ? "Required" : "Optional"}</span> {tag}
           <UploadNote slot={d} id={`err-${k}`} idle={note} onRetry={(f) => pickSave(k, f)} />
           {!approved && d?.local && d.url && stored[k] === d.url && <p className="hint" role="status">Saved</p>}

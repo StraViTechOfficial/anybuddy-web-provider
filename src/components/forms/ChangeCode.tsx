@@ -1,5 +1,5 @@
 "use client";
-// v2 §8 (R8.7): changing where earnings go (bank or debit card) is confirmed with a code, sent to the email on file or
+// Changing where earnings go (bank or debit card) is confirmed with a code, sent to the email on file or
 // else by text, instead of the password. The code goes with the save as `changeCode`; the server checks it there.
 import { useState } from "react";
 import { api } from "@/lib/api";

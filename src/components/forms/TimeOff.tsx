@@ -1,18 +1,17 @@
 "use client";
 import { useState, type KeyboardEvent } from "react";
-import { day, TZ } from "@/lib/format";
+import { day, dayKey } from "@/lib/format";
 import type { Leave } from "@/lib/types";
 import { DatePicker } from "@/components/ui/DatePicker";
 import s from "./forms.module.css";
 
 // Days off inside the hours form (saved with it). Dates are business days "YYYY-MM-DD"; past ones are dropped.
-const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
 
 export function TimeOff({ leaves, onChange }: { leaves: Leave[]; onChange: (l: Leave[]) => void }) {
   const [date, setDate] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
-  const min = today();
+  const min = dayKey();
   const shown = leaves.filter((l) => l.date >= min).sort((a, b) => a.date.localeCompare(b.date));
 
   function add() {

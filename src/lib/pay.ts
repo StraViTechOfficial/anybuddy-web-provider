@@ -5,7 +5,7 @@ type Money = { price?: number; vendorPriceAfterDetection?: number; commissionAmo
 /** The Buddy's share after Any-Buddy's fee. null when unknown (0 is how old rows say unknown); never falls back to price. */
 export const shareOf = (j: Money) => (j.vendorPriceAfterDetection ?? 0) > 0 ? j.vendorPriceAfterDetection! : null;
 
-// Stripe requirements (contract "Changes", 30 Sep): the codes the bank form's own fields answer, by prefix. Ones with a
+// Stripe requirements: the codes the bank form's own fields answer, by prefix. Ones with a
 // `fix` (full SSN, photo ID, proof of address) have their own card (StripeAsks); anything else goes through support.
 // Same list and words as iOS.
 const IN_FORM = ["individual.first_name", "individual.last_name", "individual.dob", "individual.ssn_last_4", "individual.phone",

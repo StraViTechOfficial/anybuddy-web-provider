@@ -106,7 +106,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
     <form method="post" onSubmit={submit} noValidate>
       <fieldset className={s.form} disabled={!loaded}>
       <RequiredNote />
-      {/* Owner batch 3: same sections and labels as sign-up ("You", "Home address"). */}
+      {/* Same sections and labels as sign-up ("You", "Home address"). */}
       <h2 className={s.section}>You</h2>
       {/* Plain rows: every input in a row shares one top line, so hints and errors only add space below and never skew a row. */}
       <div className={s.nameRow}>

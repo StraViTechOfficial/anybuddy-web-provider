@@ -1,6 +1,6 @@
 "use client";
 // Code entry for every code screen: phone login, the email code, a new phone, add email, payout changes.
-// A2: "Send a new code" waits the server's codeValidFor (30 s when it is missing); the "already sent" note shows only on
+// "Send a new code" waits the server's codeValidFor (30 s when it is missing); the "already sent" note shows only on
 // HTTP 429. Typing, autofill (autocomplete="one-time-code") and paste all spread the digits over the six boxes.
 import { useEffect, useId, useRef, useState, type ClipboardEvent, type KeyboardEvent, type ReactNode } from "react";
 import { ApiError, type Reply } from "@/lib/api";
@@ -99,7 +99,7 @@ export function CodeBoxes({ id, digits, setDigits, onComplete, labelledBy, descr
   );
 }
 
-/** A code that was just sent (owner's code-step standard, v2.1): title, `head` (where it went + "Change number"), the six
+/** A code that was just sent (the shared code-step layout): title, `head` (where it went + "Change number"), the six
  *  boxes, the error or the server's note, one resend line with `children` grouped under it, then the submit button.
  *  `verify` throws to show its message; on success the parent moves on. With `head` the title is a heading. */
 export function CodeInput({ label, head, sent: first, resend, verify, submit, children }: {

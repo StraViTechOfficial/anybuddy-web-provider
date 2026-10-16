@@ -8,9 +8,9 @@ import s from "./forms.module.css";
 type Detector = { detect(src: HTMLVideoElement): Promise<{ boundingBox: DOMRectReadOnly }[]> };
 type DetectorClass = new (o: { fastMode?: boolean; maxDetectedFaces?: number }) => Detector;
 // The face-shaped oval (3:4) as shares of the square the camera shows, a little above the middle (CSS .selfieRing matches).
-const OVAL_W = 0.42, OVAL_H = 0.56, OVAL_UP = 0.08; // owner: small enough that head, shoulders and a bit above are in the photo
+const OVAL_W = 0.42, OVAL_H = 0.56, OVAL_UP = 0.08; // small enough that head, shoulders and a bit above are in the photo
 const SIDE = 960; // the saved photo, square, in pixels
-// Owner: the low-light warning, as in the apps. Mean luma (0-255) inside the oval; dark below DARK, light again above
+// The low-light warning, as in the apps. Mean luma (0-255) inside the oval; dark below DARK, light again above
 // LIGHT (hysteresis, so it doesn't flicker at the edge). Tune both here; a normal room sits well above 60.
 const DARK = 60, LIGHT = 75, PROBE = 32; // PROBE: the small canvas side the luma is read from
 
@@ -42,9 +42,9 @@ function inOval({ x, y, width, height }: DOMRectReadOnly, v: HTMLVideoElement) {
   return Math.hypot(nx, ny) < 0.35 && width < rx * 2 && width > rx * 0.6;
 }
 
-/** R13 live selfie: front camera in a sheet with a face oval, the shutter, then Retake / Use photo. No file upload: a
+/** Live selfie: front camera in a sheet with a face oval, the shutter, then Retake / Use photo. No file upload: a
  *  camera that is off or missing gets a message to allow it or use the Any-Buddy Pro app. */
-// Owner: the preview offers "Also use this as my profile photo", ticked unless the Buddy already has a profile photo.
+// The preview offers "Also use this as my profile photo", ticked unless the Buddy already has a profile photo.
 export function SelfieSheet({ onUse, onClose, hasPhoto }: { onUse: (f: File, asPhoto: boolean) => void; onClose: () => void; hasPhoto: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   const video = useRef<HTMLVideoElement>(null);
@@ -103,7 +103,7 @@ export function SelfieSheet({ onUse, onClose, hasPhoto }: { onUse: (f: File, asP
     cv.toBlob((b) => b && setShot({ file: new File([b], "selfie.jpg", { type: "image/jpeg" }), url: URL.createObjectURL(b), dark: isDark }), "image/jpeg", 0.9);
   }
 
-  const ready = live && detect && face; // shows state only; owner: the shutter never waits for it
+  const ready = live && detect && face; // shows state only; the shutter never waits for it
   return (
     <dialog ref={ref} className={c.sheet} aria-labelledby="selfie-t" onClose={onClose}>
       <div className={c.sheetHead}>

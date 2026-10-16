@@ -34,7 +34,7 @@ export function Field({ id, label, error, hint, required, children }: { id: stri
   );
 }
 
-/** Field's label/error rule around the shared Select (native selects are replaced, owner 29 Sep). */
+/** Field's label/error rule around the shared Select (native selects are replaced on purpose). */
 export function SelectField({ id, label, error, required, ...rest }: Omit<SelectProps, "id" | "label" | "hideLabel" | "invalid" | "describedBy"> & { id: string; label: string; error?: string; required?: boolean }) {
   return (
     <div className="field">

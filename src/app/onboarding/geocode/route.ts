@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Location (the address the Buddy works from, contract SPA register) → map point for update-register-profile step 1
+// Location (the address the Buddy works from, as in the register API) → map point for update-register-profile step 1
 // (services need it). The browser can't call the US Census geocoder itself (no CORS), so this forwards only
 // street/city/state/ZIP. Signed-in only (middleware).
-// ponytail: free keyless US Census geocoder (US addresses, no autocomplete); swap for Google Geocoding if the lead
-// prefers one geocoder across apps.
+// Uses the free keyless US Census geocoder (US addresses, no autocomplete); swap for Google Geocoding to use one
+// geocoder across apps.
 //
 // Census matching is fuzzy: "Bostom 02458" can come back as a different street in Boston 02215. A match counts only
 // when its ZIP equals what the Buddy typed (postal city names vary: Newton or Chestnut Hill), or its city matches and

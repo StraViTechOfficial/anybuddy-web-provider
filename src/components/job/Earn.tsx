@@ -5,7 +5,7 @@ import { PAYOUT_WORD, shareOf } from "@/lib/pay";
 import type { Booking } from "@/lib/types";
 import s from "./JobActions.module.css";
 
-/** "You earn $X" only (owner, 30 Sep 2026: no customer total, fee or tax on the Buddy's screens; same as iOS). */
+/** "You earn $X" only (no customer total, fee or tax on the Buddy's screens; same as iOS). */
 export function Earn({ b }: { b: Booking }) {
   const share = shareOf(b);
   if (share === null) return null;

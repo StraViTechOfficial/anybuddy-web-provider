@@ -1,6 +1,6 @@
-// Google Maps JS for v2 Your details (R2.2, R2.4): address suggestions, the address at "Use my location", the travel
-// circle. Loaded from Google's own script with NEXT_PUBLIC_GOOGLE_MAPS_KEY (AnyBuddy-owned, site-restricted; owner item
-// O7). The key is a placeholder until then: without it the screens show plain address fields and a drawn circle.
+// Google Maps JS for v2 Your details: address suggestions, the address at "Use my location", the travel
+// circle. Loaded from Google's own script with NEXT_PUBLIC_GOOGLE_MAPS_KEY (AnyBuddy-owned, site-restricted).
+// Without the key the screens show plain address fields and a drawn circle.
 // APIs used: Maps JavaScript, Places (New) and Geocoding, all on that key.
 export const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? "";
 

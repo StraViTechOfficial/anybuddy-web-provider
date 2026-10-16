@@ -1,4 +1,4 @@
-// Stripe payouts (contract 30 Sep): bank and card numbers go from the browser straight to Stripe as tokens;
+// Stripe payouts: bank and card numbers go from the browser straight to Stripe as tokens;
 // our server only ever gets btok_/tok_ ids. Stripe.js is the official script, loaded once.
 import { api } from "./api";
 import type { PayoutAccount } from "./types";

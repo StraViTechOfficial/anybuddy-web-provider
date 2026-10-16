@@ -15,7 +15,7 @@ const NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
 const ORDER = [1, 2, 3, 4, 5, 6, 0]; // shown Monday first; the server's day is 0 = Sunday
 const START: Day[] = NAMES.map((_, i) => ({ isOpen: i >= 1 && i <= 5, from: "09:00", to: "17:00" }));
 
-// Screen 3 and the Hours tab. "HH:mm" strings compare correctly as text.
+// Onboarding's hours step and the Hours tab. "HH:mm" strings compare correctly as text.
 export function HoursEditor({ mode, onDone, onBack }: FormProps) {
   const toast = useToast();
   const [days, setDays] = useState(START);
@@ -28,7 +28,7 @@ export function HoursEditor({ mode, onDone, onBack }: FormProps) {
   const [upcoming, setUpcoming] = useState<JobBooking[]>([]);
   const [clash, setClash] = useState<Clash[] | null>(null);
 
-  // Edit mode only (a new Buddy has no bookings): requests and confirmed jobs, checked on Save (D-47).
+  // Edit mode only (a new Buddy has no bookings): requests and confirmed jobs, checked on Save.
   useEffect(() => {
     if (mode !== "edit") return;
     Promise.all([1, 2].map((status) => api<JobBooking[]>("vendor/bookings/list", { query: { status, page: 1, limit: 100 } })))

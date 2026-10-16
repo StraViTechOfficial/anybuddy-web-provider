@@ -1,5 +1,5 @@
 "use client";
-// v2 R2.2: one "Search address" box with Google suggestions while typing (WAI-ARIA combobox, list inline under the box).
+// v2: one "Search address" box with Google suggestions while typing (WAI-ARIA combobox, list inline under the box).
 // Picking one gives street, city, state, ZIP and the exact point. Only rendered when the Maps key is set.
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { details, suggest, type Address } from "@/lib/google";

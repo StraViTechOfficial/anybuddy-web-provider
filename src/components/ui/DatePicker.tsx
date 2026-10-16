@@ -3,7 +3,7 @@
 // all math runs on UTC noon so no time zone can shift a day. "Today" is the New York day.
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { CalendarBlank, CaretLeft, CaretRight } from "@phosphor-icons/react";
-import { TZ } from "@/lib/format";
+import { dayKey } from "@/lib/format";
 import { createPortal } from "react-dom";
 import { usePopup } from "./usePopup";
 import s from "./picker.module.css";
@@ -20,7 +20,6 @@ const addMonths = (k: string, n: number) => {
   d.setUTCDate(Math.min(+k.slice(8), last));
   return key(d);
 };
-const todayKey = () => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
 const us = (k: string) => `${k.slice(5, 7)}/${k.slice(8)}/${k.slice(0, 4)}`;
 const long = (k: string, o: Intl.DateTimeFormatOptions) => utc(k).toLocaleDateString("en-US", { timeZone: "UTC", ...o });
 
@@ -33,7 +32,7 @@ export function DatePicker({ value, onChange, min, max, label, hideLabel, id, di
   const auto = useId();
   const fieldId = id ?? auto;
   const [open, setOpen] = useState(false);
-  const [focus, setFocus] = useState(value || todayKey());
+  const [focus, setFocus] = useState(value || dayKey());
   const field = useRef<HTMLButtonElement>(null);
   const grid = useRef<HTMLTableElement>(null);
   const toGrid = useRef(false); // move DOM focus into the grid on open and on grid keys, not on month-button clicks
@@ -50,7 +49,7 @@ export function DatePicker({ value, onChange, min, max, label, hideLabel, id, di
   }, [open, focus]);
 
   function toggle() {
-    if (!open) { setFocus(clamp(value || todayKey())); toGrid.current = true; }
+    if (!open) { setFocus(clamp(value || dayKey())); toGrid.current = true; }
     setOpen(!open);
   }
   function done(k?: string) {
@@ -78,7 +77,7 @@ export function DatePicker({ value, onChange, min, max, label, hideLabel, id, di
   const cells: (string | null)[] = [...Array(lead).fill(null), ...Array.from({ length: count }, (_, i) => addDays(first, i))];
   while (cells.length % 7) cells.push(null);
   const weeks = Array.from({ length: cells.length / 7 }, (_, w) => cells.slice(w * 7, w * 7 + 7));
-  const today = todayKey();
+  const today = dayKey();
   const month = long(first, { month: "long", year: "numeric" });
   const prevOff = Boolean(min && addDays(first, -1) < min);
   const nextOff = Boolean(max && addMonths(first, 1) > max);

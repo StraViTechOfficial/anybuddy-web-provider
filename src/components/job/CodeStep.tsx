@@ -86,7 +86,7 @@ export function CodeStep({ bookingId, finish, onDone, onClose }: { bookingId: st
 
   return (
     <div className={s.panel}>
-      {/* Compact (owner 29 Sep): instruction first, code and resend on one row, photos and close on one row. */}
+      {/* Compact: instruction first, code and resend on one row, photos and close on one row. */}
       <fieldset className={s.codeSet} disabled={busy}>
         <legend>{finish ? "Finish code" : "Start code"}</legend>
         <p className="hint" id="code-hint">The customer has it by text and email.</p>

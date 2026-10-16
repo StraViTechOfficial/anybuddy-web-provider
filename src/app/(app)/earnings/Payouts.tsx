@@ -15,11 +15,11 @@ import s from "./payouts.module.css";
 
 type Props = { available: number; pending?: number; last4: string | null; acct: PayoutAccount | null; pk?: string; onDone: () => void };
 
-// Owner 30 Sep: payouts are automatic after each job, in both modes; no withdraw button, no approval.
+// Payouts are automatic after each job, in both modes; no withdraw button, no approval.
 // Stripe mode can also pay the ready balance to a debit card now ("Get paid now", instant payout).
 export function Payouts({ available, pending = 0, last4, acct, pk, onDone }: Props) {
   const [panel, setPanel] = useState<"" | "instant" | "card" | "add">("");
-  // Owner, 1 Oct 2026: the debit card can be added any time (not only once money is ready), and the Buddy is told
+  // The debit card can be added any time (not only once money is ready), and the Buddy is told
   // when "Get paid now" appears, instead of the whole option staying hidden.
   const canInstant = !!(pk && acct?.instantAvailable);
   const instant = canInstant && available > 0 && !!acct?.card;
@@ -60,7 +60,7 @@ export function Payouts({ available, pending = 0, last4, acct, pk, onDone }: Pro
 }
 
 // Instant payout of the ready balance to the Buddy's debit card; adds the card first when there is none.
-// `replace`: only change the saved card, which needs a code sent to the Buddy (v2 §8; a new card receives instant payouts).
+// `replace`: only change the saved card, which needs a code sent to the Buddy (a new card receives instant payouts).
 // mode "pay": instant payout (adds the card first if there is none); "add": save the first card only; "change": replace the
 // saved card, confirmed with that code.
 function Instant({ available, acct, pk, mode, onClose, onDone }: { available: number; acct: PayoutAccount; pk: string; mode: "pay" | "add" | "change"; onClose: () => void; onDone: () => void }) {

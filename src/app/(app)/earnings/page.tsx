@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
 import { api } from "@/lib/api";
-import { day, money, TZ } from "@/lib/format";
+import { day, dayKey, money } from "@/lib/format";
 import { payoutAccount, payoutsConfig } from "@/lib/stripe";
 import type { Balance, FinishedJob, Payout, PayoutAccount, StripePayout } from "@/lib/types";
 import { Chart } from "./Chart";
@@ -11,12 +11,11 @@ import { fill, isPeriod, periodBars, PERIODS, type Period } from "./period";
 import { Payouts } from "./Payouts";
 import s from "./earnings.module.css";
 
-// Manual mode reads our payout ledger; Stripe mode (contract 30 Sep) reads the Buddy's Stripe payouts instead.
+// Manual mode reads our payout ledger; Stripe mode reads the Buddy's Stripe payouts instead.
 type Data = { bal: Balance; jobs: FinishedJob[]; payouts: Payout[]; sent: StripePayout[]; last4: string | null; acct: PayoutAccount | null; pk?: string };
 type Row = { id: string; at: string; what: string; sub: ReactNode; amount: number; sign: "+" | "-" | "" };
 
 /** Business day ("YYYY-MM-DD", New York) of a timestamp. */
-const dayKey = (d: string | Date) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(d));
 const jobAt = (j: FinishedJob) => j.checkOutAt ?? j.scheduledDate;
 const payoutAt = (p: Payout) => (p.status === "paid" && p.paidAt) || p.requestedAt || p.createdAt;
 const hrs = (n?: number) => (n ? `, ${n} hr${n === 1 ? "" : "s"}` : "");

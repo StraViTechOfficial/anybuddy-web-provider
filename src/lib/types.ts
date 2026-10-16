@@ -35,7 +35,7 @@ export interface Booking {
   commissionAmount?: number;
   taxAmount?: number;
   billedAmount?: number; // set at check-out for the hours billed
-  // Stripe payouts (contract 30 Sep): the Buddy's pay for this job. null before check-out or in manual mode.
+  // Stripe payouts: the Buddy's pay for this job. null before check-out or in manual mode.
   payoutStatus?: PayoutStatus | null;
   payoutAmount?: number | null;
   payoutArrivesBy?: string | null;
@@ -85,7 +85,7 @@ export interface Job extends Booking {
   address?: string;
   endAddress?: string;
   user_details?: { firstName?: string; lastName?: string; phone?: string; countryCode?: string };
-  userDesc?: string; // the customer's note (returned by /detail since BUG-80 work)
+  userDesc?: string; // the customer's note (returned by /detail)
   cancelReason?: string | null;
   checkOutAt?: string | null;
   hoursWorked?: number;
@@ -184,7 +184,7 @@ export interface VendorProfile extends Vendor, VendorV2 {
   long?: number | null;
   serviceArea?: string | null;
 }
-// Categories carry the admin's licence rule and hourly range (v2 §6); null rate = no limit.
+// Categories carry the admin's licence rule and hourly range (v2); null rate = no limit.
 export interface Category { _id: string; categoryName: string; licenceRequired?: boolean; licenceName?: string; rateMin?: number | null; rateMax?: number | null }
 export interface SubCategory { _id: string; serviceName: string; categoryId: string; categoryName?: string; rateMin?: number | null; rateMax?: number | null }
 export interface VendorService {
@@ -193,12 +193,12 @@ export interface VendorService {
   description?: string;
   category: Category;
   subcategory: { _id: string; serviceName: string };
-  isActive?: 0 | 1; // FEA-36: 0 hidden from customers
+  isActive?: 0 | 1; // 0 hidden from customers
 }
 export interface DayHours { day: number; isOpen: boolean; from: string; to: string }
 export interface Leave { date: string; description?: string }
 export interface VendorHours { availability?: DayHours[]; breakStart?: string | null; breakEnd?: string | null; leaves?: Leave[] }
-export type DocKey = "IdProofFront" | "IdProofBack" | "selfieDoc" | "certificate" | "additionalDoc"; // selfieDoc: R13 live selfie
+export type DocKey = "IdProofFront" | "IdProofBack" | "selfieDoc" | "certificate" | "additionalDoc"; // selfieDoc: live selfie
 export type VendorDocs = Partial<Record<DocKey, string | null>>;
 export interface VendorBank {
   account_holder_name?: string;
@@ -208,9 +208,9 @@ export interface VendorBank {
   account_type?: string;
 }
 
-// Buddy onboarding v2 (§4, §9, §10). get-profile-details type=1 adds these to the profile.
+// Buddy onboarding v2. get-profile-details type=1 adds these to the profile.
 export type TravelMiles = number; // whole miles inside the admin's range (GET /api/config travelMiles); null = none stored
-export interface VendorV2 { middleName?: string | null; nickname?: string | null; /* R14 */ countryCode?: string; travelMiles?: TravelMiles | null; jobEmails?: boolean; offerEmails?: boolean; pendingEmail?: string | null }
+export interface VendorV2 { middleName?: string | null; nickname?: string | null;  countryCode?: string; travelMiles?: TravelMiles | null; jobEmails?: boolean; offerEmails?: boolean; pendingEmail?: string | null }
 export type LicenceStatus = "missing" | "pending" | "approved" | "needs_changes";
 export interface LicenceItem { categoryId: string; categoryName: string; licenceName: string; status: LicenceStatus; note?: string | null }
 // GET vendor/auth/onboarding: where the Buddy resumes, and the home checklist.
@@ -221,15 +221,15 @@ export interface Onboarding {
   bookable: boolean;
   travelMiles?: TravelMiles | null;
   checklist: { payouts: boolean; photo: boolean; hours: boolean; email: boolean; about: boolean; licences: LicenceItem[] };
-  // v3 (SPEC B3): Home's "Get verified" and "Before your first job". Missing on a server without v3.
+  // v3: Home's "Get verified" and "Before your first job". Missing on a server without v3.
   verify?: {
     details: boolean; services: boolean; id: boolean; done: number; total: number;
     next: "details" | "services" | "id" | null; submitted: boolean; submittedAt: string | null;
   };
-  firstJob?: { payouts: boolean; photo?: boolean; done: number; total: number }; // owner: total 1, photo no longer counts
+  firstJob?: { payouts: boolean; photo?: boolean; done: number; total: number }; // total 1, photo no longer counts
   signupFlow?: 3 | null;
 }
-// Owner 6 Oct "Request a new service": GET vendor/services/requests (pending and declined; an approved one comes back as a
+// "Request a new service": GET vendor/services/requests (pending and declined; an approved one comes back as a
 // normal service). A pending one counts as a service for sign-up.
 export interface ServiceRequest {
   // null when the Buddy picked "Not in the list" (shown as "No category"; the rate is optional then)

@@ -15,25 +15,20 @@ const ASKED: Record<ServiceRequest["status"], [string, string]> = {
   pending: ["In review", "t-wait"], declined: ["Not added", "t-bad"],
 };
 const OTHER = "other"; // the category select's "Not in the list"
-const FIRST = ["Plumbing", "Electrical"]; // D-30 trades lead the list
+const FIRST = ["Plumbing", "Electrical"]; // these trades lead the list
 const rank = (c: Category) => (FIRST.includes(c.categoryName) ? FIRST.indexOf(c.categoryName) : FIRST.length);
 type Range = { rateMin?: number | null; rateMax?: number | null } | undefined;
-// v2 R4.2: the admin's hourly range per category. The rate starts in the middle; the server refuses one outside it.
+// v2: the admin's hourly range per category. The rate starts in the middle; the server refuses one outside it.
 const mid = (r: Range) => {
   const lo = r?.rateMin ?? null, hi = r?.rateMax ?? null;
   return lo != null && hi != null ? String(Math.round((lo + hi) / 2)) : lo != null ? String(lo) : hi != null ? String(hi) : "";
-};
-const rangeHint = (r: Range) => {
-  const lo = r?.rateMin ?? null, hi = r?.rateMax ?? null;
-  return lo != null && hi != null ? `Buddies near you charge $${lo} to $${hi}/hr. Change it any time.`
-    : lo != null ? `Rates start at $${lo}/hr.` : hi != null ? `Rates go up to $${hi}/hr.` : undefined;
 };
 const rangeError = (rate: string, r: Range) => {
   const lo = r?.rateMin ?? null, hi = r?.rateMax ?? null, n = +rate;
   if ((lo != null && n < lo) || (hi != null && n > hi)) return lo != null && hi != null ? `Set a rate between $${lo} and $${hi} per hour.` : lo != null ? `Set a rate of $${lo} per hour or more.` : `Set a rate of $${hi} per hour or less.`;
 };
 
-// Screen 2 and Account › Services. Your services first, then one Add button that opens the add panel inline.
+// Onboarding's services step and Account › Services. Your services first, then one Add button that opens the add panel inline.
 // Every change saves at once; onboarding's Continue needs one service.
 export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
   const toast = useToast();
@@ -48,7 +43,7 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ text: string; needsAddress?: boolean } | null>(null);
   const [nextError, setNextError] = useState("");
-  // Owner 6 Oct: a service missing from the list is requested (POST vendor/services/request), reviewed by admin.
+  // A service missing from the list is requested (POST vendor/services/request), reviewed by admin.
   const [ask, setAsk] = useState<{ name: string; cat: string; rate: string; tried?: boolean; error?: string; busy?: boolean; existing?: string } | null>(null);
   const [asked, setAsked] = useState<ServiceRequest[]>([]);
   const addBtn = useRef<HTMLButtonElement>(null);
@@ -87,8 +82,6 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
   });
   const errs: Errors = tried ? check() : {};
 
-  const choose = (cat: string, sub: string) =>
-    setAdd((a) => ({ ...a, cat, sub, rate: a.cat === cat && a.rate ? a.rate : mid(cats.find((c) => c._id === cat)) || a.rate }));
   function start() {
     setOpen(true);
     setTimeout(() => document.querySelector<HTMLButtonElement>("[aria-expanded]")?.focus());
@@ -149,7 +142,7 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
     if (hasErrors(check())) return;
     setBusy(true);
     try {
-      // v2 §6: the rate goes with the add (one rate per service; the old profile rate is gone).
+      // v2: the rate goes with the add (one rate per service; the old profile rate is gone).
       await api("vendor/services/add", {
         method: "POST", body: { appliedServiceFor: add.sub, price: +add.rate, ...(add.desc.trim() && { description: add.desc.trim() }) },
       });
@@ -238,7 +231,7 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
         <div className={`box ${s.addPanel}`}>
           {!ask && <form method="post" className={s.addPanel} onSubmit={submit} noValidate aria-labelledby="addTitle">
             <h3 id="addTitle">All services</h3>
-            {/* Owner, 6 Oct (as in the apps): categories as an accordion; each service adds at once with "+ Add", no rate box.
+            {/* As in the apps: categories as an accordion; each service adds at once with "+ Add", no rate box.
                 The rate is changed on Your services. */}
             {(errs.sub || errs.cat) && <p id="sub" className="err" role="alert" tabIndex={-1}>{errs.cat ? "Choose a service." : errs.sub}</p>}
             <ul className={s.acc}>
@@ -314,7 +307,7 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
 
       {mode === "onboarding" && (
         <form method="post" onSubmit={(e) => { e.preventDefault(); next(); }}>
-          <Actions mode={mode} busy={false} onBack={onBack} error={nextError} label="Save" /> {/* owner: every Get verified step says Save */}
+          <Actions mode={mode} busy={false} onBack={onBack} error={nextError} label="Save" /> {/* every Get verified step says Save */}
         </form>
       )}
     </div>

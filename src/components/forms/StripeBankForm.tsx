@@ -29,7 +29,7 @@ const STRUCTURES = [
   { value: "private_corporation", label: "Corporation" },
 ];
 const KINDS: [Kind, string][] = [["individual", "As yourself, with your SSN or ITIN"], ["company", "As a business, with its EIN"]];
-// Owner, 1 Oct 2026: business (EIN) payouts are built but not offered yet; shown as coming soon. Set to true to open them.
+// Business (EIN) payouts are built but not offered yet; shown as coming soon. Set to true to open them.
 const BUSINESS_OPEN = false;
 const einText = (d: string) => (d.length > 2 ? `${d.slice(0, 2)}-${d.slice(2)}` : d);
 // Same words as the iOS app (Payouts.statusRows). Pending and verified have their own boxes below.
@@ -41,10 +41,10 @@ const STATUS: Record<"needs_info" | "disabled", [string, string, string]> = {
 const POLL_MS = 3000, POLL_FOR_MS = 60000;
 const waiting = (st?: PayoutAccount["status"]) => st === "pending" || st === "not_started";
 
-// Account › Bank and onboarding step 5 in Stripe mode (contract 30 Sep). Bank numbers go straight from this page to
+// Account › Bank and onboarding's bank step in Stripe mode. Bank numbers go straight from this page to
 // Stripe as a token; our server gets the token, the identity US law asks for, and the Buddy's consent. The saved bank
-// shows only as its last 4; changing it needs a code sent to the Buddy (v2 §8, was the password).
-// R12 (release 1.3): typed bank details only, no Plaid. v2 R8 "Get paid": name, phone and address from sign-up in one card,
+// shows only as its last 4; changing it needs a code sent to the Buddy (it used to be the password).
+// Typed bank details only, no Plaid. v2 "Get paid": name, phone and address from sign-up in one card,
 // "Confirm it's you" (date of birth, SSN last 4), "Where to send your money", and the Stripe line above Finish (no tick box).
 export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: string }) {
   const [v, setV] = useState(EMPTY);
@@ -58,7 +58,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   const [einFocus, setEinFocus] = useState(false);
   const [poll, setPoll] = useState(0); // bumped to start a 60 s round of checks
   const [slow, setSlow] = useState(false); // the round ended with Stripe still checking
-  const [code, setCode] = useState(EMPTY_CODE); // v2 §8: confirms a change of the saved bank
+  const [code, setCode] = useState(EMPTY_CODE); // confirms a change of the saved bank
   const toast = useToast();
 
   useEffect(() => {
@@ -152,7 +152,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     confirm: newBank && /^\d{4,17}$/.test(v.account) && v.confirm !== v.account ? "The account numbers don't match." : undefined,
     changeCode: hasBank && newBank && !/^\d{6}$/.test(code.join("")) ? CODE_MISSING : undefined,
   });
-  // Name, phone and address from sign-up sit in one card while they are complete (R8.1); any gap opens the fields.
+  // Name, phone and address from sign-up sit in one card while they are complete; any gap opens the fields.
   const idKeys = ["first", "last", "phone", "line1", "city", "state", "zip"];
   const idFields = biz || idKeys.some((k) => check()[k]);
   const errs: Errors = tried ? check() : {};
@@ -366,7 +366,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
         </Field>}
       </div>
       {hasBank && newBank && <ChangeCode value={code} onChange={setCode} error={errs.changeCode} />}
-      {/* R8.5: one line above Finish, no tick box. */}
+      {/* One line above Finish, no tick box. */}
       <p className="hint">
         Payouts are handled by Stripe. By tapping Finish, you agree to the{" "}
         <a href="https://stripe.com/legal/connect-account" target="_blank" rel="noopener noreferrer">Stripe Connected Account Agreement</a>.

@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { countdown, elapsed, time, TZ } from "@/lib/format";
+import { countdown, dayKey, elapsed, time } from "@/lib/format";
 import type { BookingStatus, Job } from "@/lib/types";
 
 export const TABS: [string, string, BookingStatus][] = [
@@ -52,12 +52,11 @@ export function JobTag({ job, now }: { job: Job; now: number }) {
 }
 
 // Business-day keys (YYYY-MM-DD in New York) for grouping upcoming jobs.
-const key = (d: Date | string) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(d));
 const dayNo = (k: string) => Date.UTC(+k.slice(0, 4), +k.slice(5, 7) - 1, +k.slice(8, 10)) / 864e5;
 
 export function group(scheduled: string, now: number) {
-  const today = key(new Date(now));
-  const diff = dayNo(key(scheduled)) - dayNo(today);
+  const today = dayKey(new Date(now));
+  const diff = dayNo(dayKey(scheduled)) - dayNo(today);
   if (diff <= 0) return "Today"; // a confirmed job from an earlier day is still open work
   if (diff === 1) return "Tomorrow";
   const weekday = new Date(dayNo(today) * 864e5).getUTCDay() || 7; // Mon 1 .. Sun 7

@@ -68,7 +68,7 @@
   .quiet { flex: none; }
 }
 
-/* In progress: one live status line instead of a chip (owner 29 Sep) */
+/* In progress: one live status line instead of a chip */
 .live { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--ok); }
 .live i { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); animation: livePulse 1.6s ease-in-out infinite; flex: none; }
 @keyframes livePulse { 50% { opacity: .35; } }

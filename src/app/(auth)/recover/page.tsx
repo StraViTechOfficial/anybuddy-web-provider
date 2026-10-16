@@ -8,7 +8,7 @@ import { emailError, rememberAgreed, say } from "../form";
 import { PhoneCode } from "../PhoneCode";
 import s from "../auth.module.css";
 
-// v2 R1.4 "Log in with email" (existing Buddies): the account email gets a code (same reply for an unknown email), the code logs in,
+// v2 "Log in with email" (existing Buddies): the account email gets a code (same reply for an unknown email), the code logs in,
 // then the Buddy adds the number they use now (phone/send-code, phone/verify, update-phone). Keeping the old one is allowed.
 export default function Recover() {
   const toast = useToast();

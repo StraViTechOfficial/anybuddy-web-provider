@@ -1,5 +1,5 @@
 "use client";
-// v2 R1: the mobile number, then the code on the same screen (v2.1 code-step layout). Phone login (phone-login/*) and the new number after the
+// v2: the mobile number, then the code on the same screen. Phone login (phone-login/*) and the new number after the
 // email code (phone/*) share it; the caller says how to send and how to check.
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { api, type Reply } from "@/lib/api";
@@ -65,7 +65,7 @@ export function PhoneCode({ send, verify, submit, extra, consent }: Props) {
     setTimeout(() => document.getElementById("phone")?.focus());
   }
 
-  // v2.1 code step: the number field gives way to "Enter the code", where it went, and "Change number".
+  // Code step: the number field gives way to "Enter the code", where it went, and "Change number".
   if (sent) {
     return (
       <CodeInput label="Enter the code" sent={sent} submit={submit}

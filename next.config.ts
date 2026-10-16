@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   headers: async () => [{ source: "/:path*", headers: securityHeaders }],
   // NEXT_DIST_DIR lets a production build run beside the dev server without touching its .next folder.
   distDir: process.env.NEXT_DIST_DIR || ".next",
-  // v2 (R1.2): phone login only. Old email + password screens send bookmarks and links to the phone login.
+  // v2: phone login only. Old email + password screens send bookmarks and links to the phone login.
   redirects: async () => [
     ...["/signup", "/forgot", "/code", "/reset"].map((source) => ({ source, destination: "/login", permanent: false })),
     { source: "/account/password", destination: "/account", permanent: false },

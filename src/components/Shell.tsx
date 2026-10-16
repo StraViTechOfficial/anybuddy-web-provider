@@ -16,13 +16,13 @@ const TABS: [string, string, Icon][] = [
   ["/account", "Account", UserCircle],
 ];
 
-// Phone: bottom tab bar. 700px and up: one top bar (D-33). Badges refresh every minute.
+// Phone: bottom tab bar. 700px and up: one top bar. Badges refresh every minute.
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const { vendor } = useVendor();
   const [requests, setRequests] = useState(0);
   const [unread, setUnread] = useState(0);
-  const approved = vendor?.verificationStatus === 1; // D-51: before approval only Home (review), Hours and Account
+  const approved = vendor?.verificationStatus === 1; // before approval only Home (review), Hours and Account
   useEffect(() => {
     if (!approved) return;
     const load = () => {

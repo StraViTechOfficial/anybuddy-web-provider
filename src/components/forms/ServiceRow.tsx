@@ -9,7 +9,7 @@ import { useToast } from "@/components/Toast";
 import { Field, errText, rateError as rateErr } from "./Field";
 import s from "./forms.module.css";
 
-/** A server error line; D-49's license refusal links to Documents. */
+/** A server error line; a license refusal links to Documents. */
 export function ServerError({ text }: { text: string }) {
   return (
     <p className="err" role="alert">
@@ -18,8 +18,8 @@ export function ServerError({ text }: { text: string }) {
   );
 }
 
-// One service: name, category, rate, description, and whether customers see it (FEA-36).
-// Owner 6 Oct: the rate edits in place (amount, ✓ saves, ✕ restores; Enter / Esc), one row at a time (`rateOpen`,
+// One service: name, category, rate, description, and whether customers see it.
+// The rate edits in place (amount, ✓ saves, ✕ restores; Enter / Esc), one row at a time (`rateOpen`,
 // held by ServicesEditor). Edit opens the description inline; Remove and Hide hand off to the Undo toast.
 export function ServiceRow({ service: x, onSaved, onRemove, rateOpen, onRateOpen }: {
   service: VendorService; onSaved: () => void; onRemove: () => void; rateOpen: boolean; onRateOpen: (open: boolean) => void;

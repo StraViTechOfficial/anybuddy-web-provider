@@ -1,5 +1,10 @@
-// Money and time, one place. Business time zone is America/New_York until per-address zones (D-32).
+// Money and time, one place. Business time zone is America/New_York until per-address zones.
 export const TZ = "America/New_York";
+// A business day as a key, "2026-09-29" (New York). The backend stores a day as its New York midnight.
+export const dayKey = (d: string | Date = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(d));
+// "Friday, October 16" (New York).
+export const longDate = (d: string | Date = new Date()) =>
+  new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" }).format(new Date(d));
 
 export const money = (n: number) =>
   "$" + (n ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -21,7 +26,7 @@ export const clock = (hhmm?: string | null) => {
 export const hourMark = (h: number) => `${h % 12 || 12} ${h % 24 < 12 ? "AM" : "PM"}`;
 export const day = (d: string | Date) => fmt({ weekday: "short", day: "numeric", month: "short" }).format(new Date(d));
 
-/** Durations for Buddies and customers: hours and minutes only, never seconds (owner, 29 Sep). "2 hr 5 min", "45 min". */
+/** Durations for Buddies and customers: hours and minutes only, never seconds. "2 hr 5 min", "45 min". */
 const hrMin = (min: number) => {
   const h = Math.floor(min / 60), m = min % 60;
   return h ? (m ? `${h}\u00a0hr ${m}\u00a0min` : `${h}\u00a0hr`) : `${m}\u00a0min`; // a number never wraps away from its unit

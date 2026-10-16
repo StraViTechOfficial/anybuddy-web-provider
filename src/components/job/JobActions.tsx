@@ -144,7 +144,7 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
   const sendCode = () => run(() => api("vendor/bookings/send-code", { method: "PUT", body: { bookingId: b._id } }), undefined, "code");
   const code = <CodeStep bookingId={b._id} finish={!!b.checkInAt} onClose={() => to(null)} onDone={() => { to(null); onChange(); }} />;
 
-  // Mid-job order (owner 29 Sep): live status, time worked (a thin bar, not the centre of the screen), finish, the
+  // Mid-job order: live status, time worked (a thin bar, not the centre of the screen), finish, the
 // customer's note, then call / help. No directions: already there.
   if (b.checkInAt) {
     const since = now.getTime() - Date.parse(b.checkInAt);
@@ -168,7 +168,7 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
     ? <CancelJob id={b._id} onClose={() => to(null)} onSubmit={(reason) => settle(() => api("vendor/bookings/cancel", { method: "PUT", body: { bookingId: b._id, reason } }), "Job canceled. The customer gets a full refund.")} />
     : <button className={`btn lg ${s.quiet}`} onClick={() => to("cancel")}>Cancel job</button>;
 
-  // Owner, 1 Oct 2026: On my way and Start are open any day once the job is confirmed (Buddies can go early).
+  // On my way and Start are open any day once the job is confirmed (Buddies can go early).
   const until = msUntil(b, now);
   const eta = b.onTheWayAt && b.etaMinutes ? new Date(Date.parse(b.onTheWayAt) + b.etaMinutes * 6e4) : null;
   const sendEta = (m: number) => run(() => api("vendor/bookings/on-the-way", { method: "PUT", body: { bookingId: b._id, etaMinutes: m } }), `Sent. The customer knows you arrive in ${m} min.`);
@@ -180,7 +180,7 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
       {note}
       {mode === "code" ? code : (
         <>
-          {/* One tap sends (owner 29 Sep). A wrong tap is fixed by another: the server takes a new time and tells the customer again. */}
+          {/* One tap sends. A wrong tap is fixed by another: the server takes a new time and tells the customer again. */}
           {eta && mode !== "eta" ? (
             <p className={s.sent}>
               <NavigationArrow size={20} aria-hidden />The customer knows you arrive by {hm(minuteOf(eta))}.

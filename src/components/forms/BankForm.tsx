@@ -15,7 +15,7 @@ export const validAba = (n: string) => /^\d{9}$/.test(n) && [...n].reduce((t, d,
 
 const EMPTY = { holder: "", bank: "", routing: "", account: "", confirm: "", type: "Checking" };
 
-// Screen 5 and Account › Bank. Stripe mode (server flag, contract 30 Sep) gets its own form; manual mode, or no answer
+// Onboarding's bank step and Account › Bank. Stripe mode (server flag) gets its own form; manual mode, or no answer
 // from the server, keeps this one.
 export function BankForm(p: FormProps) {
   const [cfg, setCfg] = useState<PayoutsConfig | null>(null);
@@ -24,7 +24,7 @@ export function BankForm(p: FormProps) {
   return cfg.mode === "stripe" && cfg.publishableKey ? <StripeBankForm {...p} pk={cfg.publishableKey} /> : <ManualBankForm {...p} />;
 }
 
-// Manual mode. The saved account shows only as its last 4; changing it needs a code sent to the Buddy (v2 §8).
+// Manual mode. The saved account shows only as its last 4; changing it needs a code sent to the Buddy.
 function ManualBankForm({ mode, onDone, onBack }: FormProps) {
   const [v, setV] = useState(EMPTY);
   const [last4, setLast4] = useState("");
@@ -98,8 +98,8 @@ function ManualBankForm({ mode, onDone, onBack }: FormProps) {
         </Field>
       </div>
       <div className={s.row3}>
-        {/* Owner 29 Sep: the first box shows the number so the Buddy can read it; the second stays hidden and a live
-            line says whether the two match; no pasting into it (owner, payouts plan), so it is really typed twice.
+        {/* The first box shows the number so the Buddy can read it; the second stays hidden and a live
+            line says whether the two match; no pasting into it, so it is really typed twice.
             The saved number still shows only as its last 4. */}
         <Field id="account" label="Account number" required error={errs.account}><input {...digits} value={v.account} onChange={set("account")} maxLength={17} /></Field>
         <Field id="confirm" label="Confirm account number" required error={errs.confirm}

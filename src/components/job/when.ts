@@ -1,15 +1,14 @@
 "use client";
 // Where a booking sits in business time (America/New_York): its day, start minute and length.
 import { useEffect, useState } from "react";
-import { TZ } from "@/lib/format";
+import { dayKey, TZ } from "@/lib/format";
 import type { Availability, JobBooking } from "@/lib/types";
 
-const ymdFmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
 const hmFmt = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
 /** Business-day key "2026-09-29" (the backend stores scheduledDate as that day's New York midnight). */
-export const ymd = (d: string | Date) => ymdFmt.format(new Date(d));
-/** A calendar day (leave dates): "2026-10-09" or "2026-10-09T00:00:00Z" is Oct 9, never shifted by time zones (BUG-82). */
+export const ymd = (d: string | Date) => dayKey(d);
+/** A calendar day (leave dates): "2026-10-09" or "2026-10-09T00:00:00Z" is Oct 9, never shifted by time zones. */
 export const calDay = (d: string) => String(d).slice(0, 10);
 /** Minutes since business midnight. */
 export const minuteOf = (d: Date) => {
@@ -24,11 +23,6 @@ import { clockMin } from "@/lib/format";
 export const hm = clockMin; // one clock for the whole app (US 12-hour)
 export const bookedHours = (b: JobBooking) => Number(b.timeInterval) || 1;
 
-/** Next business days as keys, today first. Noon UTC steps avoid DST edges. */
-export const nextDays = (n: number, now = new Date()) => {
-  const [y, m, d] = ymd(now).split("-").map(Number);
-  return Array.from({ length: n }, (_, i) => new Date(Date.UTC(y, m - 1, d + i, 12)).toISOString().slice(0, 10));
-};
 /** Weekday 0 = Sunday of a day key (the backend's availability.day). */
 export const weekday = (key: string) => new Date(key + "T12:00:00Z").getUTCDay();
 export const dayLabel = (key: string) =>

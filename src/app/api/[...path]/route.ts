@@ -1,10 +1,10 @@
-// Backend-for-frontend (D-41). The browser only ever calls /api/*; this handler forwards to BACKEND_URL
+// Backend-for-frontend. The browser only ever calls /api/*; this handler forwards to BACKEND_URL
 // and keeps the backend token in httpOnly cookies, so page scripts can never read it.
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
 const BACKEND = process.env.BACKEND_URL;
-const SESSION = "ab_pro"; // full Buddy token: 90-day sliding session (v2 §3)
+const SESSION = "ab_pro"; // full Buddy token: 90-day sliding session
 const SESSION_AGE = 90 * 24 * 3600;
 const CODE = "ab_pro_code"; // 15-minute code-step token ("Can't use this number?" email code)
 // Only what a Buddy may call. Admin routes are never reachable through this app.
@@ -58,7 +58,7 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
     const message = busy ? "Too many tries. Wait a few minutes and try again." : "Something went wrong. Try again.";
     return NextResponse.json({ status: 0, message }, { status: busy ? 429 : 502 });
   }
-  // The bank reply carries the decrypted account number; the browser only ever gets the last 4 (backend fix: BUG-77).
+  // The bank reply carries the decrypted account number; the browser only ever gets the last 4.
   if (path === "vendor/auth/get-profile-details" && req.nextUrl.searchParams.get("type") === "4") {
     for (const k of ["account_number", "accountNumber"]) {
       const v = json.data?.[k];
@@ -66,7 +66,7 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
     }
   }
 
-  // Take any token out of the reply and store it as a cookie instead. Sliding session (v2 §3): a renewed token comes in
+  // Take any token out of the reply and store it as a cookie instead. Sliding session: a renewed token comes in
   // the X-Auth-Token header of an ordinary reply.
   const inBody: unknown = path === "vendor/auth/change-password" ? json.data : json.data?.token;
   if (typeof inBody === "string") {

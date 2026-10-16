@@ -1,11 +1,11 @@
 "use client";
-// Home: the live board. The job in hand and requests with timers first; money lives on Earnings (D-37, D-38).
-// Laptop shows a week, tablet 3 days, phone a 7-day strip; the range start lives in the URL (?from=YYYY-MM-DD, TSK-70).
+// Home: the live board. The job in hand and requests with timers first; money lives on Earnings.
+// Laptop shows a week, tablet 3 days, phone a 7-day strip; the range start lives in the URL (?from=YYYY-MM-DD).
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { api, ApiError } from "@/lib/api";
-import { TZ } from "@/lib/format";
+import { longDate } from "@/lib/format";
 import type { Availability, JobBooking } from "@/lib/types";
 import { Agenda } from "@/components/board/Agenda";
 import { Board } from "@/components/board/Board";
@@ -20,13 +20,12 @@ import { useVendor } from "@/components/Vendor";
 type Lists = { reqs: JobBooking[]; jobs: JobBooking[] };
 const list = (status: 1 | 2 | 3, limit: number) =>
   api<JobBooking[]>("vendor/bookings/list", { query: { status, page: 1, limit } }).then((r) => r.data);
-const longDate = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "long", day: "numeric", month: "long" });
 const TABLET = "(min-width: 700px) and (max-width: 1020px)";
 
 export default function Page() {
   const { vendor, onboarding } = useVendor();
   if (!vendor || !onboarding) return null; // the app layout is loading the Buddy
-  // D-51: until admin approval, Home is "Get verified" (v3; no board, jobs or earnings).
+  // Until admin approval, Home is "Get verified" (v3; no board, jobs or earnings).
   if (vendor.verificationStatus !== 1) return <Checklist vendor={vendor} onboarding={onboarding} />;
   return <><SetupNote onboarding={onboarding} /><Suspense><Home /></Suspense></>;
 }
@@ -170,7 +169,7 @@ function Home() {
       <div className={s.hhead}>
         <div>
           <h1>Today</h1>
-          <p className="sub">{longDate.format(now)} · <time>{hm(nowMin)}</time></p>
+          <p className="sub">{longDate(now)} · <time>{hm(nowMin)}</time></p>
         </div>
         <p className={s.brief}>
           {requests.length ? (
