@@ -21,7 +21,10 @@ const stageOf = (token: string): string | undefined => {
 };
 
 async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
-  const path = (await ctx.params).path.join("/");
+  const parts = (await ctx.params).path;
+  // "vendor/../admin/x" would pass the check below and then resolve upstream to /admin/x, so dot segments are refused.
+  if (parts.some((p) => p === "." || p === ".." || /[\\/%]/.test(p))) return NextResponse.json({ status: 0, message: "Not found." }, { status: 404 });
+  const path = parts.join("/");
   if (!BACKEND) return NextResponse.json({ status: 0, message: "BACKEND_URL is not set." }, { status: 500 });
   if (!ALLOWED.test(path)) return NextResponse.json({ status: 0, message: "Not found." }, { status: 404 });
 
