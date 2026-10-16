@@ -19,16 +19,18 @@ const streetError = (v: string) => v.trim().length < 2 ? "Enter your street addr
   : undefined;
 const zipError = (v: string) => (!/^\d{5}$/.test(v) ? "Enter a 5-digit ZIP code." : undefined);
 
-// v3 "Your name and address", opened from Home: legal name once (first, optional middle, last), home address (search with suggestions,
-// "Use my location", or typed), how far the Buddy travels. The 18+/Terms tick is on the login screen now. Outside the operating area the server says so; the Buddy can join the waitlist and
-// sign-up stops there. Without the Maps key: typed fields, checked with the address lookup (/onboarding/geocode).
-// Get verified "About you": flat, two labelled sections (You, Where you work), no boxes; a live line shows
-// how customers see the name; Continue sits right after the slider.
+// "Your name and address" in Get verified, opened from Home. It asks for the legal name once (first, optional middle,
+// last), the home address (searched with suggestions, found with "Use my location", or typed) and how far the Buddy
+// travels. The 18+ and Terms box is now on the log-in screen. Outside the operating area the server says so, and the
+// Buddy can join the waitlist, which ends sign-up there. Without the Maps key the fields are typed and checked with
+// the address lookup (/onboarding/geocode).
+// The "About you" layout is flat, with two labelled sections (You, Where you work) and no boxes. A live line shows how
+// customers see the name, and Continue sits right after the slider.
 export function DetailsForm({ mode, onDone }: FormProps) {
   const [v, setV] = useState(EMPTY);
   const [point, setPoint] = useState<(LatLng & { for: string }) | null>(null); // only for the address it was found for
   const range = useTravelRange();
-  const [saved, setSaved] = useState<TravelMiles | null>(null); // none stored: the admin's starting value
+  const [saved, setSaved] = useState<TravelMiles | null>(null); // when none is stored, use the admin's starting value
   const [picked, setMiles] = useState<TravelMiles | null>(null);
   const miles = picked ?? saved ?? range?.default ?? null;
   const [gaps, setGaps] = useState<Address["missing"]>([]); // what the picked address lacks; the Buddy adds it
@@ -43,13 +45,13 @@ export function DetailsForm({ mode, onDone }: FormProps) {
   const [far, setFar] = useState(""); // the server's distance rule, shown under the slider
   const [joined, setJoined] = useState("");
   const [loaded, setLoaded] = useState(false);
-  const [middle, setMiddle] = useState(false); // "+ Middle name" opens it; open already when one is saved
+  const [middle, setMiddle] = useState(false); // "+ Middle name" opens it, and it starts open when a middle name is saved
 
   useEffect(() => {
     api<State[]>("list-location", { query: { country: "United States" } })
       .then((r) => setStates(r.data.filter((x) => /^[A-Z]{2}$/.test(x.isoCode)))).catch(() => {});
     api<VendorProfile>("vendor/auth/get-profile-details", { query: { type: 1 } })
-      .then(({ data: p }) => { // a Buddy who started on an old app: what they saved before
+      .then(({ data: p }) => { // for a Buddy who started on an old app, what they saved before
         const a = { firstName: p.firstName ?? "", middleName: p.middleName ?? "", lastName: p.lastName ?? "", nickname: p.nickname ?? "", street: p.address?.street ?? "", city: p.address?.city ?? "", state: p.address?.state ?? "", zip: p.postalCode ?? "" };
         setV(a);
         if (a.middleName) setMiddle(true);
@@ -60,7 +62,7 @@ export function DetailsForm({ mode, onDone }: FormProps) {
       .then(() => setLoaded(true))
       .catch((e) => setError(errText(e)));
   }, []);
-  useEffect(() => { // older records hold the state's name, the select holds its code
+  useEffect(() => { // older records hold the state's name, but the select uses its code
     const hit = states.find((x) => x.name.toLowerCase() === v.state.toLowerCase());
     if (hit) setV((o) => ({ ...o, state: hit.isoCode }));
   }, [states, v.state]);
@@ -70,7 +72,7 @@ export function DetailsForm({ mode, onDone }: FormProps) {
   const shown = `${v.nickname.trim() || `${v.firstName.trim() || "First"} ${v.lastName.trim()[0]?.toUpperCase() ?? "L"}.`}${v.city.trim() ? ` · ${v.city.trim()}` : ""}`;
   const at = point?.for === addrKey ? point : null;
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) => setV((o) => ({ ...o, [k]: e.target.value }));
-  // A pick always shows its card; a missing house number or ZIP is asked for under it (never cleared silently).
+  // A picked address always shows its card. A missing house number or ZIP is asked for under it, never cleared silently.
   const place = (a: Address) => {
     const next = { street: a.street, city: a.city, state: a.state, zip: a.zip };
     setV((o) => ({ ...o, ...next }));
@@ -126,7 +128,7 @@ export function DetailsForm({ mode, onDone }: FormProps) {
     setBusy("save");
     try {
       let p: LatLng | null = at;
-      if (!p) { // typed address: the lookup finds the point, or names the field that is wrong
+      if (!p) { // for a typed address, the lookup finds the point or names the field that is wrong
         const geo = await fetch("/onboarding/geocode?" + new URLSearchParams({ street: v.street, city: v.city, state: v.state, zip: v.zip }));
         const r = await geo.json().catch(() => ({}));
         if (!geo.ok) {
@@ -141,7 +143,7 @@ export function DetailsForm({ mode, onDone }: FormProps) {
         body: {
           firstName: v.firstName.trim(), middleName: v.middleName.trim(), lastName: v.lastName.trim(), nickname: v.nickname.trim(),
           address: { street: v.street.trim(), city: v.city.trim(), state: v.state, country: "United States" }, postalCode: v.zip,
-          latitude: p.lat, longitude: p.lng, travelMiles: miles, termsAccepted: true, // ticked at login (v3); the server keeps the first time
+          latitude: p.lat, longitude: p.lng, travelMiles: miles, termsAccepted: true, // ticked at log in; the server keeps the first time it was ticked
         },
       });
       onDone();

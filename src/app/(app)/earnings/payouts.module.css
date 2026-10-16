@@ -1,4 +1,4 @@
-/* Get paid now (instant payout): the amount, the fee line, the debit card when there is none yet. */
+/* Get paid now (instant payout): the amount, the fee line, and the debit card form when there is no card yet. */
 .wd { display: grid; gap: 14px; padding: 16px; border-radius: var(--r); background: var(--soft); }
 .label { font-size: var(--fs-sm); font-weight: 600; }
 .exact { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; }

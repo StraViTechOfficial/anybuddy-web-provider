@@ -3,7 +3,8 @@ import { cloneElement, type ReactElement, type ReactNode } from "react";
 import { Select, type SelectProps } from "@/components/ui/Select";
 import s from "./forms.module.css";
 
-// Shared by the five setup forms: one label/error/hint rule, one submit bar, one "first wrong field" rule.
+// Shared by the five setup forms, so they follow one rule for labels, errors and hints, one submit bar, and one rule
+// for focusing the first wrong field.
 export type Mode = "onboarding" | "edit";
 export type FormProps = { mode: Mode; onDone: () => void; onBack?: () => void };
 export type Errors = Record<string, string | undefined>;
@@ -34,7 +35,7 @@ export function Field({ id, label, error, hint, required, children }: { id: stri
   );
 }
 
-/** Field's label/error rule around the shared Select (native selects are replaced on purpose). */
+/** Wraps the shared Select in Field's label and error rule. Native selects are replaced on purpose. */
 export function SelectField({ id, label, error, required, ...rest }: Omit<SelectProps, "id" | "label" | "hideLabel" | "invalid" | "describedBy"> & { id: string; label: string; error?: string; required?: boolean }) {
   return (
     <div className="field">
@@ -45,14 +46,15 @@ export function SelectField({ id, label, error, required, ...rest }: Omit<Select
   );
 }
 
-/** True when there are errors; the first wrong field (by insertion order) gets focus. */
+/** Returns true when there are errors, and moves focus to the first wrong field (in insertion order). */
 export function hasErrors(e: Errors) {
   const first = Object.keys(e).find((k) => e[k]);
   if (first) document.getElementById(first)?.focus();
   return Boolean(first);
 }
 
-/** Back (onboarding), the busy submit button, and the server error next to them. `wait` holds the submit button and says why. */
+/** The Back button (in onboarding), the submit button with its busy state, and the server error next to them. `wait`
+ *  holds the submit button and says why. */
 export function Actions({ mode, busy, onBack, error, label, wait }: { mode: Mode; busy: boolean; onBack?: () => void; error?: string; label?: ReactNode; wait?: string }) {
   return (
     <div className={s.actions}>
@@ -70,5 +72,5 @@ export function Actions({ mode, busy, onBack, error, label, wait }: { mode: Mode
 
 export const errText = (e: unknown) => (e instanceof Error ? e.message : "Something went wrong. Try again.");
 
-/** Profile and service rates: whole dollars, $1 to $1,000 (same as iOS). */
+/** Checks profile and service rates: whole dollars from $1 to $1,000, the same as iOS. */
 export const rateError = (r: string) => (!/^\d+$/.test(r) || +r < 1 || +r > 1000 ? "Enter a whole-dollar rate from $1 to $1,000." : undefined);

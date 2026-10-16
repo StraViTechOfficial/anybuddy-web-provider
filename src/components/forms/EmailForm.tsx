@@ -9,8 +9,9 @@ import s from "./forms.module.css";
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 
-// v2 Add email (from the checklist and Account): a code to the address proves it; one email per Buddy (the server
-// says when another account has it). Two opt-ins, on for a new email (v3). Also used for account recovery and payout changes.
+// Add email, opened from the checklist and from Account. A code sent to the address proves it. Each email can belong
+// to one Buddy only, and the server says when another account has it. There are two opt-ins, both on for a new email.
+// The email is also used for account recovery and payout changes.
 export function EmailForm({ onDone }: FormProps) {
   const { vendor, reload } = useVendor();
   const toast = useToast();
@@ -23,7 +24,8 @@ export function EmailForm({ onDone }: FormProps) {
   const [fail, setFail] = useState("");
   const [tried, setTried] = useState(false);
   const has = !!vendor?.email;
-  // Buddies from before v2 have no setting and keep job emails until they change it. A new email: both on (v3).
+  // Buddies from before the phone log-in release have no setting, and they keep getting job emails until they change
+  // it. A new email starts with both on.
   useEffect(() => { if (vendor) { setJobs(!has || (vendor.jobEmails ?? true)); setOffers(!has || !!vendor.offerEmails); } }, [vendor, has]);
 
   const bad = !EMAIL.test(email.trim()) ? "Enter a valid email address, like name@example.com." : undefined;
@@ -37,7 +39,7 @@ export function EmailForm({ onDone }: FormProps) {
     try {
       setSent(await send());
     } catch (x) {
-      setFail(errText(x)); // e.g. "This email is already linked to another Buddy account."
+      setFail(errText(x)); // for example "This email is already linked to another Buddy account."
       document.getElementById("email")?.focus();
     }
     setBusy(false);
@@ -53,7 +55,7 @@ export function EmailForm({ onDone }: FormProps) {
   async function pref(k: "jobEmails" | "offerEmails", on: boolean) {
     const [get, put] = k === "jobEmails" ? [jobs, setJobs] : [offers, setOffers];
     put(on);
-    if (!has || editing) return; // a new email: the choices go with its code
+    if (!has || editing) return; // for a new email, the choices are sent with its code
     try {
       await api("vendor/auth/email-preferences", { method: "PUT", body: { [k]: on } });
       onDone();

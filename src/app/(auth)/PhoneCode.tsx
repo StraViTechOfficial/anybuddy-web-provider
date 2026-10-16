@@ -1,6 +1,6 @@
 "use client";
-// v2: the mobile number, then the code on the same screen. Phone login (phone-login/*) and the new number after the
-// email code (phone/*) share it; the caller says how to send and how to check.
+// The mobile number, then the code on the same screen. Phone log-in (phone-login/*) and adding a new number after the
+// email code (phone/*) both use it, and the caller says how to send and check the code.
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { api, type Reply } from "@/lib/api";
 import { CodeInput, sendCode, type Sent } from "@/components/Code";
@@ -11,7 +11,7 @@ export const phoneDigits = (v: string) => {
   const d = v.replace(/\D/g, "");
   return (d.length > 10 && d[0] === "1" ? d.slice(1) : d).slice(0, 10);
 };
-// (617) 555-0123, built up as the Buddy types.
+// Formats the number as (617) 555-0123 while the Buddy types.
 const pretty = (v: string) => {
   const d = phoneDigits(v);
   if (d.length <= 3) return d;
@@ -24,8 +24,8 @@ type Props = {
   send: (phone: string, dial: string) => Promise<Reply<unknown>>;
   verify: (phone: string, code: string, dial: string) => Promise<void>;
   submit: string;
-  extra?: ReactNode; // beside the resend timer, once a code is out
-  consent?: boolean; // v3 log in or sign up: the 18+/Terms box, Send code waits for it
+  extra?: ReactNode; // shown beside the resend timer once a code has been sent
+  consent?: boolean; // log in or sign up, with the 18+ and Terms box that must be ticked before Send code works
 };
 
 export function PhoneCode({ send, verify, submit, extra, consent }: Props) {
@@ -34,10 +34,11 @@ export function PhoneCode({ send, verify, submit, extra, consent }: Props) {
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState("");
   const [agreed, setAgreed] = useState(false);
-  // The server's phoneCountries (US only on live; US + India on the test server), as in the apps.
+  // The server's phoneCountries list, as in the apps. The live server allows only the US, and the test server allows
+  // the US and India.
   const [countries, setCountries] = useState<Country[]>([{ code: "US", name: "United States", flag: "🇺🇸", dial: "+1" }]);
   const [dial, setDial] = useState("+1");
-  useEffect(() => { if (consent && agreedBefore()) setAgreed(true); }, [consent]); // after mount: localStorage is browser-only
+  useEffect(() => { if (consent && agreedBefore()) setAgreed(true); }, [consent]); // read after mount, because localStorage exists only in the browser
   useEffect(() => {
     api<{ phoneCountries?: Country[] }>("config").then((r) => { if (r.data?.phoneCountries?.length) setCountries(r.data.phoneCountries); }).catch(() => {});
   }, []);
@@ -46,7 +47,7 @@ export function PhoneCode({ send, verify, submit, extra, consent }: Props) {
 
   async function onSend(e: FormEvent) {
     e.preventDefault();
-    if (consent && !agreed) return; // Enter can't skip the Terms tick
+    if (consent && !agreed) return; // pressing Enter can't skip the Terms box
     setFail("");
     if (digits.length !== 10) {
       setFail(us ? "Enter a 10-digit US mobile number." : "Enter a 10-digit mobile number.");
@@ -65,7 +66,7 @@ export function PhoneCode({ send, verify, submit, extra, consent }: Props) {
     setTimeout(() => document.getElementById("phone")?.focus());
   }
 
-  // Code step: the number field gives way to "Enter the code", where it went, and "Change number".
+  // At the code step, the number field is replaced by "Enter the code", where the code went, and "Change number".
   if (sent) {
     return (
       <CodeInput label="Enter the code" sent={sent} submit={submit}

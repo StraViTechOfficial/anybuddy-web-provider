@@ -12,10 +12,11 @@
 .banner { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 10px max(32px, calc((100% - 1240px) / 2 + 32px)); background: var(--amber-soft); color: var(--amber-ink); font-weight: 500; font-size: var(--fs-sm); }
 .banner.bad { background: var(--bad-soft); color: var(--bad); }
 .banner a { font-weight: 700; }
-/* Content column centred on the page, text left-aligned inside it (Stripe/Linear/Airbnb standard). */
+/* The content column is centred on the page, with text left-aligned inside it, as on Stripe, Linear and Airbnb. */
 .main { flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: 24px 32px; }
-/* A screen whose main block has the global class "fill" is exactly one laptop screen tall: the block takes what is left
-   and scrolls inside itself (Home board, Earnings history). Floor of 620px so tiny windows fall back to a page scroll. */
+/* When a screen's main block has the global class "fill", the screen is exactly one laptop screen tall. The block
+   takes the space that is left and scrolls inside itself (Home board, Earnings history). There is a floor of 620px, so
+   tiny windows fall back to a page scroll. */
 @media (min-width: 1021px) {
   .app:has(:global(.fill)) { height: max(100dvh, 620px); }
   .app:has(:global(.fill)) .main { min-height: 0; display: flex; flex-direction: column; }
@@ -32,6 +33,7 @@
   .tabbar a { flex-direction: column; justify-content: center; gap: 2px; min-height: 52px; font-size: 11px; color: var(--mute); }
   .tabbar a[aria-current] { color: var(--brand); font-weight: 600; }
   .tabbar .n { position: absolute; top: 4px; left: calc(50% + 6px); }
-  /* v2.1: while typing (on-screen keyboard open) the tab bar steps aside so it never covers a field or its suggestions. */
+  /* While the Buddy types (with the on-screen keyboard open), the tab bar moves out of the way so it never covers a field
+     or its suggestions. */
   .app:has(input:not([type=checkbox], [type=radio], [type=range], [type=file]):focus, textarea:focus) .tabbar { display: none; }
 }

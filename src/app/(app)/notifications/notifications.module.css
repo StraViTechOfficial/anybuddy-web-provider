@@ -1,4 +1,4 @@
-/* Reading column: centred, 760px, text left-aligned. */
+/* A centred 760px reading column with left-aligned text. */
 .col { max-width: 760px; margin-inline: auto; }
 .list { margin-top: 16px; }
 .row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 16px; border-bottom: 1px solid var(--line); text-decoration: none; }

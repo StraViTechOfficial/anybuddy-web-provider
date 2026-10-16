@@ -4,8 +4,9 @@ import { X } from "@phosphor-icons/react";
 import c from "@/components/Checklist.module.css";
 import s from "./forms.module.css";
 
-/** Full-screen preview of one uploaded document: an image fits the screen (click to zoom), a PDF fills it with an
- *  "Open in a new tab" link. Esc (native <dialog>) or ✕ closes it. `src`: the local copy after an upload, else the signed link. */
+/** A full-screen preview of one uploaded document. An image fits the screen (click to zoom), and a PDF fills it with
+ *  an "Open in a new tab" link. Esc (native <dialog>) or ✕ closes it. `src` is the local copy after an upload, or else
+ *  the signed link. */
 export function DocPreview({ src, name, pdf, onClose }: { src: string; name: string; pdf: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [zoom, setZoom] = useState(false);

@@ -12,9 +12,9 @@ import s from "./jobs.module.css";
 
 const PAID: Record<number, string> = { 0: "payment pending", 1: "payment processing", 2: "paid", 3: "payment canceled", 4: "refunded" };
 
-// One job: what, when, where, who, money, proof photos, the customer's review, and the next action (JobActions).
-// `id` is the booking _id or its slug (notification links carry the slug).
-// `embedded`: shown beside the list on laptop, where the page already has its h1 ("Jobs").
+// One job: what, when, where, who, the money, proof photos, the customer's review, and the next action (JobActions).
+// `id` is the booking _id or its slug, because notification links carry the slug.
+// `embedded` means the job is shown beside the list on a laptop, where the page already has its h1 ("Jobs").
 export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id: string; back: string; onChange?: () => void; onLoad?: (j: Job) => void; embedded?: boolean }) {
   const Title = embedded ? "h2" : "h1";
   const [job, setJob] = useState<Job | null>(null);
@@ -34,8 +34,9 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
   const u = job.user_details ?? {};
   const photos = [...(job.checkInImages ?? []), ...(job.checkOutImages ?? [])].filter((p) => p.url);
 
-  // JobActions shows the status, when and where and the customer's note while a job is open (request or confirmed),
-  // Call and Directions, time worked, earnings and the cancel reason; this page shows the rest, so nothing appears twice.
+  // While a job is open (a request or confirmed), JobActions shows the status, when and where, and the customer's note.
+  // It also shows Call and Directions, time worked, earnings and the cancel reason. This page shows the rest, so
+  // nothing appears twice.
   const open = job.status === 1 || job.status === 2;
   return (
     <>
@@ -80,7 +81,7 @@ export function JobDetail({ id, back, onChange, onLoad, embedded = false }: { id
             <div className={s.photos}>
               {photos.map((p, i) => (
                 <a key={p.url + i} href={p.url} target="_blank" rel="noopener noreferrer">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- job photos come from S3, no image optimiser */}
+                  {/* eslint-disable-next-line @next/next/no-img-element -- job photos come from S3 and don't go through an image optimiser */}
                   <img src={p.url} alt={`Job photo ${i + 1}`} loading="lazy" />
                 </a>
               ))}

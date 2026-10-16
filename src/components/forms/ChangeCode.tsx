@@ -1,6 +1,6 @@
 "use client";
-// Changing where earnings go (bank or debit card) is confirmed with a code, sent to the email on file or
-// else by text, instead of the password. The code goes with the save as `changeCode`; the server checks it there.
+// Changing where earnings go (bank or debit card) is confirmed with a code instead of the password. The code is sent
+// to the email on file, or else by text. It goes with the save as `changeCode`, and the server checks it there.
 import { useState } from "react";
 import { api } from "@/lib/api";
 import { CodeBoxes, EMPTY_CODE, Resend, sendCode, type Sent } from "@/components/Code";

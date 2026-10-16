@@ -10,13 +10,13 @@ import { ChangeCode, CODE_MISSING } from "./ChangeCode";
 import { EMPTY_CODE } from "@/components/Code";
 import s from "./forms.module.css";
 
-/** US routing (ABA) number: 9 digits whose 3-7-1 weighted sum is a multiple of 10 (same rule as the server). */
+/** Checks a US routing (ABA) number: 9 digits whose 3-7-1 weighted sum is a multiple of 10, the same rule as the server. */
 export const validAba = (n: string) => /^\d{9}$/.test(n) && [...n].reduce((t, d, i) => t + +d * [3, 7, 1][i % 3], 0) % 10 === 0;
 
 const EMPTY = { holder: "", bank: "", routing: "", account: "", confirm: "", type: "Checking" };
 
-// Onboarding's bank step and Account › Bank. Stripe mode (server flag) gets its own form; manual mode, or no answer
-// from the server, keeps this one.
+// Onboarding's bank step and Account › Bank. Stripe mode (a server flag) has its own form. Manual mode, or no answer
+// from the server, uses this one.
 export function BankForm(p: FormProps) {
   const [cfg, setCfg] = useState<PayoutsConfig | null>(null);
   useEffect(() => { payoutsConfig().then(setCfg); }, []);
@@ -98,9 +98,9 @@ function ManualBankForm({ mode, onDone, onBack }: FormProps) {
         </Field>
       </div>
       <div className={s.row3}>
-        {/* The first box shows the number so the Buddy can read it; the second stays hidden and a live
-            line says whether the two match; no pasting into it, so it is really typed twice.
-            The saved number still shows only as its last 4. */}
+        {/* The first box shows the number so the Buddy can read it. The second stays hidden, and a live
+           line says whether the two match. Pasting into it is blocked, so the number really is typed twice.
+           The saved number still shows only as its last 4. */}
         <Field id="account" label="Account number" required error={errs.account}><input {...digits} value={v.account} onChange={set("account")} maxLength={17} /></Field>
         <Field id="confirm" label="Confirm account number" required error={errs.confirm}
           hint={!v.confirm ? "Type it again to check." : v.confirm === v.account ? <span className={s.match}><CheckCircle size={16} weight="fill" aria-hidden />The numbers match.</span> : "Not the same yet."}>

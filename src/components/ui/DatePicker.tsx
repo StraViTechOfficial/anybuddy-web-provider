@@ -1,6 +1,6 @@
 "use client";
-// Date field + anchored month grid (WAI-ARIA date picker dialog pattern). Values are calendar days "YYYY-MM-DD";
-// all math runs on UTC noon so no time zone can shift a day. "Today" is the New York day.
+// A date field with a month grid anchored under it (the WAI-ARIA date picker dialog pattern). Values are calendar days
+// as "YYYY-MM-DD", and all date math runs at noon UTC so no time zone can shift a day. "Today" is the New York day.
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { CalendarBlank, CaretLeft, CaretRight } from "@phosphor-icons/react";
 import { dayKey } from "@/lib/format";

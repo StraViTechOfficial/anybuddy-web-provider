@@ -6,11 +6,11 @@ import type { Availability, JobBooking } from "@/lib/types";
 import { fit, ymd } from "./when";
 import s from "./JobActions.module.css";
 
-// Fit check for a request: the Buddy's hours, break and days off, and confirmed jobs that day.
+// Checks whether a request fits the Buddy's hours, break and days off, and the confirmed jobs that day.
 export function Fit({ b }: { b: JobBooking }) {
   const [res, setRes] = useState<ReturnType<typeof fit> | null>(null);
   const date = ymd(b.scheduledDate);
-  const key = `${b._id} ${b.selectedSlot} ${b.timeInterval}`; // the parent hands a new object every second; refetch only on change
+  const key = `${b._id} ${b.selectedSlot} ${b.timeInterval}`; // the parent passes a new object every second, so refetch only when it changes
   useEffect(() => {
     Promise.all([
       api<Availability>("vendor/auth/get-profile-details", { query: { type: 2 } }),

@@ -18,7 +18,8 @@ const EMPTY: Record<string, string> = {
   cancelled: "Nothing canceled.",
 };
 
-// Laptop: list and detail side by side (?tab=&id=). Phone and tablet: the list; a tap opens /jobs/[id].
+// On a laptop the list and the detail sit side by side (?tab=&id=). On a phone or tablet only the list shows, and a
+// tap opens /jobs/[id].
 export function Jobs() {
   const router = useRouter();
   const params = useSearchParams();
@@ -39,8 +40,8 @@ export function Jobs() {
     setError("");
     try {
       const r = await api<Job[]>("vendor/bookings/list", { query: { status, page: p, limit: LIMIT } });
-      const got = r.data.map((j) => ({ ...j, status })); // the list omits status: it is the tab's
-      setRows((old) => (p === 1 ? got : [...(old ?? []), ...got])); // backend pages in a stable order
+      const got = r.data.map((j) => ({ ...j, status })); // the list leaves out status, because it is the tab's status
+      setRows((old) => (p === 1 ? got : [...(old ?? []), ...got])); // the backend returns pages in a stable order, so appending is safe
       setCounts((c) => ({ ...c, [status]: r.count ?? 0 }));
       setPage(p);
       setEnd(got.length < LIMIT);
@@ -69,12 +70,12 @@ export function Jobs() {
     }
   };
 
-  // Upcoming reads by date, soonest first; requests by the one that expires first.
+  // Upcoming jobs are sorted by date, soonest first. Requests are sorted by which one expires first.
   const sorted = [...(rows ?? [])];
   if (status === 1) sorted.sort((a, b) => String(a.expiresAt).localeCompare(String(b.expiresAt)));
   if (status === 2) sorted.sort((a, b) => (a.scheduledDate + a.selectedSlot).localeCompare(b.scheduledDate + b.selectedSlot));
 
-  // Laptop never shows an empty detail pane: open the first job of the tab (replace, so Back skips it).
+  // A laptop never shows an empty detail pane, so we open the tab's first job. It uses replace, so Back skips it.
   const first = sorted[0]?._id;
   useEffect(() => {
     if (!id && first && !window.matchMedia("(max-width: 1020px)").matches) router.replace(`/jobs?tab=${name}&id=${first}`);

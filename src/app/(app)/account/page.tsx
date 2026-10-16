@@ -71,7 +71,7 @@ export default function Page() {
             <p className={s.verified}><SealCheck size={18} weight="fill" aria-hidden /><b>Verified Buddy</b><span>Your ID and documents were checked by Any-Buddy.</span></p>
           ) : vendor.verificationStatus === 2 ? (
             <p><span className="tag t-bad">Changes needed</span> <Link href="/account/help">Contact support</Link></p>
-          ) : onboarding?.verify && !onboarding.verify.submitted ? ( // v3: not sent for verification yet
+          ) : onboarding?.verify && !onboarding.verify.submitted ? ( // not sent for verification yet (only newer servers send `verify`)
             <p><span className="tag t-wait">Not verified yet</span> <Link href="/">Get verified</Link></p>
           ) : (
             <p><span className="tag t-wait">Under review</span> <span className="muted">We email you when you&apos;re approved.</span></p>

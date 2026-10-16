@@ -6,9 +6,10 @@ import type { Availability, JobBooking } from "@/lib/types";
 
 const hmFmt = new Intl.DateTimeFormat("en-US", { timeZone: TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
-/** Business-day key "2026-09-29" (the backend stores scheduledDate as that day's New York midnight). */
+/** The business-day key, such as "2026-09-29". The backend stores scheduledDate as that day's midnight in New York. */
 export const ymd = (d: string | Date) => dayKey(d);
-/** A calendar day (leave dates): "2026-10-09" or "2026-10-09T00:00:00Z" is Oct 9, never shifted by time zones. */
+/** A calendar day, used for leave dates. "2026-10-09" and "2026-10-09T00:00:00Z" both mean Oct 9, never shifted by
+ *  time zones. */
 export const calDay = (d: string) => String(d).slice(0, 10);
 /** Minutes since business midnight. */
 export const minuteOf = (d: Date) => {
@@ -23,7 +24,7 @@ import { clockMin } from "@/lib/format";
 export const hm = clockMin; // one clock for the whole app (US 12-hour)
 export const bookedHours = (b: JobBooking) => Number(b.timeInterval) || 1;
 
-/** Weekday 0 = Sunday of a day key (the backend's availability.day). */
+/** The weekday of a day key, where 0 is Sunday (as in the backend's availability.day). */
 export const weekday = (key: string) => new Date(key + "T12:00:00Z").getUTCDay();
 export const dayLabel = (key: string) =>
   new Date(key + "T12:00:00Z").toLocaleDateString("en-US", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" });

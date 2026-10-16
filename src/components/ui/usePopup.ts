@@ -1,10 +1,11 @@
 "use client";
-// One rule for the anchored pickers: close on outside press or focus leaving, and place the panel with
-// position: fixed in a portal on <body>, so no overflow: hidden or transformed box can clip or move it. It opens below the field, flips above when there is
-// no room, never sits under the sticky top bar or the phone tab bar, and stays inside the viewport width.
+// One rule for the anchored pickers. They close when the Buddy presses outside or focus leaves. The panel is placed
+// with position: fixed in a portal on <body>, so no overflow: hidden or transformed box can clip or move it. It opens
+// below the field, flips above when there is no room, never sits under the sticky top bar or the phone tab bar, and
+// stays inside the viewport width.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 
-/** Bottom of sticky/fixed bars at the top, top of those at the bottom (the phone tab bar). */
+/** The bottom edge of sticky or fixed bars at the top, and the top edge of those at the bottom (the phone tab bar). */
 function bars() {
   let top = 0, bottom = window.innerHeight;
   for (const el of document.querySelectorAll<HTMLElement>("header, nav")) {
@@ -41,7 +42,7 @@ export function usePopup(open: boolean, close: () => void, fullWidth = false) {
     const lim = bars(), vw = document.documentElement.clientWidth;
     const below = lim.bottom - f.bottom - 4, above = f.top - 4 - lim.top;
     if (scrollIfNeeded && below < h && above < h) {
-      window.scrollBy(0, f.top - lim.top); // neither side fits: bring the field to the top, then place below
+      window.scrollBy(0, f.top - lim.top); // if neither side fits, scroll the field to the top and place the panel below it
       return place(false);
     }
     const left = Math.max(16, Math.min(f.left, vw - 16 - w));

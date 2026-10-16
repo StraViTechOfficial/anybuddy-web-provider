@@ -1,12 +1,13 @@
 "use client";
-// Time field: the shared Select with US 12-hour labels. Values are backend "HH:mm" (24-hour).
+// A time field: the shared Select with US 12-hour labels. Values are the backend's "HH:mm" (24-hour) strings.
 import { clock } from "@/lib/format";
 import { Select, type SelectProps } from "./Select";
 
 const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 const mins = (v: string) => { const [h, m] = v.split(":").map(Number); return h * 60 + (m || 0); };
 
-/** Type-ahead: "9" → 9:00 AM, "93" → 9:30 AM, "1p" → 1:00 PM, "1030" → 10:30 AM. Returns an index or -1. */
+/** Type-ahead for times: "9" finds 9:00 AM, "93" finds 9:30 AM, "1p" finds 1:00 PM and "1030" finds 10:30 AM.
+ *  Returns an index, or -1. */
 export function typeMatch(opts: string[], typed: string) {
   const m = /^(\d{1,4})\s*([ap])?/.exec(typed.toLowerCase());
   if (!m) return -1;
@@ -22,7 +23,7 @@ export function TimeSelect({ min = "00:00", max = "23:30", step = 30, value, ...
   Omit<SelectProps, "options" | "match"> & { min?: string; max?: string; step?: number }) {
   const opts: string[] = [];
   for (let t = mins(min); t <= mins(max); t += step) opts.push(hhmm(t));
-  if (value && !opts.includes(value)) opts.push(value), opts.sort(); // a saved off-grid time stays choosable
+  if (value && !opts.includes(value)) opts.push(value), opts.sort(); // a saved time that is off the grid can still be chosen
   return <Select block={false} {...rest} value={value} placeholder="Choose a time" options={opts.map((v) => ({ value: v, label: clock(v) }))}
     match={(typed) => typeMatch(opts, typed)} />;
 }

@@ -1,5 +1,5 @@
-/* DatePicker, TimeSelect and Select: one field that looks like .input (44px, 12px inner padding, 20px icon),
-   and an anchored panel under it (not a modal). */
+/* DatePicker, TimeSelect and Select share one field that looks like .input (44px, 12px inner padding, 20px icon),
+   and a panel anchored under it rather than a modal. */
 .wrap { position: relative; display: inline-grid; gap: 6px; min-width: 0; }
 .block { display: grid; width: 100%; }
 .label { font-size: var(--fs-sm); font-weight: 600; }

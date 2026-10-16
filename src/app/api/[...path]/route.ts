@@ -1,12 +1,12 @@
-// Backend-for-frontend. The browser only ever calls /api/*; this handler forwards to BACKEND_URL
+// A backend-for-frontend proxy. The browser only ever calls /api/*. This handler forwards each call to BACKEND_URL
 // and keeps the backend token in httpOnly cookies, so page scripts can never read it.
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
 const BACKEND = process.env.BACKEND_URL;
-const SESSION = "ab_pro"; // full Buddy token: 90-day sliding session
+const SESSION = "ab_pro"; // the full Buddy token, for a 90-day session that renews with use
 const SESSION_AGE = 90 * 24 * 3600;
-const CODE = "ab_pro_code"; // 15-minute code-step token ("Can't use this number?" email code)
+const CODE = "ab_pro_code"; // a 15-minute token for the email code step ("Can't use this number?")
 // Only what a Buddy may call. Admin routes are never reachable through this app.
 const ALLOWED = /^(vendor\/|uploads\/presign$|list-location$|config$|user\/(cms|support|conversation|booking\/list-cancellation-reasons|services\/list-rating-reviews))/;
 const CODE_ROUTES = /^vendor\/auth\/(verify-otp|resend-otp)$/;
@@ -33,8 +33,9 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
   const token = code && CODE_ROUTES.test(path) ? code : jar.get(SESSION)?.value;
   const headers = new Headers({ "content-type": "application/json" });
   if (token) headers.set("authtoken", token);
-  // The browser's address, for per-person rate limits and Stripe's terms acceptance. The backend trusts it only with
-  // the shared key; unset, nothing extra is sent and the backend sees this server's address.
+  // Passes on the browser's IP address, for per-person rate limits and for recording Stripe's terms acceptance. The
+  // backend trusts it only when the shared key comes with it. When the key isn't set, nothing extra is sent and the
+  // backend sees this server's address.
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() || req.headers.get("x-real-ip");
   if (process.env.PROXY_SHARED_SECRET && ip) {
     headers.set("x-ab-proxy-key", process.env.PROXY_SHARED_SECRET);
@@ -66,8 +67,8 @@ async function handle(req: NextRequest, ctx: { params: Promise<{ path: string[] 
     }
   }
 
-  // Take any token out of the reply and store it as a cookie instead. Sliding session: a renewed token comes in
-  // the X-Auth-Token header of an ordinary reply.
+  // Take any token out of the reply and store it as a cookie instead. The session renews with use, so a renewed token
+  // can arrive in the X-Auth-Token header of an ordinary reply.
   const inBody: unknown = path === "vendor/auth/change-password" ? json.data : json.data?.token;
   if (typeof inBody === "string") {
     if (typeof json.data === "object") delete json.data.token;

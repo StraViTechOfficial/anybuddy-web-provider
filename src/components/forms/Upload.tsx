@@ -7,7 +7,8 @@ import s from "./forms.module.css";
 
 export type Slot = { url: string; name?: string; local?: string; busy?: boolean; error?: string; retry?: File };
 
-/** File slots for one form (profile photo, documents): check the file, then uploading → done, or the error with Retry. */
+/** File slots for one form (profile photo or documents). Each checks the file, uploads it and shows done, or shows the
+ *  error with Retry. */
 export function useUploads<K extends string>(folder: "profile" | "documents", kind: FileKind) {
   const [slots, setSlots] = useState<Partial<Record<K, Slot>>>({});
   const put = (k: K, v: Slot | undefined) => setSlots((d) => ({ ...d, [k]: v }));
@@ -35,7 +36,8 @@ export function useUploads<K extends string>(folder: "profile" | "documents", ki
   return { slots, setSlots, put, pick, busy };
 }
 
-/** One slot's status: spinner and file name while sending, a check when done, else `idle`; the error with Retry below. */
+/** One slot's status: a spinner and the file name while sending, a check when done, or else `idle`. Any error shows
+ *  below with Retry. */
 export function UploadNote({ slot, id, idle, onRetry }: { slot?: Slot; id: string; idle: ReactNode; onRetry: (f: File) => void }) {
   return (
     <>

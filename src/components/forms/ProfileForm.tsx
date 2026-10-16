@@ -14,7 +14,7 @@ type State = { name: string; isoCode: string };
 const UNIT = /\b(apt|apartment|appartment|suite|ste|unit|floor|fl|room|rm)\b|#/i;
 const EMPTY = { firstName: "", lastName: "", nickname: "", street: "", city: "", state: "", zip: "", about: "" };
 
-// Step 1 and Account › Profile. The address is turned into a map point on save (services need one).
+// Step 1 and Account › Profile. The address is turned into a map point on save, because services need one.
 export function ProfileForm({ mode, onDone, onBack }: FormProps) {
   const { reload } = useVendor();
   const [v, setV] = useState(EMPTY);
@@ -47,7 +47,7 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
       .catch((e) => setError(errText(e)));
   }, []);
 
-  useEffect(() => { // older records hold the state's name, the select holds its code
+  useEffect(() => { // older records hold the state's name, but the select uses its code
     const hit = states.find((x) => x.name.toLowerCase() === v.state.toLowerCase());
     if (hit) setV((o) => ({ ...o, state: hit.isoCode }));
   }, [states, v.state]);
@@ -144,8 +144,9 @@ export function ProfileForm({ mode, onDone, onBack }: FormProps) {
           options={states.map((x) => ({ value: x.isoCode, label: x.name }))} />
         <Field id="zip" label="ZIP code" required error={errs.zip}><input autoComplete="postal-code" inputMode="numeric" value={v.zip} onChange={set("zip")} maxLength={5} /></Field>
       </div>
-      {/* Contract (SPA register: "Location, Complete Address"; CMA listing: within 10 km first, then by distance).
-          Owner (29 Sep): the address the Buddy works from. It is the service area: search reaches 100 km, nearest first. No separate area field. */}
+      {/* The contract asks for "Location, Complete Address" at sign-up (SPA register) and lists Buddies within 10 km first,
+         then by distance (CMA listing). The owner decided that the address the Buddy works from is the service area: search
+         reaches 100 km, nearest first, and there is no separate area field. */}
       <p className="hint">Customers only see your city. <Link href="/account/service-area">Travel distance</Link></p>
       <Actions mode={mode} busy={busy} onBack={onBack} error={error} wait={photo?.busy ? "Wait for the upload to finish." : undefined} />
       </fieldset>

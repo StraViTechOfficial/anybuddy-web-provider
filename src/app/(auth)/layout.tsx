@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { Logo } from "@/components/Logo";
 import s from "./auth.module.css";
 
-// Log in, sign up, code, forgot and reset: logo, then one centred white card on a quiet grey page.
-// No decorative band (a black band read like a sale banner). Phones: form straight on white.
+// Log in, sign up, code, forgot and reset show the logo, then one centred white card on a quiet grey page. There is no
+// decorative band, because a black band looked like a sale banner. On phones the form sits straight on white.
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className={s.page}>

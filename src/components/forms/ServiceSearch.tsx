@@ -1,6 +1,7 @@
 "use client";
-// Search-first: typing searches services across every category (GET list-subcategories?search=, no categoryId);
-// each result is "Service · Category" with Add, which adds it at once. No match: request the typed name as a new service.
+// Search comes first. Typing searches services across every category (GET list-subcategories?search=, with no
+// categoryId). Each result reads "Service · Category" with an Add button that adds it at once. With no match, the
+// Buddy can request the typed name as a new service.
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import type { SubCategory } from "@/lib/types";

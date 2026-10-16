@@ -24,10 +24,10 @@
 .blk { position: absolute; top: 12px; bottom: 12px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1px; padding: 4px 8px; border-radius: var(--r); border: 1px solid transparent; text-align: left; overflow: hidden; z-index: 2; transition: transform .2s var(--ease), box-shadow .2s; }
 .blk b { font-size: 12.5px; font-weight: 600; line-height: 1.2; max-width: 100%; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; hyphens: auto; overflow-wrap: break-word; }
 .blk small { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-xs); white-space: nowrap; }
-/* Narrow blocks (a 1-hour job on the week board is ~45px): the name ends in "…" rather than a cut letter, and the
-   time goes (its place under the hour marks shows it; the hover card has it in full). */
+/* Narrow blocks (a 1-hour job on the week board is about 45px wide): the name ends in "…" rather than a cut-off
+   letter, and the time is hidden. Its position under the hour marks shows the time, and the hover card has it in full. */
 .track .blk { container-type: inline-size; }
-@container (max-width: 150px) { .extra { display: none; } } /* time left or worked: hover card and panel */
+@container (max-width: 150px) { .extra { display: none; } } /* time left or time worked, in the hover card and the panel */
 @container (max-width: 90px) {
   .blk b { display: block; white-space: nowrap; text-overflow: ellipsis; -webkit-line-clamp: none; hyphens: none; }
   .blk small { display: none; }
@@ -105,7 +105,7 @@
 .vnow { position: absolute; left: -6px; right: 0; height: 2px; background: var(--bad); z-index: 3; pointer-events: none; }
 .vnow::before { content: ""; position: absolute; left: 0; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--bad); }
 
-/* Laptop: the board fills the screen (see Shell .fill). Day rows share the height; the job panel scrolls inside. */
+/* On a laptop the board fills the screen (see Shell .fill). Day rows share the height, and the job panel scrolls inside. */
 @media (min-width: 1021px) {
   .board { align-items: stretch; grid-template-rows: minmax(0, 1fr); }
   .col { grid-template-rows: auto minmax(0, 1fr); }
@@ -116,7 +116,7 @@
   .focus { position: static; align-self: start; max-height: 100%; overflow: auto; }
   .legend .keys { flex-basis: auto; margin-left: auto; }
 }
-/* Short day rows (small laptop screens): the block keeps the job name; the time is in the hover card. */
+/* Short day rows (on small laptop screens): the block keeps the job name, and the time is in the hover card. */
 @container (max-height: 56px) {
   .blk small { display: none; }
   .blk b { -webkit-line-clamp: 1; }
@@ -135,7 +135,8 @@
 }
 @media (hover: none) { .legend .keys { display: none; } }
 
-/* Hover / focus card over a block: full name, time range, status. Hidden on touch (tap opens the panel). */
+/* The hover and focus card over a block shows the full name, time range and status. It is hidden on touch screens,
+   where a tap opens the panel. */
 .tip { position: fixed; z-index: 30; transform: translate(-50%, -100%); display: grid; gap: 2px; padding: 8px 12px; border-radius: var(--r); background: var(--ink); color: var(--canvas); font-size: var(--fs-sm); white-space: nowrap; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); pointer-events: none; }
 .tip b { font-weight: 700; }
 @media (hover: none) { .tip { display: none; } }

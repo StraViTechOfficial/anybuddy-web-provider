@@ -1,5 +1,5 @@
-// Shapes of backend replies the screens rely on. Extend here (one place) as screens need more fields.
-export type Step = 1 | 2 | 3 | 4 | 5; // 5 = onboarding done
+// The shapes of backend replies the screens rely on. Add fields here, in one place, as screens need them.
+export type Step = 1 | 2 | 3 | 4 | 5; // 5 means onboarding is done
 export type Verification = 0 | 1 | 2; // 0 under review, 1 approved, 2 changes needed
 
 export interface Vendor {
@@ -28,14 +28,15 @@ export interface Booking {
   onTheWayAt?: string | null;
   etaMinutes?: number | null;
   expiresAt?: string | null;
-  acceptedAt?: string | null; // set when the Buddy accepts: tells a decline from a cancel after accepting
+  acceptedAt?: string | null; // set when the Buddy accepts, which tells a decline apart from a cancel after accepting
   payment_status?: 0 | 1 | 2 | 3 | 4; // 0 pending, 1 processing, 2 paid, 3 cancelled, 4 refunded
-  // Money split (server numbers): price = what the customer paid (tax included), commissionAmount = Any-Buddy's fee.
+  // The money split, from server numbers. price is what the customer paid (tax included), and commissionAmount is
+  // AnyBuddy's fee.
   vendorPriceAfterDetection?: number; // the Buddy's share (recomputed at check-out)
   commissionAmount?: number;
   taxAmount?: number;
   billedAmount?: number; // set at check-out for the hours billed
-  // Stripe payouts: the Buddy's pay for this job. null before check-out or in manual mode.
+  // In Stripe mode, the Buddy's pay for this job. It is null before check-out or in manual mode.
   payoutStatus?: PayoutStatus | null;
   payoutAmount?: number | null;
   payoutArrivesBy?: string | null;
@@ -44,17 +45,17 @@ export interface Booking {
 
 export interface Balance {
   available: number;
-  instantAvailable?: number; // Stripe mode: what can go to the debit card now, incl. money still settling
+  instantAvailable?: number; // in Stripe mode, what can go to the debit card now, including money still settling
   pending: number;
   paidTotal: number;
   deductions: number;
 }
 
-// Booking fields the board and job actions read (vendor/bookings list + detail). `user_details.phone` comes from detail only.
+// Booking fields the board and job actions read (the vendor/bookings list and detail). `user_details.phone` comes from detail only.
 export type JobBooking = Booking & {
   services?: { serviceName?: string; price?: number };
   categoryName?: string;
-  serviceName?: string; // list-day-wise puts it top level
+  serviceName?: string; // list-day-wise puts it at the top level
   scheduledDate: string;
   selectedSlot: string; // "HH:mm", business time zone
   timeInterval?: string | number; // booked hours
@@ -105,9 +106,10 @@ export interface Notice {
   createdAt: string;
 }
 
-// Earnings + account (Agent 5).
+// Earnings and account.
 export interface VendorExtra { vendorSlug?: string } // get-profile-details?type=1 also returns the public slug (reviews)
-// vendor/earnings/payouts: the Buddy's ledger. Withdrawal: requested, then paid or rejected. Deduction: status null.
+// vendor/earnings/payouts: the Buddy's ledger. A withdrawal is requested, then paid or rejected. A deduction has a
+// null status.
 export interface Payout {
   _id: string;
   type: "withdrawal" | "deduction";
@@ -133,17 +135,17 @@ export interface PayoutAccount {
   status: "not_started" | "pending" | "needs_info" | "verified" | "disabled";
   // Paid as a person (SSN/ITIN) or through a business (EIN). Stripe can't switch it once the account exists.
   type?: "individual" | "company";
-  // Business accounts: never the EIN, only whether Stripe has it.
+  // for business accounts, never the EIN itself, only whether Stripe has it
   business?: {
     name: string | null; einProvided: boolean; structure: string | null; phone: string | null;
     address: { line1: string | null; line2: string | null; city: string | null; state: string | null; postalCode: string | null } | null;
   } | null;
-  // One per Stripe key, e.g. {code: "individual.dob.day", text: "Date of birth"}; `fix` on the ones the Buddy answers in
-  // the "Stripe needs one more thing" card (full SSN/ITIN, photo ID, proof of address).
+  // One entry per Stripe key, for example {code: "individual.dob.day", text: "Date of birth"}. `fix` is set on the ones
+  // the Buddy answers in the "Stripe needs one more thing" card (full SSN or ITIN, photo ID, proof of address).
   requirements: { code: string; text: string; fix?: "id_number" | "id_document" | "address_document" }[];
   savedId?: boolean; // the onboarding photo ID can be sent to Stripe as is
-  // What Stripe has, to prefill the form (business accounts: the representative's). Never the date of birth or SSN
-  // digits, only whether Stripe has them.
+  // What Stripe has, used to prefill the form (for a business account, the representative's details). It never includes
+  // the date of birth or SSN digits, only whether Stripe has them.
   identity: {
     firstName: string | null; lastName: string | null; dobProvided: boolean; ssnLast4Provided: boolean; phone: string | null;
     email?: string | null; title?: string | null;
@@ -151,7 +153,7 @@ export interface PayoutAccount {
   } | null;
   bank: { last4: string; bankName?: string } | null;
   card: { last4: string; brand?: string } | null;
-  instantAvailable: boolean; // verified; card null → offer "Add a debit card"
+  instantAvailable: boolean; // depends on the account being verified; when card is null, the screen offers "Add a debit card"
 }
 // vendor/bookings/list?status=3: a finished job and the Buddy's net share of it (the balance counts the same field).
 export interface FinishedJob {
@@ -176,7 +178,7 @@ export interface Reviews {
   ratingCounts: Record<"oneRating" | "twoRating" | "threeRating" | "fourRating" | "fiveRating", number>;
 }
 
-// Setup forms (onboarding + account edit). get-profile-details type=1 returns these on top of Vendor.
+// Setup forms (onboarding and account edit). get-profile-details type=1 returns these on top of Vendor.
 export interface VendorProfile extends Vendor, VendorV2 {
   address?: { street?: string; city?: string; state?: string; country?: string };
   postalCode?: string;
@@ -184,7 +186,7 @@ export interface VendorProfile extends Vendor, VendorV2 {
   long?: number | null;
   serviceArea?: string | null;
 }
-// Categories carry the admin's licence rule and hourly range (v2); null rate = no limit.
+// Categories carry the admin's licence rule and hourly range. A null rate means no limit.
 export interface Category { _id: string; categoryName: string; licenceRequired?: boolean; licenceName?: string; rateMin?: number | null; rateMax?: number | null }
 export interface SubCategory { _id: string; serviceName: string; categoryId: string; categoryName?: string; rateMin?: number | null; rateMax?: number | null }
 export interface VendorService {
@@ -193,7 +195,7 @@ export interface VendorService {
   description?: string;
   category: Category;
   subcategory: { _id: string; serviceName: string };
-  isActive?: 0 | 1; // 0 hidden from customers
+  isActive?: 0 | 1; // 0 means hidden from customers
 }
 export interface DayHours { day: number; isOpen: boolean; from: string; to: string }
 export interface Leave { date: string; description?: string }
@@ -208,8 +210,8 @@ export interface VendorBank {
   account_type?: string;
 }
 
-// Buddy onboarding v2. get-profile-details type=1 adds these to the profile.
-export type TravelMiles = number; // whole miles inside the admin's range (GET /api/config travelMiles); null = none stored
+// Buddy onboarding. get-profile-details type=1 adds these to the profile.
+export type TravelMiles = number; // whole miles inside the admin's range (travelMiles from GET /api/config); null when none is stored
 export interface VendorV2 { middleName?: string | null; nickname?: string | null;  countryCode?: string; travelMiles?: TravelMiles | null; jobEmails?: boolean; offerEmails?: boolean; pendingEmail?: string | null }
 export type LicenceStatus = "missing" | "pending" | "approved" | "needs_changes";
 export interface LicenceItem { categoryId: string; categoryName: string; licenceName: string; status: LicenceStatus; note?: string | null }
@@ -221,12 +223,12 @@ export interface Onboarding {
   bookable: boolean;
   travelMiles?: TravelMiles | null;
   checklist: { payouts: boolean; photo: boolean; hours: boolean; email: boolean; about: boolean; licences: LicenceItem[] };
-  // v3: Home's "Get verified" and "Before your first job". Missing on a server without v3.
+  // Home's "Get verified" and "Before your first job". Older servers don't send these.
   verify?: {
     details: boolean; services: boolean; id: boolean; done: number; total: number;
     next: "details" | "services" | "id" | null; submitted: boolean; submittedAt: string | null;
   };
-  firstJob?: { payouts: boolean; photo?: boolean; done: number; total: number }; // total 1, photo no longer counts
+  firstJob?: { payouts: boolean; photo?: boolean; done: number; total: number }; // total is 1, because the photo no longer counts
   signupFlow?: 3 | null;
 }
 // "Request a new service": GET vendor/services/requests (pending and declined; an approved one comes back as a

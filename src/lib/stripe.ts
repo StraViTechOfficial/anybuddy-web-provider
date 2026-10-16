@@ -1,11 +1,11 @@
-// Stripe payouts: bank and card numbers go from the browser straight to Stripe as tokens;
-// our server only ever gets btok_/tok_ ids. Stripe.js is the official script, loaded once.
+// Stripe payouts. Bank and card numbers go from the browser straight to Stripe as tokens, so our server only ever gets
+// btok_ and tok_ ids. Stripe.js is Stripe's official script, loaded once.
 import { api } from "./api";
 import type { PayoutAccount } from "./types";
 
 export type PayoutsConfig = { mode: "stripe" | "manual"; publishableKey?: string };
 
-/** Payouts mode from the server; any failure means "manual" (today's behaviour). */
+/** The payouts mode from the server. Any failure counts as "manual", the current behaviour. */
 export const payoutsConfig = () =>
   api<PayoutsConfig>("vendor/payouts/config").then((r) => r.data, () => ({ mode: "manual" as const }));
 
@@ -37,7 +37,7 @@ export async function loadStripe(key: string): Promise<Stripe> {
   return instances.get(key)!;
 }
 
-/** A Stripe token id, or throws with Stripe's own message (e.g. "Routing number must have 9 digits"). */
+/** Returns a Stripe token id, or throws with Stripe's own message (for example "Routing number must have 9 digits"). */
 export async function token(p: Promise<TokenResult>) {
   const r = await p;
   if (!r.token) throw new Error(r.error?.message || "Stripe couldn't check these details. Try again.");

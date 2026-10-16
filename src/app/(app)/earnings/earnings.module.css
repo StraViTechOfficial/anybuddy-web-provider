@@ -11,7 +11,8 @@
 .kpis dd { font-size: var(--fs-xs); color: var(--mute); }
 .kpis dt + dd { font-size: var(--fs-h1); font-weight: 500; letter-spacing: -.02em; color: var(--ink); margin: 2px 0; }
 
-/* Laptop: one screen. Chart on the left; Payouts above the money list on the right; the list scrolls in its box. */
+/* On a laptop the page fits one screen. The chart is on the left, and Payouts sits above the money list on the right.
+   The list scrolls inside its own box. */
 .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; }
 .top .filters { margin-top: 0; }
 .grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr);

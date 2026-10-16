@@ -1,7 +1,8 @@
 import Link from "next/link";
 import s from "./Logo.module.css";
 
-// Buddy mark (the provider app icon, black) + wordmark. `compact` = mark only; `large` for sign-in and onboarding.
+// The Buddy mark (the black icon of the Buddy app) and the wordmark. `compact` shows the mark only, and `large` is for
+// sign-in and onboarding.
 export function Logo({ compact = false, large = false }: { compact?: boolean; large?: boolean }) {
   const k = large ? 1.8 : 1.2; // 1.2 in the top bars (a bit larger), 1.8 on sign-in pages
   return (

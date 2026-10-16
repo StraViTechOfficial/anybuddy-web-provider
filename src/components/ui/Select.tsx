@@ -1,5 +1,6 @@
 "use client";
-// Select field + anchored listbox (WAI-ARIA select-only combobox). Replaces every native <select> on purpose.
+// A select field with a listbox anchored under it (the WAI-ARIA select-only combobox). It replaces every native
+// <select> on purpose.
 import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { CaretDown } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";
@@ -10,7 +11,7 @@ export type Option = { value: string; label: string; disabled?: boolean; hint?: 
 export type SelectProps = {
   value: string; onChange: (v: string) => void; options: Option[]; placeholder?: string;
   label: string; hideLabel?: boolean; id?: string; disabled?: boolean; invalid?: boolean; describedBy?: string; className?: string;
-  /** Type-ahead rule; the default finds the first label starting with the typed text. */
+  /** The type-ahead rule. By default it finds the first label that starts with the typed text. */
   match?: (typed: string) => number;
 };
 
@@ -23,7 +24,7 @@ export function Select({ value, onChange, options, placeholder = "Choose", label
   const list = useRef<HTMLUListElement>(null);
   const typed = useRef({ text: "", at: 0 });
   const btn = useRef<HTMLButtonElement>(null);
-  // Long lists (e.g. 50 states) get a small search box at the top of the panel.
+  // Long lists (such as the 50 states) get a small search box at the top of the panel.
   const searchable = options.length > 10;
   const [q, setQ] = useState("");
   const view = options.map((o, i) => ({ o, i })).filter(({ o }) => !q || o.label.toLowerCase().includes(q.toLowerCase()));
@@ -33,10 +34,10 @@ export function Select({ value, onChange, options, placeholder = "Choose", label
   const shown = options[cur];
 
   useEffect(() => {
-    if (open) document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: "nearest" }); // by id: the list may be filtered
+    if (open) document.getElementById(`${listId}-${active}`)?.scrollIntoView({ block: "nearest" }); // found by id, because the list may be filtered
   }, [open, active, listId]);
 
-  /** The nearest enabled option from i in direction dir (1 or -1); stays put at the ends. */
+  /** The nearest enabled option from i in direction dir (1 or -1). It stays put at the ends. */
   const usable = (i: number, dir: number) => {
     for (let j = Math.max(0, Math.min(options.length - 1, i)); j >= 0 && j < options.length; j += dir) if (!options[j].disabled) return j;
     return active;

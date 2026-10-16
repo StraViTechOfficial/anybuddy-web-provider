@@ -1,11 +1,12 @@
-// Google Maps JS for v2 Your details: address suggestions, the address at "Use my location", the travel
-// circle. Loaded from Google's own script with NEXT_PUBLIC_GOOGLE_MAPS_KEY (AnyBuddy-owned, site-restricted).
-// Without the key the screens show plain address fields and a drawn circle.
-// APIs used: Maps JavaScript, Places (New) and Geocoding, all on that key.
+// Google Maps JS for Your details: address suggestions, the address found by "Use my location", and the travel
+// circle. It loads from Google's own script with NEXT_PUBLIC_GOOGLE_MAPS_KEY, a key AnyBuddy owns and restricts to
+// this site. Without the key, the screens show plain address fields and a drawn circle.
+// It uses the Maps JavaScript, Places (New) and Geocoding APIs, all on that key.
 export const MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY ?? "";
 
 export type LatLng = { lat: number; lng: number };
-/** `missing`: what the picked place lacks ("street" = no house number or no street; "zip"); the Buddy adds it. */
+/** `missing` is what the picked place lacks, for the Buddy to add. "street" means no house number or no street, and
+ *  "zip" means no ZIP. */
 export type Address = { street: string; city: string; state: string; zip: string; missing: ("street" | "zip")[] } & LatLng;
 
 // The slice of the Maps JS API we use (developers.google.com/maps/documentation/javascript).
@@ -44,7 +45,7 @@ export const library = async <T>(name: "places" | "geocoding" | "maps") => {
   return (await window.google!.maps!.importLibrary(name)) as T;
 };
 
-/** Street, city, state code and ZIP from Places (New) or Geocoder parts, with what is missing. */
+/** Builds the street, city, state code and ZIP from Places (New) or Geocoder parts, and notes what is missing. */
 function toAddress(parts: Part[], at: LatLng): Address {
   const get = (t: string, short = false) => {
     const p = parts.find((x) => x.types.includes(t));
@@ -58,7 +59,7 @@ function toAddress(parts: Part[], at: LatLng): Address {
 }
 
 let session: object | null = null;
-/** Up to 5 US suggestions while typing; one billing session lasts until a suggestion is picked. */
+/** Up to 5 US suggestions while typing. One billing session lasts until a suggestion is picked. */
 export async function suggest(input: string) {
   const p = await library<Places>("places");
   session ??= new p.AutocompleteSessionToken();
@@ -73,7 +74,7 @@ export async function details(prediction: { toPlace(): Place }) {
   const at = place.location && { lat: place.location.lat(), lng: place.location.lng() };
   return at ? toAddress(place.addressComponents ?? [], at) : null;
 }
-/** The street address at a point ("Use my location"); the point stays the device's own. */
+/** The street address at a point, for "Use my location". The point itself stays the one the device reported. */
 export async function reverse(at: LatLng) {
   const g = await library<Geocoding>("geocoding");
   const { results } = await new g.Geocoder().geocode({ location: at });

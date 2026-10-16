@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Pages a signed-out Buddy may open. Everything else needs the session cookie. /verify-email stays: legacy sign-up
-// emails (Pro 1.2) link to it.
+// Pages a signed-out Buddy may open. Everything else needs the session cookie. /verify-email stays, because sign-up
+// emails from the older Pro app (version 1.2) still link to it.
 const PUBLIC = ["/login", "/recover", "/verify-email"];
 
 export function middleware(req: NextRequest) {

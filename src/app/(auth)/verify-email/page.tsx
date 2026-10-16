@@ -1,6 +1,7 @@
 "use client";
-// The "Verify my email" button in the sign-up email lands here. Opening the page verifies nothing: mail
-// scanners follow links, so the Buddy confirms with one tap (POST). Success signs them in; the app routes on.
+// The "Verify my email" button in the sign-up email lands here. Opening the page verifies nothing, because email
+// security scanners open links too. The Buddy confirms with one tap (a POST). Success signs them in, and the app takes
+// them on to the right screen.
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -20,7 +21,7 @@ export default function VerifyEmail() {
     try {
       await api("vendor/auth/verify-email-link", { method: "POST", body: { token } });
       try { sessionStorage.removeItem("ab_pro_code_until"); } catch {}
-      window.location.assign("/"); // full load: the new session cookie reaches the middleware
+      window.location.assign("/"); // a full page load, so the middleware sees the new session cookie
     } catch (err) {
       setFail(say(err));
       setBusy(false);

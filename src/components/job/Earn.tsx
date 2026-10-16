@@ -5,7 +5,7 @@ import { PAYOUT_WORD, shareOf } from "@/lib/pay";
 import type { Booking } from "@/lib/types";
 import s from "./JobActions.module.css";
 
-/** "You earn $X" only (no customer total, fee or tax on the Buddy's screens; same as iOS). */
+/** Shows only "You earn $X". The Buddy's screens never show the customer total, fee or tax, the same as iOS. */
 export function Earn({ b }: { b: Booking }) {
   const share = shareOf(b);
   if (share === null) return null;
@@ -16,7 +16,7 @@ export function Earn({ b }: { b: Booking }) {
   );
 }
 
-/** Where the pay for a done job is: the payout status (Stripe mode), else the manual-mode note. */
+/** Where the pay for a finished job is: the payout status in Stripe mode, or else the manual-mode note. */
 export function PayoutLine({ b }: { b: Booking }) {
   const st = b.payoutStatus;
   if (!st) return <p className="hint">In your Earnings balance. Paid to your bank after each job.</p>;

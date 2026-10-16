@@ -1,8 +1,8 @@
 /* Account hub and its sub-pages (reviews, help, legal). */
 .wrap { display: grid; gap: 24px; max-width: 720px; margin-inline: auto; width: 100%; }
-.wide { max-width: 1040px; } /* Help: form and FAQ side by side so the page fits one laptop screen */
+.wide { max-width: 1040px; } /* Help puts the form and the FAQ side by side, so the page fits on one laptop screen. */
 .hub { max-width: 1180px; }
-/* Laptop: two columns so the page uses its width; phones and tablets: one column. */
+/* Laptops get two columns so the page uses its width. Phones and tablets get one column. */
 .cols { display: grid; gap: 24px; align-items: start; }
 .col { display: grid; gap: 24px; }
 @media (min-width: 1021px) { .cols { grid-template-columns: 1fr 1fr; gap: 32px; } }
@@ -60,7 +60,7 @@ input:checked + .sw::after { transform: translateX(18px); }
 }
 .note { margin-top: 8px; }
 
-/* Verified: says exactly what was checked (Terms §32: no over-claiming). */
+/* The Verified label says exactly what was checked, because section 32 of the Terms forbids claiming more. */
 .verified { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 4px; color: var(--ok); }
 .verified b { font-weight: 700; }
 .verified span { flex-basis: 100%; color: var(--mute); font-size: var(--fs-sm); }

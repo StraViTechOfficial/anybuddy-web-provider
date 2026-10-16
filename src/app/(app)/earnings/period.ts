@@ -1,5 +1,5 @@
-// Period and chart buckets on business-day keys ("YYYY-MM-DD" in the business time zone). Pure: no clock, no zone.
-// Checked by period.check.mjs (node --experimental-strip-types).
+// Works out periods and chart bars from business-day keys ("YYYY-MM-DD" in the business time zone). These functions
+// are pure: they read no clock and no time zone. period.check.mjs tests them (node --experimental-strip-types).
 export const PERIODS = { week: "This week", month: "This month", last: "Last month", all: "All time" } as const;
 export type Period = keyof typeof PERIODS;
 export const isPeriod = (v: unknown): v is Period => typeof v === "string" && v in PERIODS;
@@ -12,8 +12,9 @@ const addDays = (k: string, n: number) => { const d = toDate(k); d.setUTCDate(d.
 const lastOfMonth = (k: string) => { const d = toDate(k.slice(0, 8) + "01"); d.setUTCMonth(d.getUTCMonth() + 1, 0); return toKey(d); };
 const label = (k: string, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-US", { timeZone: "UTC", ...o }).format(toDate(k));
 
-/** The period's first and last day (inclusive) and its empty chart bars: days for a week, Monday weeks for a month, months for all time.
- * Week and month show their whole span so bars keep one rhythm; `now` holds today, `later` is still to come. */
+/** Returns the period's first and last day (inclusive) and its empty chart bars. A week has one bar per day, a month
+ * one bar per week starting on Monday, and all time one bar per month. Week and month show their whole span so the bars
+ * keep an even rhythm. `now` marks the bar that holds today, and `later` marks bars that are still to come. */
 export function periodBars(p: Period, today: string, first = today): { from: string; to: string; bars: Bar[] } {
   const bar = (from: string, to: string, lbl: string, name: string): Bar => ({ label: lbl, name, from, to, total: 0, now: from <= today && today <= to, later: from > today });
   const bars: Bar[] = [];
@@ -24,7 +25,7 @@ export function periodBars(p: Period, today: string, first = today): { from: str
   }
   if (p === "all") {
     const from = first < today ? first : today;
-    // ponytail: one bar per month; group by year once accounts are older than about two years.
+    // ponytail: one bar per month. Group by year once accounts are older than about two years.
     for (let m = from.slice(0, 8) + "01"; m <= today; m = addDays(lastOfMonth(m), 1)) {
       bars.push(bar(m, lastOfMonth(m), label(m, { month: "short" }), label(m, { month: "long", year: "numeric" })));
     }
@@ -50,7 +51,8 @@ export function fill(bars: Bar[], items: { key: string; amount: number }[]): Bar
   return bars.map((b, i) => ({ ...b, total: cents[i] / 100 }));
 }
 
-/** Round y-axis gridlines from $0 up past `max`: 3 or 4 lines, the lowest top that fits, on steps of 1, 2, 2.5 or 5 times a power of ten. */
+/** Round y-axis gridlines from $0 up past `max`. It picks 3 or 4 lines with the lowest top line that fits, on steps
+ *  of 1, 2, 2.5 or 5 times a power of ten. */
 export function ticks(max: number): number[] {
   const pow = 10 ** Math.floor(Math.log10(Math.max(max, 1) / 3));
   const n = (st: number) => Math.max(2, Math.ceil(max / st)); // intervals

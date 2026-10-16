@@ -36,7 +36,7 @@ export const UPLOAD_MAX_MB = 10;
 const EXT: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", pdf: "application/pdf" };
 export const FILES = {
   photo: { types: ["image/jpeg", "image/png", "image/webp"], accept: "image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp", words: "JPG, PNG or WebP" },
-  // Stripe's own limits (POST vendor/payouts/document): an ID is a JPG or PNG; proof of address may also be a PDF.
+  // Stripe's own limits (POST vendor/payouts/document): an ID must be a JPG or PNG, and proof of address may also be a PDF.
   idPhoto: { types: ["image/jpeg", "image/png"], accept: "image/jpeg,image/png,.jpg,.jpeg,.png", words: "JPG or PNG" },
   proof: { types: ["image/jpeg", "image/png", "application/pdf"], accept: "image/jpeg,image/png,application/pdf,.jpg,.jpeg,.png,.pdf", words: "JPG, PNG or PDF" },
   document: { types: Object.values(EXT), accept: "image/jpeg,image/png,image/webp,image/heic,application/pdf,.jpg,.jpeg,.png,.webp,.heic,.pdf", words: "JPG, PNG, WebP, HEIC or PDF" },
@@ -53,7 +53,7 @@ export function fileError(f: File, kind: FileKind) {
   if (!f.size) return "This file is empty. Choose another one.";
 }
 
-// Presigned upload straight to S3 (the file never passes through our servers).
+// Uploads straight to S3 with a presigned URL, so the file never passes through our servers.
 export async function upload(file: File, folder: "profile" | "documents" | "jobs"): Promise<string> {
   const type = typeOf(file);
   const { data } = await api<{ uploadUrl: string; fileUrl: string }>("uploads/presign", {

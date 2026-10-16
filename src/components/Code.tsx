@@ -1,13 +1,15 @@
 "use client";
-// Code entry for every code screen: phone login, the email code, a new phone, add email, payout changes.
-// "Send a new code" waits the server's codeValidFor (30 s when it is missing); the "already sent" note shows only on
-// HTTP 429. Typing, autofill (autocomplete="one-time-code") and paste all spread the digits over the six boxes.
+// Code entry for every code screen: phone log-in, the email code, a new phone, adding an email and payout changes.
+// "Send a new code" waits for the server's codeValidFor, or 30 seconds when it is missing. The "already sent" note
+// shows only on HTTP 429. Typing, autofill (autocomplete="one-time-code") and paste all spread the digits over the
+// six boxes.
 import { useEffect, useId, useRef, useState, type ClipboardEvent, type KeyboardEvent, type ReactNode } from "react";
 import { ApiError, type Reply } from "@/lib/api";
 import s from "./Code.module.css";
 
 export const EMPTY_CODE = ["", "", "", "", "", ""];
-/** A code is out: when "Send a new code" opens (ms time), the server's line, its data, and whether it was sent before (429). */
+/** A code that has been sent: when "Send a new code" opens (as a time in ms), the server's message, its data, and
+ *  whether the code had already been sent before (429). */
 export type Sent = { until: number; note: string; data?: unknown; again?: boolean };
 
 const validFor = (d: unknown) => (d as { codeValidFor?: unknown } | null)?.codeValidFor;
@@ -17,7 +19,8 @@ const sent = (d: unknown, note: string, again = false): Sent => {
 };
 const say = (e: unknown) => (e instanceof Error ? e.message : "Something went wrong. Try again.");
 
-/** Runs a send call. HTTP 429 with codeValidFor = the last code still works: shown like a send, with the server's note. */
+/** Runs a send call. HTTP 429 with codeValidFor means the last code still works, so it is shown like a send, with the
+ *  server's note. */
 export async function sendCode(call: () => Promise<Reply<unknown>>): Promise<Sent> {
   try {
     const r = await call();
@@ -28,7 +31,7 @@ export async function sendCode(call: () => Promise<Reply<unknown>>): Promise<Sen
   }
 }
 
-/** "Send a new code in 0:24", then the button. */
+/** Shows "Send a new code in 0:24", then the button once the time is up. */
 export function Resend({ until, onResend, busy }: { until: number; onResend: () => void; busy?: boolean }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -99,9 +102,9 @@ export function CodeBoxes({ id, digits, setDigits, onComplete, labelledBy, descr
   );
 }
 
-/** A code that was just sent (the shared code-step layout): title, `head` (where it went + "Change number"), the six
- *  boxes, the error or the server's note, one resend line with `children` grouped under it, then the submit button.
- *  `verify` throws to show its message; on success the parent moves on. With `head` the title is a heading. */
+/** The shared layout for a code that was just sent: the title, `head` (where the code went and "Change number"), the
+ *  six boxes, the error or the server's note, one resend line with `children` grouped under it, then the submit button.
+ *  `verify` throws to show its message, and on success the parent moves on. With `head`, the title is a heading. */
 export function CodeInput({ label, head, sent: first, resend, verify, submit, children }: {
   label: string; head?: ReactNode; sent: Sent; resend: () => Promise<Sent>; verify: (code: string) => Promise<void>; submit: string; children?: ReactNode;
 }) {
@@ -122,7 +125,7 @@ export function CodeInput({ label, head, sent: first, resend, verify, submit, ch
     }
     setBusy("check");
     try {
-      await verify(code); // success: the parent moves on, so the button stays busy
+      await verify(code); // on success the parent moves on, so the button stays busy
     } catch (e) {
       setFail(say(e));
       setDigits(EMPTY_CODE);
@@ -149,7 +152,7 @@ export function CodeInput({ label, head, sent: first, resend, verify, submit, ch
       {head}
       <CodeBoxes digits={digits} setDigits={(d) => { setDigits(d); setFail(""); }} onComplete={check} labelledBy={`${id}-l`}
         describedBy={`${id}-n`} invalid={!!fail} disabled={busy === "check"} autoFocus boxes={boxes} />
-      {/* With `head` the "We texted it to" line says where it went; the server's note shows only for a 429 ("already sent"). */}
+      {/* With `head`, the "We texted it to" line says where the code went. The server's note shows only for a 429 ("already sent"). */}
       <p id={`${id}-n`} className={fail ? "err" : "hint"} role={fail ? "alert" : "status"}>{fail || (!head || at.again ? at.note : "")}</p>
       <div className={s.row}>
         <Resend until={at.until} onResend={again} busy={busy === "send"} />

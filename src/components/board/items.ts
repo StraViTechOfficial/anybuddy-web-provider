@@ -22,8 +22,9 @@ export function boardItems(list: JobBooking[], days: string[]): Item[] {
   return out.sort((a, b) => a.day - b.day || a.s - b.s);
 }
 
-/** Default focus, within the visible days: job in progress, then on the way, then the most urgent request,
- *  then the next job today, then the first job shown. `today` is today's row index (-1 when not shown). */
+/** Picks the default focus within the visible days. In order: the job in progress, then a job the Buddy is on the way
+ *  to, then the most urgent request, then the next job today, then the first job shown. `today` is today's row index
+ *  (-1 when today isn't shown). */
 export function pickDefault(items: Item[], nowMin: number, today: number) {
   const t = items.filter((x) => x.day === today);
   return (

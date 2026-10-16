@@ -1,7 +1,7 @@
 "use client";
-// v2: "Service area", how far the Buddy travels, as a slider whose range, step and starting value
-// come from GET /api/config (admin setting), with a circle around home once an address is picked: Google map with the
-// key, else a drawn circle to scale.
+// "Service area": how far the Buddy travels, as a slider whose range, step and starting value come from GET /api/config
+// (an admin setting). Once an address is picked, a circle shows around home, on a Google map when the key is set or
+// else as a circle drawn to scale.
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { api } from "@/lib/api";
 import { library, MAPS_KEY, type GCircle, type GMap, type LatLng, type Maps } from "@/lib/google";
@@ -12,7 +12,7 @@ export type TravelRange = { min: number; max: number; step: number; default: num
 const FALLBACK: TravelRange = { min: 1, max: 100, step: 1, default: 10 }; // only if /config fails; mirrors the server's own fallback
 const METERS_PER_MILE = 1609.344;
 let asked: Promise<TravelRange> | null = null;
-/** The admin's travel range (once per page load); the fallback when the server is older or unreachable. */
+/** Loads the admin's travel range once per page load, with a fallback when the server is older or unreachable. */
 export function useTravelRange() {
   const [range, setRange] = useState<TravelRange | null>(null);
   useEffect(() => {
@@ -25,10 +25,12 @@ export function useTravelRange() {
   }, []);
   return range;
 }
-/** A saved value worth showing: any whole number of miles (one outside a later-narrowed range is kept, never changed). */
+/** Whether a saved value is worth showing: any whole number of miles. A value outside a range the admin narrowed later
+ *  is kept, never changed. */
 export const savedMiles = (n: unknown): n is TravelMiles => typeof n === "number" && n > 0;
 
-// Section label "Travel distance", the map above the slider (so Continue/Save follows it), "Up to N miles".
+// The section label "Travel distance", the map above the slider (so Continue or Save comes right after the slider), and
+// "Up to N miles".
 export function Travel({ value, onChange, center, error, range: r }: { value: TravelMiles; onChange: (m: TravelMiles) => void; center: LatLng | null; error?: string; range: TravelRange }) {
   const map = center && (MAPS_KEY ? <MapCircle miles={value} center={center} /> : <DrawnCircle miles={value} max={r.max} />);
   const pct = Math.min(100, Math.max(0, ((value - r.min) / (r.max - r.min)) * 100));
@@ -63,7 +65,7 @@ function MapCircle({ miles, center }: { miles: number; center: LatLng }) {
       const at = { lat, lng };
       const map = new m.Map(box.current, { center: at, zoom: 10, disableDefaultUI: true, gestureHandling: "cooperative", keyboardShortcuts: false, colorScheme: "FOLLOW_SYSTEM" });
       setLive({ map, circle: new m.Circle({ map, center: at, radius: 0, strokeColor: "#17181c", strokeWeight: 2, fillColor: "#17181c", fillOpacity: 0.12, clickable: false }) });
-    }, () => {}); // no map: the label still says the distance
+    }, () => {}); // with no map, the label still says the distance
     return () => { gone = true; setLive(null); };
   }, [lat, lng]);
   useEffect(() => { // each chip resizes the circle and fits the map to it
@@ -74,7 +76,8 @@ function MapCircle({ miles, center }: { miles: number; center: LatLng }) {
   return <div ref={box} className={s.map} role="img" aria-label={label(miles)} />;
 }
 
-/** To scale against the highest distance; the chosen one filled, each quarter as a faint ring. */
+/** A circle drawn to scale against the highest distance. The chosen distance is filled, and each quarter shows as a
+ *  faint ring. */
 function DrawnCircle({ miles, max }: { miles: number; max: number }) {
   const r = (m: number) => Math.max(6, (Math.min(m, max) / max) * 92);
   return (

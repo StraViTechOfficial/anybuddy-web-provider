@@ -1,6 +1,7 @@
-// Money and time, one place. Business time zone is America/New_York until per-address zones.
+// Money and time formatting, all in one place. Business time is New York time (America/New_York) until we support a
+// time zone per address.
 export const TZ = "America/New_York";
-// A business day as a key, "2026-09-29" (New York). The backend stores a day as its New York midnight.
+// A business day as a key, such as "2026-09-29" (New York). The backend stores a day as its midnight in New York.
 export const dayKey = (d: string | Date = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(d));
 // "Friday, October 16" (New York).
 export const longDate = (d: string | Date = new Date()) =>
@@ -12,17 +13,17 @@ export const money = (n: number) =>
 const fmt = (opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-US", { timeZone: TZ, ...opts });
 export const time = (d: string | Date) => fmt({ hour: "numeric", minute: "2-digit", hour12: true }).format(new Date(d));
 
-/** US 12-hour clock from minutes after midnight: 780 → "1:00 PM". */
+/** Turns minutes after midnight into US 12-hour time, so 780 becomes "1:00 PM". */
 export const clockMin = (min: number) => {
   const h = Math.floor(min / 60) % 24, m = Math.floor(min % 60);
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
-/** "13:00" (backend slot) → "1:00 PM". */
+/** Turns a backend slot such as "13:00" into "1:00 PM". */
 export const clock = (hhmm?: string | null) => {
   const [h, m] = String(hhmm ?? "").split(":").map(Number);
   return Number.isFinite(h) ? clockMin(h * 60 + (m || 0)) : "";
 };
-/** Hour mark for time grids: 7 → "7 AM", 12 → "12 PM". */
+/** The hour mark for time grids, so 7 becomes "7 AM" and 12 becomes "12 PM". */
 export const hourMark = (h: number) => `${h % 12 || 12} ${h % 24 < 12 ? "AM" : "PM"}`;
 export const day = (d: string | Date) => fmt({ weekday: "short", day: "numeric", month: "short" }).format(new Date(d));
 

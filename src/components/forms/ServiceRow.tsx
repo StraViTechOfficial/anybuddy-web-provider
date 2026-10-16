@@ -9,7 +9,7 @@ import { useToast } from "@/components/Toast";
 import { Field, errText, rateError as rateErr } from "./Field";
 import s from "./forms.module.css";
 
-/** A server error line; a license refusal links to Documents. */
+/** A server error line. If the error is a licence refusal, it links to Documents. */
 export function ServerError({ text }: { text: string }) {
   return (
     <p className="err" role="alert">
@@ -19,8 +19,8 @@ export function ServerError({ text }: { text: string }) {
 }
 
 // One service: name, category, rate, description, and whether customers see it.
-// The rate edits in place (amount, ✓ saves, ✕ restores; Enter / Esc), one row at a time (`rateOpen`,
-// held by ServicesEditor). Edit opens the description inline; Remove and Hide hand off to the Undo toast.
+// The rate is edited in place: ✓ or Enter saves, and ✕ or Esc restores it. Only one row can edit its rate at a time
+// (`rateOpen`, held by ServicesEditor). Edit opens the description inline, and Remove and Hide hand off to the Undo toast.
 export function ServiceRow({ service: x, onSaved, onRemove, rateOpen, onRateOpen }: {
   service: VendorService; onSaved: () => void; onRemove: () => void; rateOpen: boolean; onRateOpen: (open: boolean) => void;
 }) {
@@ -30,7 +30,7 @@ export function ServiceRow({ service: x, onSaved, onRemove, rateOpen, onRateOpen
   const [rateBusy, setRateBusy] = useState(false);
   const [rateError, setRateError] = useState("");
   const [rateSaved, setRateSaved] = useState(false);
-  useEffect(() => { // opening (here or after another row closed) starts from the saved rate
+  useEffect(() => { // opening the editor (here, or after another row closed) starts from the saved rate
     if (rateOpen) { setRate(String(Math.round(x.price))); setRateError(""); setRateSaved(false); }
   }, [rateOpen, x.price]);
   const [busy, setBusy] = useState(false);
@@ -64,7 +64,7 @@ export function ServiceRow({ service: x, onSaved, onRemove, rateOpen, onRateOpen
       setRateSaved(true);
       onSaved();
     } catch (e) {
-      setRateError(errText(e)); // the category range, from the server: the editor stays open
+      setRateError(errText(e)); // shows the server's message (such as the category range), and the editor stays open
     } finally {
       setRateBusy(false);
     }

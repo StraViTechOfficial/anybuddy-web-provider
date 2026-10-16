@@ -7,7 +7,8 @@ import s from "./JobActions.module.css";
 
 type Photo = { url: string; media_type: string };
 
-// The 4-digit start or finish code the customer received. Four full boxes check the code with the server.
+// The 4-digit start or finish code the customer received. Once all four boxes are filled, the code is checked with the
+// server.
 export function CodeStep({ bookingId, finish, onDone, onClose }: { bookingId: string; finish: boolean; onDone: () => void; onClose: () => void }) {
   const toast = useToast();
   const boxes = useRef<(HTMLInputElement | null)[]>([]);
@@ -86,7 +87,7 @@ export function CodeStep({ bookingId, finish, onDone, onClose }: { bookingId: st
 
   return (
     <div className={s.panel}>
-      {/* Compact: instruction first, code and resend on one row, photos and close on one row. */}
+      {/* A compact layout: the instruction first, then the code and resend on one row, and photos and close on another. */}
       <fieldset className={s.codeSet} disabled={busy}>
         <legend>{finish ? "Finish code" : "Start code"}</legend>
         <p className="hint" id="code-hint">The customer has it by text and email.</p>

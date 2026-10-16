@@ -1,6 +1,7 @@
 "use client";
-// v3 Home before approval: the amber banner, "Get verified" one next step at a time,
-// one small card (email; the website has no web push, so no notifications card), and "Before your first job" once sent.
+// Home before approval: the amber banner, "Get verified" with one next step at a time, and one small card for email.
+// There is no notifications card, because the website has no web push. "Before your first job" appears once the Buddy
+// has sent everything for verification.
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { CaretRight, CheckCircle, Circle, HourglassMedium, X } from "@phosphor-icons/react";
@@ -19,9 +20,10 @@ const NEXT: Record<NonNullable<Verify["next"]>, [string, string, string]> = {
   services: ["Your services", "What you do and your hourly rate", "/get-verified/services"],
   id: ["A photo of your ID", "Driver's license, state ID or passport", "/get-verified/id"],
 };
-const LEFT = [" Three quick things to go.", " Two quick things to go.", " One quick thing to go."]; // by items done; 3 done: nothing
+const LEFT = [" Three quick things to go.", " Two quick things to go.", " One quick thing to go."]; // picked by how many items are done; with all 3 done, nothing shows
 
-// A server without v3 has no `verify`: the v2 stage says the same thing (v2 submits on the third item).
+// An older server sends no `verify`, but its `stage` field says the same thing. On those servers the Buddy submits
+// with the third item.
 function verifyOf(o: Onboarding): Verify {
   if (o.verify) return o.verify;
   const at = ["details", "services", "documents", "submitted"].indexOf(o.stage);
@@ -32,7 +34,7 @@ const firstJobOf = (o: Onboarding) => o.firstJob ?? { payouts: o.checklist.payou
 
 export function Checklist({ vendor, onboarding: o }: { vendor: Vendor; onboarding: Onboarding }) {
   const { reload } = useVendor();
-  const [sent, setSent] = useState(false); // just sent for verification: the Submitted screen
+  const [sent, setSent] = useState(false); // true right after sending for verification, to show the Submitted screen
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [sheet, setSheet] = useState(false);
@@ -119,7 +121,7 @@ export function Checklist({ vendor, onboarding: o }: { vendor: Vendor; onboardin
   );
 }
 
-/** "Before your first job": Get paid only (the profile photo is optional, in Account), ticked when done. */
+/** "Before your first job" lists only Get paid, ticked when done. The profile photo is optional and lives in Account. */
 function FirstJob({ o }: { o: Onboarding }) {
   const rows: [boolean, string, string, string][] = [[firstJobOf(o).payouts, "Get paid", "Where we send your money", "/account/bank"]];
   return (
@@ -140,14 +142,15 @@ function FirstJob({ o }: { o: Onboarding }) {
   );
 }
 
-/** Approved: "Before your first job" above the board until Get paid is done, then the normal Home. */
+/** Once approved, "Before your first job" shows above the board until Get paid is done. After that, Home is normal. */
 export function SetupNote({ onboarding }: { onboarding: Onboarding }) {
   if (firstJobOf(onboarding).payouts) return null;
   return <div className={s.above}><FirstJob o={onboarding} /></div>;
 }
 
-/** Add your email: one field, Send code, then the code in the same sheet; closes with "Email added." No switches here
- *  (both email choices start on; Account › Email keeps the switches). Native <dialog>: focus trap and Esc. */
+/** Add your email: one field and Send code, then the code in the same sheet. It closes with "Email added." There are
+ *  no switches here, because both email choices start on and Account › Email has the switches. A native <dialog>
+ *  gives the focus trap and Esc. */
 function EmailSheet({ onClose }: { onClose: () => void }) {
   const { reload } = useVendor();
   const toast = useToast();
@@ -175,7 +178,7 @@ function EmailSheet({ onClose }: { onClose: () => void }) {
     setBusy(false);
   }
   async function verify(code: string) {
-    await api("vendor/auth/email/verify", { method: "POST", body: { code, jobEmails: true, offerEmails: true } }); // both on by default, also on a server that doesn't default them
+    await api("vendor/auth/email/verify", { method: "POST", body: { code, jobEmails: true, offerEmails: true } }); // both start on, even on a server that doesn't turn them on by default
     await reload().catch(() => {});
     toast("Email added.");
     onClose();

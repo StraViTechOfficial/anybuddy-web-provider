@@ -10,8 +10,9 @@ import s from "./forms.module.css";
 type Fix = NonNullable<PayoutAccount["requirements"][number]["fix"]>;
 type Saved = (a: PayoutAccount) => void;
 
-// Stripe's follow-up asks the Buddy answers here (only the ones Stripe lists): full SSN/ITIN, photo ID, proof of
-// address. Each goes straight to vendor/payouts/*; the account comes back and the parent shows its new status.
+// Stripe's follow-up requests, which the Buddy answers here when Stripe lists them: the full SSN or ITIN, a photo ID,
+// or proof of address. Each goes straight to vendor/payouts/*. The updated account comes back, and the parent shows its
+// new status.
 export function StripeAsks({ acct, onSaved }: { acct: PayoutAccount; onSaved: Saved }) {
   const [sent, setSent] = useState(false);
   const fixes = new Set(acct.requirements.flatMap((r) => (r.fix ? [r.fix] : [])));
@@ -66,8 +67,8 @@ const SLOTS = {
   address_document: [["front", "Utility bill or bank statement"]],
 } as const;
 
-// Photo ID (front, back) or proof of address. With an ID from onboarding on file, sending that is one tap; "Upload a
-// different ID" opens the slots. New files go to the private documents folder and change nothing in onboarding.
+// A photo ID (front and back) or proof of address. If an ID from onboarding is on file, sending it takes one tap, and
+// "Upload a different ID" opens the slots. New files go to the private documents folder and change nothing in onboarding.
 function Doc({ fix, savedId, onSaved }: { fix: Exclude<Fix, "id_number">; savedId: boolean; onSaved: Saved }) {
   const id = fix === "id_document";
   const kind = id ? "idPhoto" : "proof";

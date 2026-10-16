@@ -1,11 +1,12 @@
-/* Design tokens + shared primitives only. Screen styles live next to their component as *.module.css. */
+/* Only design tokens and shared building blocks live here. Each screen's styles sit next to its component in a
+   *.module.css file. */
 :root {
   --ink: #0f1a2e; --ink2: #2b3a52; --mute: #5f6b7d; --line: #e3e8ee; --soft: #f6f8fb; --canvas: #fff; --hover: #f3f6fa;
-  /* Provider brand = charcoal, matching the black Pro logo. The customer apps stay navy. */
+  /* The Buddy app's brand colour is charcoal, matching the black Pro logo. The customer apps stay navy. */
   --brand: #17181c; --brand-d: #000; --brand-soft: #eef0f3; --on-brand: #fff;
   --amber-ink: #8a4a0b; --amber-soft: #fcf0e1; --ok: #0e6b40; --ok-soft: #e6f5ec; --bad: #b42318; --bad-soft: #fdeceb;
-  --closed: #e6e8ec; --closed-line: #d3d6dc; /* closed hours on time grids: clearly not open */
-  --alert: #b42318; --now: #d92d20; /* same in both themes: white text on --alert passes AA */
+  --closed: #e6e8ec; --closed-line: #d3d6dc; /* closed hours on time grids, so they clearly read as not open */
+  --alert: #b42318; --now: #d92d20; /* the same in both themes, because white text on --alert passes WCAG AA */
   --r: 8px; --r2: 12px; --ease: cubic-bezier(.2, .8, .2, 1);
   --fs-xs: 12px; --fs-sm: 14px; --fs-body: 15px; --fs-lead: 18px; --fs-h3: 20px; --fs-h2: 22px; --fs-h1: 28px;
 }
@@ -30,12 +31,13 @@ h2 { font-size: var(--fs-body); font-weight: 600; }
 .sub, .muted { color: var(--mute); }
 .hint { font-size: var(--fs-xs); color: var(--mute); }
 
-/* buttons: 36px on laptop, 44px on phones (tap target) */
+/* Buttons are 36px tall on a laptop and 44px on phones, to give a big enough tap target. */
 .btn { cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: var(--r); border: 1px solid var(--line); background: var(--canvas); font-weight: 600; font-size: var(--fs-sm); white-space: nowrap; text-decoration: none; transition: background .15s, border-color .15s, transform .1s; }
 .btn:hover:not(:disabled) { background: var(--hover); }
 .btn:active { transform: translateY(1px); }
 .btn.p { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
-/* --brand-d is almost the same as --brand in both themes, so hover blends toward the canvas instead (same mix as the earnings chart). */
+/* --brand-d is almost the same as --brand in both themes, so hover blends toward the canvas instead, using the same
+   mix as the earnings chart. */
 .btn.p:hover:not(:disabled) { background: color-mix(in srgb, var(--brand) 82%, var(--canvas)); border-color: color-mix(in srgb, var(--brand) 82%, var(--canvas)); }
 .btn.d { color: var(--bad); }
 .btn.lg { height: 44px; padding: 0 18px; font-size: var(--fs-body); }
@@ -54,7 +56,7 @@ label.btn:has(input:disabled):hover { background: var(--canvas); }
 .t-bad { background: var(--bad-soft); color: var(--bad); }
 .t-mute { background: var(--soft); color: var(--mute); box-shadow: inset 0 0 0 1px var(--line); }
 
-/* form fields: visible label, error under the field (ui-ux-pro-max forms) */
+/* Form fields have a visible label and show their error under the field, following the ui-ux-pro-max form rules. */
 .field { display: grid; gap: 6px; align-content: start; } /* a hint or error under one field never shifts its neighbour */
 .field > span { font-size: var(--fs-sm); font-weight: 600; }
 .input { height: 44px; width: 100%; padding: 0 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--canvas); font-size: 16px; }

@@ -1,12 +1,13 @@
 "use client";
-// v2: one "Search address" box with Google suggestions while typing (WAI-ARIA combobox, list inline under the box).
-// Picking one gives street, city, state, ZIP and the exact point. Only rendered when the Maps key is set.
+// One "Search address" box that shows Google suggestions while the Buddy types (a WAI-ARIA combobox with the list
+// inline under the box). Picking one fills in the street, city, state, ZIP and exact point. It is rendered only when
+// the Maps key is set.
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { details, suggest, type Address } from "@/lib/google";
 import s from "./forms.module.css";
 
 type Hit = Awaited<ReturnType<typeof suggest>>[number];
-/** Phones: the box moves to the top of the screen, so the list under it stays above the on-screen keyboard. */
+/** On phones the box moves to the top of the screen, so the list under it stays above the on-screen keyboard. */
 const toTop = (el: HTMLElement) => {
   if (matchMedia("(max-width: 699px)").matches) setTimeout(() => el.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }), 300);
 };

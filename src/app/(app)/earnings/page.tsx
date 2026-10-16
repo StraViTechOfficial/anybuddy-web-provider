@@ -15,7 +15,7 @@ import s from "./earnings.module.css";
 type Data = { bal: Balance; jobs: FinishedJob[]; payouts: Payout[]; sent: StripePayout[]; last4: string | null; acct: PayoutAccount | null; pk?: string };
 type Row = { id: string; at: string; what: string; sub: ReactNode; amount: number; sign: "+" | "-" | "" };
 
-/** Business day ("YYYY-MM-DD", New York) of a timestamp. */
+/** The business day of a timestamp, as "YYYY-MM-DD" in New York time. */
 const jobAt = (j: FinishedJob) => j.checkOutAt ?? j.scheduledDate;
 const payoutAt = (p: Payout) => (p.status === "paid" && p.paidAt) || p.requestedAt || p.createdAt;
 const hrs = (n?: number) => (n ? `, ${n} hr${n === 1 ? "" : "s"}` : "");
@@ -32,7 +32,7 @@ async function load(): Promise<Data> {
   const cfg = await payoutsConfig();
   const [bal, jobs] = await Promise.all([
     api<Balance>("vendor/earnings/balance"),
-    // ponytail: one page of up to 1000 finished jobs; page through once a Buddy passes that.
+    // ponytail: this loads one page of up to 1000 finished jobs. Add paging once a Buddy has more than that.
     api<FinishedJob[]>("vendor/bookings/list", { query: { status: 3, page: 1, limit: 1000 } }),
   ]);
   if (cfg.mode === "stripe" && cfg.publishableKey) {
@@ -81,7 +81,7 @@ function Earnings() {
   const paid = pk
     ? sum(sent.filter((p) => p.status === "paid").map((p) => ({ at: p.date, amount: p.amount })))
     : sum(payouts.filter((p) => p.type === "withdrawal" && p.status === "paid").map((p) => ({ at: payoutAt(p), amount: p.amount })));
-  // Stripe mode has no fee ledger here, only the all-time total the balance returns.
+  // In Stripe mode there is no fee ledger here, only the all-time total that the balance call returns.
   const taken = pk ? bal.deductions : sum(payouts.filter((p) => p.type === "deduction").map((p) => ({ at: payoutAt(p), amount: p.amount })));
   const fixBank = <Link href="/account/bank">Update your bank details</Link>;
   const label = PERIODS[period].toLowerCase();

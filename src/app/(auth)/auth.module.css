@@ -1,4 +1,4 @@
-/* Auth frame + the few form pieces the auth screens share. Must fit 1366x768 with no page scroll. */
+/* The auth frame and the few form pieces the auth screens share. It must fit a 1366x768 screen with no page scroll. */
 .page { position: relative; min-height: 100dvh; display: flex; flex-direction: column; background: var(--soft); }
 .top { display: flex; justify-content: center; padding: 40px 16px 0; }
 .main { flex: 1; display: grid; place-items: start center; padding: 24px 16px 40px; }
@@ -18,7 +18,7 @@
 .labelRow span { font-size: var(--fs-sm); font-weight: 600; }
 .labelRow a { font-size: var(--fs-sm); }
 
-/* +1 phone prefix; the code entry sits under the number on the same screen (v2 R1) */
+/* The +1 phone prefix. The code entry sits under the number on the same screen. */
 .phone { display: flex; }
 .phone > b, .phone > select { display: grid; place-items: center; padding: 0 12px; border: 1px solid var(--line); border-right: 0; border-radius: var(--r) 0 0 var(--r); background: var(--soft); font-weight: 500; font-size: 16px; color: var(--ink2); white-space: nowrap; }
 .phone > select { appearance: auto; padding: 0 8px; font-family: inherit; min-height: 48px; cursor: pointer; }
@@ -29,7 +29,7 @@
 .phone .input { border-radius: 0 var(--r) var(--r) 0; min-width: 0; }
 .phone .input[readonly] { background: var(--soft); color: var(--ink2); }
 .label { font-size: var(--fs-sm); font-weight: 600; }
-/* v3 18+/Terms box above Send code */
+/* the 18+ and Terms box above Send code */
 .check { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 10px 0; font-size: var(--fs-sm); color: var(--ink2); cursor: pointer; }
 .check input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--brand); flex: none; }
 .textBtn { min-height: 44px; padding: 0; border: 0; background: none; color: var(--brand); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
@@ -43,7 +43,7 @@
   .page { background: var(--canvas); }
   .card { background: var(--soft); box-shadow: none; }
 }
-/* Short laptop windows (1366x768 minus browser bars): tighter rhythm, no page scroll. */
+/* Short laptop windows (1366x768 minus the browser bars) get tighter spacing and no page scroll. */
 @media (max-height: 820px) and (min-width: 700px) {
   .top { padding-top: 20px; }
   .main { padding: 8px 16px 16px; }
@@ -52,12 +52,12 @@
   .form { gap: 12px; }
   .foot { margin-top: 12px; }
 }
-/* Phones: form straight on white, no card chrome. */
+/* On phones the form sits straight on white, with no card around it. */
 @media (max-width: 699px) {
   .top { justify-content: flex-start; padding: 8px 16px 0; }
   .page { background: var(--canvas); }
   .main { place-items: start center; padding: 24px 16px 40px; }
   .card { padding: 0; border: 0; border-radius: 0; box-shadow: none; background: none; }
 }
-/* Phones: text links keep a 44px tap area without changing the line. */
+/* On phones, text links keep a 44px tap area without changing the line height. */
 @media (max-width: 699px) { .foot a { display: inline-block; padding: 12px 0; margin: -12px 0; } }

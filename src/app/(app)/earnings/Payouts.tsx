@@ -15,8 +15,9 @@ import s from "./payouts.module.css";
 
 type Props = { available: number; pending?: number; last4: string | null; acct: PayoutAccount | null; pk?: string; onDone: () => void };
 
-// Payouts are automatic after each job, in both modes; no withdraw button, no approval.
-// Stripe mode can also pay the ready balance to a debit card now ("Get paid now", instant payout).
+// Payouts happen automatically after each job in both modes, so there is no withdraw button and no approval step.
+// In Stripe mode the Buddy can also have the ready balance paid to a debit card straight away ("Get paid now", an
+// instant payout).
 export function Payouts({ available, pending = 0, last4, acct, pk, onDone }: Props) {
   const [panel, setPanel] = useState<"" | "instant" | "card" | "add">("");
   // The debit card can be added any time (not only once money is ready), and the Buddy is told
@@ -59,10 +60,9 @@ export function Payouts({ available, pending = 0, last4, acct, pk, onDone }: Pro
   );
 }
 
-// Instant payout of the ready balance to the Buddy's debit card; adds the card first when there is none.
-// `replace`: only change the saved card, which needs a code sent to the Buddy (a new card receives instant payouts).
-// mode "pay": instant payout (adds the card first if there is none); "add": save the first card only; "change": replace the
-// saved card, confirmed with that code.
+// Pays the ready balance to the Buddy's debit card straight away. The mode says what to do. "pay" makes an instant
+// payout, adding the card first if there is none. "add" only saves the first card. "change" (`replace`) only replaces
+// the saved card, which needs a code sent to the Buddy, and the new card then receives instant payouts.
 function Instant({ available, acct, pk, mode, onClose, onDone }: { available: number; acct: PayoutAccount; pk: string; mode: "pay" | "add" | "change"; onClose: () => void; onDone: () => void }) {
   const replace = mode === "change";
   const cardOnly = mode !== "pay";
@@ -105,7 +105,7 @@ function Instant({ available, acct, pk, mode, onClose, onDone }: { available: nu
         await api("vendor/payouts/card", { method: "POST", body: { cardToken, ...(replace && { changeCode: code.join("") }) } });
         if (cardOnly) { toast("Card saved"); return onDone(); }
       }
-      // amount leaves the balance, Stripe takes the fee out, net reaches the card.
+      // the amount leaves the balance, Stripe takes its fee out, and the rest reaches the card
       const { data } = await api<{ payoutId: string; amount: number; fee: number; net: number; arrivesBy: string | null }>("vendor/payouts/instant", { method: "POST", body: { amount: n } });
       toast(`${money(data.net)} is on its way to your card (fee ${money(data.fee)}).`);
       onDone();

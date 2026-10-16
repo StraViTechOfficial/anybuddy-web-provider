@@ -8,8 +8,8 @@ type Ctx = { vendor: (Vendor & VendorV2) | null; onboarding: Onboarding | null; 
 const VendorCtx = createContext<Ctx>({ vendor: null, onboarding: null, reload: async () => {} });
 export const useVendor = () => useContext(VendorCtx);
 
-// Loads the signed-in Buddy once, with where they are in onboarding. v3: every Buddy lands on Home, which walks
-// them through "Get verified"; there is no separate onboarding route any more.
+// Loads the signed-in Buddy once, with where they are in onboarding. Every Buddy lands on Home, which walks them
+// through "Get verified". There is no separate onboarding route any more.
 export function VendorProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const path = usePathname();

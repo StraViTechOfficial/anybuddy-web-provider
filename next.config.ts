@@ -14,11 +14,13 @@ const nextConfig: NextConfig = {
   headers: async () => [{ source: "/:path*", headers: securityHeaders }],
   // NEXT_DIST_DIR lets a production build run beside the dev server without touching its .next folder.
   distDir: process.env.NEXT_DIST_DIR || ".next",
-  // v2: phone login only. Old email + password screens send bookmarks and links to the phone login.
+  // Buddies log in with their phone number only, so bookmarks and links to the old email and password screens go to
+  // the phone log-in page.
   redirects: async () => [
     ...["/signup", "/forgot", "/code", "/reset"].map((source) => ({ source, destination: "/login", permanent: false })),
     { source: "/account/password", destination: "/account", permanent: false },
-    // v3: no onboarding steps before Home; Home's "Get verified" shows what is next. (/onboarding/geocode stays.)
+    // There are no onboarding steps before Home any more. Home's "Get verified" section shows what comes next. This
+    // redirect covers /onboarding only, so /onboarding/geocode still works.
     { source: "/onboarding", destination: "/", permanent: false },
   ],
 };

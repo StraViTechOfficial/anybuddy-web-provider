@@ -5,7 +5,7 @@ import type { Leave } from "@/lib/types";
 import { DatePicker } from "@/components/ui/DatePicker";
 import s from "./forms.module.css";
 
-// Days off inside the hours form (saved with it). Dates are business days "YYYY-MM-DD"; past ones are dropped.
+// Days off inside the hours form, saved with it. Dates are business days as "YYYY-MM-DD", and past ones are dropped.
 
 export function TimeOff({ leaves, onChange }: { leaves: Leave[]; onChange: (l: Leave[]) => void }) {
   const [date, setDate] = useState("");

@@ -18,7 +18,7 @@ const OTHER = "other"; // the category select's "Not in the list"
 const FIRST = ["Plumbing", "Electrical"]; // these trades lead the list
 const rank = (c: Category) => (FIRST.includes(c.categoryName) ? FIRST.indexOf(c.categoryName) : FIRST.length);
 type Range = { rateMin?: number | null; rateMax?: number | null } | undefined;
-// v2: the admin's hourly range per category. The rate starts in the middle; the server refuses one outside it.
+// The admin's hourly range for each category. The rate starts in the middle, and the server refuses a rate outside it.
 const mid = (r: Range) => {
   const lo = r?.rateMin ?? null, hi = r?.rateMax ?? null;
   return lo != null && hi != null ? String(Math.round((lo + hi) / 2)) : lo != null ? String(lo) : hi != null ? String(hi) : "";
@@ -28,8 +28,8 @@ const rangeError = (rate: string, r: Range) => {
   if ((lo != null && n < lo) || (hi != null && n > hi)) return lo != null && hi != null ? `Set a rate between $${lo} and $${hi} per hour.` : lo != null ? `Set a rate of $${lo} per hour or more.` : `Set a rate of $${hi} per hour or less.`;
 };
 
-// Onboarding's services step and Account › Services. Your services first, then one Add button that opens the add panel inline.
-// Every change saves at once; onboarding's Continue needs one service.
+// Onboarding's services step and Account › Services. Your services come first, then one Add button that opens the add
+// panel inline. Every change saves at once, and onboarding's Continue needs at least one service.
 export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
   const toast = useToast();
   const [list, setList] = useState<VendorService[] | null>(null);
@@ -43,7 +43,7 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<{ text: string; needsAddress?: boolean } | null>(null);
   const [nextError, setNextError] = useState("");
-  // A service missing from the list is requested (POST vendor/services/request), reviewed by admin.
+  // A service missing from the list can be requested (POST vendor/services/request), and an admin reviews it.
   const [ask, setAsk] = useState<{ name: string; cat: string; rate: string; tried?: boolean; error?: string; busy?: boolean; existing?: string } | null>(null);
   const [asked, setAsked] = useState<ServiceRequest[]>([]);
   const addBtn = useRef<HTMLButtonElement>(null);
@@ -66,11 +66,11 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
   }, [load, loadAsked]);
   useEffect(() => {
     if (!open) return;
-    for (const c of cats) { // ponytail: one call per category (about ten); a grouped endpoint if the list grows
+    for (const c of cats) { // ponytail: one call per category (about ten). Add a grouped endpoint if the list grows.
       if (!subsBy[c._id]) api<SubCategory[]>("vendor/services/list-subcategories", { query: { categoryId: c._id } })
         .then((r) => setSubsBy((m) => ({ ...m, [c._id]: r.data }))).catch(() => {});
     }
-  }, [open, cats]); // subsBy left out on purpose: each category loads once
+  }, [open, cats]); // subsBy is left out on purpose, so each category loads only once
 
   const shown = (list ?? []).filter((x) => !gone.includes(x._id));
   const added = new Set(shown.map((x) => x.subcategory._id));
@@ -95,7 +95,8 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
     setAsk(null);
   }
 
-  // OTHER = "Not in the list": no categoryId sent, no range hint, the rate optional (an admin picks the category).
+  // OTHER means "Not in the list". No categoryId is sent, there is no range hint, and the rate is optional, because an
+  // admin picks the category.
   const askErrs = (a: NonNullable<typeof ask>) => ({
     askName: !a.name.trim() ? "Enter the service name." : undefined,
     askCat: !a.cat ? "Choose a category." : undefined,
@@ -123,7 +124,7 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
       setAsk(null);
       setAsked((a) => [data, ...a]);
     } catch (e) {
-      // 409: already in the list; the reply names it so the Buddy can pick it instead.
+      // 409 means the service is already in the list. The reply names it, so the Buddy can pick it instead.
       const d = e instanceof ApiError && e.status === 409 ? (e.data as { subCategoryId?: string; categoryId?: string } | null) : null;
       setAsk({ ...ask, tried: true, busy: false, error: errText(e), existing: d?.subCategoryId, cat: d?.categoryId || ask.cat });
     }
@@ -142,7 +143,7 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
     if (hasErrors(check())) return;
     setBusy(true);
     try {
-      // v2: the rate goes with the add (one rate per service; the old profile rate is gone).
+      // The rate is sent with the add. Each service has its own rate, and the old profile-wide rate is gone.
       await api("vendor/services/add", {
         method: "POST", body: { appliedServiceFor: add.sub, price: +add.rate, ...(add.desc.trim() && { description: add.desc.trim() }) },
       });
@@ -174,7 +175,8 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
     document.getElementById("svcSearch")?.focus();
   }
 
-  // Search-first: Add saves at once, at the category's middle rate rounded to $5 (or $50); the rate is editable in the list.
+  // Search comes first. Add saves at once, at the category's middle rate rounded to $5 (or $50). The rate can be edited
+  // in the list.
   async function quickAdd(x: SubCategory) {
     const r = cats.find((c) => c._id === x.categoryId) ?? x;
     const m = Number(mid(r));
@@ -231,7 +233,7 @@ export function ServicesEditor({ mode, onDone, onBack }: FormProps) {
         <div className={`box ${s.addPanel}`}>
           {!ask && <form method="post" className={s.addPanel} onSubmit={submit} noValidate aria-labelledby="addTitle">
             <h3 id="addTitle">All services</h3>
-            {/* As in the apps: categories as an accordion; each service adds at once with "+ Add", no rate box.
+            {/* As in the apps, categories are an accordion, and each service is added at once with "+ Add" and no rate box.
                 The rate is changed on Your services. */}
             {(errs.sub || errs.cat) && <p id="sub" className="err" role="alert" tabIndex={-1}>{errs.cat ? "Choose a service." : errs.sub}</p>}
             <ul className={s.acc}>

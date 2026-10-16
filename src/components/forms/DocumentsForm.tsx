@@ -15,16 +15,17 @@ import s from "./forms.module.css";
 const ID: ["IdProofFront" | "IdProofBack" | "selfieDoc", string, string][] = [
   ["IdProofFront", "ID front", "Add the front of your ID."],
   ["IdProofBack", "ID back", "Add the back of your ID."],
-  ["selfieDoc", "Selfie", "Take a selfie."], // live camera only, saved like the ID photos; required only before sending for verification
+  ["selfieDoc", "Selfie", "Take a selfie."], // taken with the live camera only and saved like the ID photos; required only before sending for verification
 ];
 const STATUS: Record<LicenceItem["status"], [string, string]> = {
   missing: ["", ""], pending: ["In review", "t-wait"], approved: ["Approved", "t-ok"], needs_changes: ["Needs changes", "t-bad"],
 };
 const licenceName = (l: LicenceItem) => l.licenceName || `${l.categoryName} license`;
 
-// v2 Step 3 of 3 and Account › Documents. Government ID front and back; a licence row only for each licensed
-// category the Buddy offers (admin's switch), which can be added later (those services stay hidden until approved).
-// Web has no document scanner: photo or PDF uploads; the selfie comes from the front camera only. Files go to the private "documents" folder.
+// Step 3 of 3 and Account › Documents. It asks for the government ID, front and back, and a licence row only for each
+// licensed category the Buddy offers (an admin switch decides which categories need one). Licences can be added later,
+// and those services stay hidden until approved. The website has no document scanner, so documents are photo or PDF
+// uploads, and the selfie comes from the front camera only. Files go to the private "documents" folder.
 export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   const { vendor, reload } = useVendor();
   const { slots, setSlots, pick, busy: uploading } = useUploads<string>("documents", "document");
@@ -36,10 +37,10 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   const [loaded, setLoaded] = useState(false); // inputs stay disabled until the saved values are in
   const [camera, setCamera] = useState(false);
   const [preview, setPreview] = useState<{ src: string; name: string; pdf: boolean } | null>(null);
-  // Uploads must not be lost on leaving. Not approved yet: each upload saves at once. Approved (a new ID sends the
-  // account back to review): saved on Submit only, and leaving with unsaved files asks Save / Discard.
+  // Uploads must not be lost when the Buddy leaves. Before approval, each upload saves at once. After approval, a new ID
+  // sends the account back to review, so files save only on Submit, and leaving with unsaved files asks Save or Discard.
   const approved = vendor?.verificationStatus === 1;
-  const [stored, setStored] = useState<Record<string, string>>({}); // slot key → the URL the server has from this visit
+  const [stored, setStored] = useState<Record<string, string>>({}); // maps each slot key to the URL the server has from this visit
   const [leaving, setLeaving] = useState(""); // the in-app link the Buddy clicked with unsaved files
   const router = useRouter();
   const [asPhoto, setAsPhoto] = useState<File | null>(null); // the selfie, also to be the public profile photo
@@ -67,7 +68,7 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   useEffect(() => {
     if (!dirty) return;
     const unload = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ""; };
-    const click = (e: MouseEvent) => { // capture phase: before Next's Link navigates
+    const click = (e: MouseEvent) => { // uses the capture phase, so this runs before Next's Link navigates
       const a = (e.target as Element).closest?.("a[href]") as HTMLAnchorElement | null;
       if (!a || a.target === "_blank" || a.origin !== location.origin || e.metaKey || e.ctrlKey || e.shiftKey) return;
       e.preventDefault();
@@ -79,7 +80,7 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
     return () => { removeEventListener("beforeunload", unload); document.removeEventListener("click", click, true); };
   }, [dirty]);
 
-  // Not approved yet: save the one file just uploaded (only fields with a URL go to step 3).
+  // Before approval, save the one file just uploaded. Only fields with a URL are sent to step 3.
   async function pickSave(k: string, f?: File) {
     const r = await pick(k, f);
     if (!r?.url || r.error || approved) return;
@@ -115,7 +116,7 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
         if (fresh(`lic-${l.categoryId}`)) await api("vendor/auth/licence", { method: "PUT", body: { categoryId: l.categoryId, licenceUrl: slots[`lic-${l.categoryId}`]!.url } });
       }
       setStored(Object.fromEntries(keys.flatMap((k) => (slots[k]?.url ? [[k, slots[k]!.url]] : []))));
-      if (mode === "edit" || asPhoto) await reload().catch(() => {}); // onboarding: the Submitted screen comes next, no reload
+      if (mode === "edit" || asPhoto) await reload().catch(() => {}); // in onboarding the Submitted screen comes next, with no reload
       return true;
     } catch (e) {
       setError(errText(e));
@@ -129,8 +130,9 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
     const d: Slot | undefined = slots[k];
     const missing = !d?.error && errs[`doc-${k}`];
     const err = d?.error ?? missing;
-    const view = d?.local ?? (d?.url || undefined); // fresh upload: the local copy; saved: the signed link
-    // Private files 403 unsigned, so a fresh pick shows its local copy until the page reloads the signed links.
+    const view = d?.local ?? (d?.url || undefined); // a fresh upload uses the local copy, and a saved file uses the signed link
+    // Private files return 403 without a signed link, so a fresh pick shows its local copy until the page reloads the
+    // signed links.
     // The tile's icon shows through for a PDF, or an image the browser can't draw (HEIC outside Safari).
     const pdf = /\.pdf(\?|$)/i.test(d?.url ?? "");
     return (
@@ -204,11 +206,11 @@ export function DocumentsForm({ mode, onDone, onBack }: FormProps) {
   );
 }
 
-/** The selfie as the profile photo: the same public upload and step-1 save as Profile (ProfileForm), the rest of the
- *  profile sent back as saved. Step 1 also writes the map point, so it waits until the address has one. */
+/** Uses the selfie as the profile photo, with the same public upload and step 1 save as Profile (ProfileForm). The
+ *  rest of the profile is sent back as saved. Step 1 also writes the map point, so this waits until the address has one. */
 async function saveProfilePhoto(file: File) {
   const { data: p } = await api<VendorProfile>("vendor/auth/get-profile-details", { query: { type: 1 } });
-  if (p.lat == null || p.long == null) return; // ponytail: no address point yet, photo skipped; Profile can add it
+  if (p.lat == null || p.long == null) return; // ponytail: with no address point yet, the photo is skipped. The Buddy can add it later in Profile.
   const logoUrl = await upload(file, "profile");
   await api("vendor/auth/update-register-profile", {
     method: "POST",
@@ -220,7 +222,8 @@ async function saveProfilePhoto(file: File) {
   });
 }
 
-/** Leaving Documents with files not sent yet (approved Buddy): Save sends them, Discard leaves without. Esc stays. */
+/** Shown when an approved Buddy leaves Documents with files not sent yet. Save sends them, Discard leaves without them,
+ *  and Esc stays on the page. */
 function LeaveDialog({ busy, onSave, onDiscard, onClose }: { busy: boolean; onSave: () => void; onDiscard: () => void; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => { ref.current?.showModal(); }, []);

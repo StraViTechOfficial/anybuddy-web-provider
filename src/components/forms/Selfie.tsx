@@ -4,15 +4,18 @@ import { useEffect, useRef, useState } from "react";
 import c from "@/components/Checklist.module.css";
 import s from "./forms.module.css";
 
-// The browser's face detection (Chrome on Android and macOS); missing elsewhere, then the shutter opens once the camera is live.
+// The browser's face detection (Chrome on Android and macOS). Other browsers don't have it, and then the shutter opens
+// as soon as the camera is live.
 type Detector = { detect(src: HTMLVideoElement): Promise<{ boundingBox: DOMRectReadOnly }[]> };
 type DetectorClass = new (o: { fastMode?: boolean; maxDetectedFaces?: number }) => Detector;
-// The face-shaped oval (3:4) as shares of the square the camera shows, a little above the middle (CSS .selfieRing matches).
+// The face-shaped oval (3:4), as fractions of the square the camera shows, placed a little above the middle. The CSS
+// .selfieRing matches it.
 const OVAL_W = 0.42, OVAL_H = 0.56, OVAL_UP = 0.08; // small enough that head, shoulders and a bit above are in the photo
 const SIDE = 960; // the saved photo, square, in pixels
-// The low-light warning, as in the apps. Mean luma (0-255) inside the oval; dark below DARK, light again above
-// LIGHT (hysteresis, so it doesn't flicker at the edge). Tune both here; a normal room sits well above 60.
-const DARK = 60, LIGHT = 75, PROBE = 32; // PROBE: the small canvas side the luma is read from
+// The low-light warning, as in the apps. It uses the mean luma (0-255) inside the oval. Below DARK the picture counts
+// as dark, and it counts as light again only above LIGHT, so the warning doesn't flicker at the edge. Tune both here;
+// a normal room sits well above 60.
+const DARK = 60, LIGHT = 75, PROBE = 32; // PROBE is the side length of the small canvas the luma is read from
 
 /** Mean luma (Rec. 601) inside the oval of the centred square of `src` (w x h), read from a PROBE x PROBE canvas. */
 function ovalLuma(src: CanvasImageSource, w: number, h: number, cv: HTMLCanvasElement) {
@@ -33,7 +36,8 @@ function ovalLuma(src: CanvasImageSource, w: number, h: number, cv: HTMLCanvasEl
   return n ? sum / n : 255;
 }
 
-/** One face inside the oval: the camera fills a centred square (object-fit: cover), the oval sits in it (CSS .selfieRing). */
+/** Checks for one face inside the oval. The camera fills a centred square (object-fit: cover), and the oval sits in it
+ *  (CSS .selfieRing). */
 function inOval({ x, y, width, height }: DOMRectReadOnly, v: HTMLVideoElement) {
   const side = Math.min(v.videoWidth, v.videoHeight);
   const rx = (side * OVAL_W) / 2, ry = (side * OVAL_H) / 2;
@@ -42,8 +46,8 @@ function inOval({ x, y, width, height }: DOMRectReadOnly, v: HTMLVideoElement) {
   return Math.hypot(nx, ny) < 0.35 && width < rx * 2 && width > rx * 0.6;
 }
 
-/** Live selfie: front camera in a sheet with a face oval, the shutter, then Retake / Use photo. No file upload: a
- *  camera that is off or missing gets a message to allow it or use the Any-Buddy Pro app. */
+/** The live selfie: the front camera in a sheet with a face oval and the shutter, then Retake or Use photo. There is
+ *  no file upload. If the camera is off or missing, a message asks the Buddy to allow it or use the Any-Buddy Pro app. */
 // The preview offers "Also use this as my profile photo", ticked unless the Buddy already has a profile photo.
 export function SelfieSheet({ onUse, onClose, hasPhoto }: { onUse: (f: File, asPhoto: boolean) => void; onClose: () => void; hasPhoto: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -53,7 +57,7 @@ export function SelfieSheet({ onUse, onClose, hasPhoto }: { onUse: (f: File, asP
   const [detect, setDetect] = useState(false); // the browser can find faces
   const [face, setFace] = useState(false); // one face inside the oval
   const [shot, setShot] = useState<{ file: File; url: string; dark: boolean } | null>(null);
-  const [dark, setDark] = useState(false); // live: the oval is too dark (shows a warning only; the shutter never waits)
+  const [dark, setDark] = useState(false); // live: the oval is too dark. This only shows a warning; the shutter never waits for it.
   const [attempt, setAttempt] = useState(0);
   const [asPhoto, setAsPhoto] = useState(!hasPhoto);
   useEffect(() => { ref.current?.showModal(); }, []);
@@ -84,7 +88,7 @@ export function SelfieSheet({ onUse, onClose, hasPhoto }: { onUse: (f: File, asP
         setDetect(true);
         timer = setInterval(() => {
           fd.detect(v).then((f) => !gone && setFace(f.length === 1 && inOval(f[0].boundingBox, v)))
-            .catch(() => { clearInterval(timer); if (!gone) setDetect(false); }); // detector broke: fall back to no check
+            .catch(() => { clearInterval(timer); if (!gone) setDetect(false); }); // if the detector breaks, fall back to no check
         }, 300);
       })
       .catch(() => !gone && setBlocked(true));

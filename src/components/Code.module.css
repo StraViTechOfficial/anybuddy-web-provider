@@ -1,4 +1,4 @@
-/* Code entry (every code screen): six boxes, the note or error, the "Send a new code" timer. */
+/* Code entry, used on every code screen: six boxes, the note or error, and the "Send a new code" timer. */
 .code { display: grid; gap: 10px; }
 .label { font-size: var(--fs-sm); font-weight: 600; }
 .boxes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; max-width: 360px; }

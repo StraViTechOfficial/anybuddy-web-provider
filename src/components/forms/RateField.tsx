@@ -4,12 +4,13 @@ import { money } from "@/lib/format";
 import { Req } from "./Field";
 import s from "./forms.module.css";
 
-const MIN = 15, MAX = 250; // the slider's range; the exact box takes $1 to $1,000 (server rule, see rateError)
-const whole = (n: number) => money(n).slice(0, -3); // "$85.00" to "$85"
+const MIN = 15, MAX = 250; // the slider's range; the exact box takes $1 to $1,000, the server's rule (see rateError)
+const whole = (n: number) => money(n).slice(0, -3); // turns "$85.00" into "$85"
 
 /**
- * Hourly rate: a slider for the usual range plus a small box for the exact figure. The box owns the id (so the
- * label, errors and "first wrong field" focus land on it); the slider follows it and is pinned at an end outside $15 to $250.
+ * The hourly rate: a slider for the usual range, plus a small box for the exact figure. The box owns the id, so the
+ * label, errors and "first wrong field" focus land on it. The slider follows the box and stays pinned at one end when
+ * the rate is outside $15 to $250.
  */
 export function RateField({ id, value, onChange, error, hint, optional }: { id: string; value: string; onChange: (v: string) => void; error?: string; hint?: string; optional?: boolean }) {
   const n = /^\d+$/.test(value) ? +value : NaN;

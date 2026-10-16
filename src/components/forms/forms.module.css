@@ -1,13 +1,13 @@
-/* Setup forms: two columns on laptops so each form fits one 1366x768 screen, one column below 1020px. */
+/* Setup forms use two columns on laptops, so each form fits one 1366x768 screen, and one column below 1020px. */
 .form { display: grid; gap: 16px; max-width: 1040px; min-width: 0; margin: 0 auto; padding: 0; border: 0; }
 .narrow { max-width: 640px; margin-inline: auto; }
-/* Account edit pages: back link and title share the form's centred column (narrow forms narrow it too). */
+/* On account edit pages the back link and title share the form's centred column, which is narrower for narrow forms. */
 .page { max-width: 1040px; margin-inline: auto; }
 .page:has(.narrow) { max-width: 640px; }
 .tab .form { max-width: none; }
 .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 32px; align-items: start; }
 .stack { display: grid; gap: 12px; align-content: start; }
-/* Two boxes side by side end on the same line: each column stretches, its box fills the rest (Hours). */
+/* Two boxes side by side end on the same line, because each column stretches and its box fills the rest (Hours). */
 .even { align-items: stretch; }
 .even > .stack { grid-template-rows: auto 1fr; }
 .even > .stack > .list { display: flex; flex-direction: column; }
@@ -15,10 +15,11 @@
 .label { font-size: var(--fs-sm); font-weight: 600; }
 .req { color: var(--ink2); }
 .reqNote { font-size: var(--fs-sm); color: var(--mute); }
-/* Profile: one row per line of inputs (photo, names / street, city, state, ZIP); a row's inputs always share a top line. */
+/* Profile has one row per line of inputs (photo and names, then street, city, state and ZIP). A row's inputs always
+   share a top line. */
 .nameRow { display: grid; grid-template-columns: auto 1fr 1fr; gap: 12px; align-items: start; }
 .addrRow { display: grid; grid-template-columns: 2fr 1.3fr 1.3fr 1fr; gap: 12px; align-items: start; }
-textarea.input.short { min-height: 72px; } /* beats the global textarea.input 96px */
+textarea.input.short { min-height: 72px; } /* overrides the global 96px height on textarea.input */
 
 .actions { display: grid; gap: 8px; justify-items: end; padding-top: 4px; }
 .buttons { display: inline-flex; flex-wrap: wrap; gap: 8px; }
@@ -73,7 +74,7 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 .note { padding: 10px 14px; border-radius: var(--r); font-size: var(--fs-sm); font-weight: 500; }
 .saved { display: grid; gap: 2px; padding: 12px 16px; background: var(--soft); }
 .radios { border: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: center; }
-/* Bank: three fields a row on laptops so the form fits one screen. */
+/* Bank has three fields per row on laptops, so the form fits one screen. */
 .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: start; }
 .row3 .radios { padding-top: 26px; } /* sits on the inputs' line, below where a label would be */
 .radios legend { float: left; margin-right: 12px; }
@@ -102,10 +103,10 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 .back:hover { color: var(--ink); }
 .pageSub { margin: 4px 0 20px; }
 
-/* Section heading row: title left, its action right; both columns' headings share one height. */
+/* A section heading row has the title on the left and its action on the right. Both columns' headings share one height. */
 .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
 .head h2 { margin: 0; }
-/* Add time off: date, note, button on one line; stacked on phones. */
+/* Add time off puts the date, note and button on one line, stacked on phones. */
 .addoff { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 10px 16px; }
 .addoff .err { grid-column: 1 / -1; }
 @media (max-width: 699px) {
@@ -120,7 +121,7 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 .clash small { display: block; color: var(--ink2); }
 .clashActions { display: flex; flex-wrap: wrap; gap: 8px; }
 
-/* Hourly rate: big current value, a styled range slider (24px dot inside a 44px hit area), the exact box below. */
+/* The hourly rate: a big current value, a styled range slider (a 24px dot inside a 44px tap area), and the exact box below. */
 .rate { gap: 8px; }
 .rateHead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .rateNow { font-size: var(--fs-h2); font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -182,7 +183,7 @@ label.btn:focus-within, .toggle:focus-within .sw { outline: 2px solid var(--bran
 .idCard > span:first-child { display: grid; gap: 2px; flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .idCard b { display: inline-flex; align-items: center; gap: 8px; }
 
-/* v2 Your details and Service area: the travel circle (the slider uses the rate slider's styles), address search. */
+/* Your details and Service area: the travel circle and the address search. The slider uses the rate slider's styles. */
 .map { width: 100%; height: 200px; border: 1px solid var(--line); border-radius: var(--r2); background: var(--soft); overflow: hidden; }
 .ring { fill: none; stroke: var(--line); stroke-width: 1; }
 .area { fill: color-mix(in srgb, var(--brand) 14%, transparent); stroke: var(--brand); stroke-width: 1.5; }
@@ -204,21 +205,23 @@ fieldset.stack legend { padding: 0; margin-bottom: 4px; }
 .compact b, .compact :global(.hint) { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 /* Get paid: a section heading sits close to its own hint line. */
 h2.label + p:global(.hint) { margin-top: -10px; }
-/* Live selfie: the camera (mirrored, like a mirror) in a square with the face oval; the photo in the same square. */
+/* The live selfie: the camera image (mirrored, like a mirror) in a square with the face oval, and the photo in the same square. */
 .selfieView { position: relative; width: 100%; aspect-ratio: 1; border-radius: var(--r2); overflow: hidden; background: var(--soft); object-fit: cover; }
 .selfieView video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
 /* OVAL_W/H/UP in Selfie.tsx: 42% x 56%, centre 8% above the middle. */
 .selfieRing { position: absolute; left: 29%; right: 29%; top: 14%; bottom: 30%; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 0 999px rgba(15, 26, 46, .45); }
 .selfieOk { border-color: var(--ok); }
-.selfieDark { border-color: #f5a524; } /* amber: too dark (Selfie.tsx DARK); bright enough to read on the dimmed camera */
-/* "About you": flat sections (a small caps label and space, no boxes), names side by side, locate inside the address box. */
+.selfieDark { border-color: #f5a524; } /* amber means too dark (DARK in Selfie.tsx); it is bright enough to read over the dimmed camera */
+/* "About you": flat sections (a small caps label and space, no boxes), names side by side, and the locate button inside
+   the address box. */
 .section { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin-top: 8px; }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 .locWrap { position: relative; }
 .locWrap > input { padding-right: 48px; }
 .loc { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 44px; height: 44px; border: 0; background: none; color: var(--brand); }
 .remove { margin-top: 22px; } /* on the input line, below the label */
-/* Picked address: street, then "City, ST ZIP" smaller; each line cut with an ellipsis, never under Change. */
+/* A picked address: the street, then "City, ST ZIP" in smaller text. Each line is cut with an ellipsis and never runs
+   under Change. */
 .picked > svg { flex: none; color: var(--ok); }
 .pickedText { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .pickedText > * { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
@@ -229,7 +232,7 @@ h2.label + p:global(.hint) { margin-top: -10px; }
    press only tint very lightly, never the browser's grey tap box. */
 .askLink { justify-self: start; color: var(--brand); text-underline-offset: 3px; padding: 6px 8px; margin: -2px -8px 0; border-radius: var(--r); -webkit-tap-highlight-color: transparent; }
 .askLink:hover, .askLink:active { background: color-mix(in srgb, var(--brand) 5%, transparent); }
-/* Add a service (batch 3): categories as an accordion; a picked service shows its rate under it. */
+/* Add a service: categories as an accordion, and a picked service shows its rate under it. */
 .acc, .accBody { list-style: none; padding: 0; }
 .acc { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
 .acc > li + li { border-top: 1px solid var(--line); }
@@ -246,6 +249,6 @@ h2.label + p:global(.hint) { margin-top: -10px; }
 .accItem b { color: var(--brand); font-weight: 600; }
 .accItem:disabled { color: var(--mute); }
 .accRate { display: grid; gap: 10px; padding: 10px 12px 12px 24px; }
-/* Batch 3: every section heading gets the same space above it (24px with the form gap). */
+/* Every section heading gets the same space above it (24px including the form gap). */
 h2.label { margin-top: 8px; }
 .hit { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px 8px 16px; }

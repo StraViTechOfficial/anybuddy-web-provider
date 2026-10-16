@@ -5,8 +5,8 @@ import { rememberAgreed, safeNext } from "../form";
 import { PhoneCode } from "../PhoneCode";
 import s from "../auth.module.css";
 
-// v2: one path for log in and sign-up. A known number logs in; a new number creates the Buddy.
-// v3: the 18+/Terms box is ticked before the code is sent; after the code everyone lands on Home.
+// Log in and sign-up share one path. A known number logs in, and a new number creates the Buddy account.
+// The 18+ and Terms box must be ticked before the code is sent. After the code, everyone lands on Home.
 export default function Login() {
   const next = useSearchParams().get("next");
 
@@ -15,7 +15,7 @@ export default function Login() {
       method: "POST", body: { countryCode: dial, phone, code, acceptTerms: true, signupFlow: 3 },
     });
     rememberAgreed();
-    // A full load: the logo's link prefetched "/" while signed out, and the router would replay that redirect to /login.
+    // Use a full page load. The logo's link prefetched "/" while signed out, and the router would replay that redirect to /login.
     window.location.replace(safeNext(next));
   }
 
@@ -26,7 +26,7 @@ export default function Login() {
         <h1>Log in or sign up</h1>
         <p className="sub">We'll text you a code to log in. No password needed.</p>
       </div>
-      {/* Mobile only by design. No email log-in; email is for receipts, notices and messages. */}
+      {/* Log in is by mobile number only, by design. There is no email log-in, because email is for receipts, notices and messages. */}
       <PhoneCode submit="Continue" verify={verify} consent
         send={(phone, dial) => api("vendor/auth/phone-login/send-code", { method: "POST", body: { countryCode: dial, phone } })} />
     </>

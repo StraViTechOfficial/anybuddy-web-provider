@@ -6,10 +6,10 @@ import { Actions, errText, type FormProps } from "./Field";
 import { savedMiles, Travel, useTravelRange } from "./Travel";
 import s from "./forms.module.css";
 
-// v2 Profile › Service area: how far the Buddy travels from home. Customers further away don't see them.
+// Profile › Service area: how far the Buddy travels from home. Customers further away don't see them.
 export function ServiceAreaForm({ mode, onDone }: FormProps) {
   const range = useTravelRange();
-  const [saved, setSaved] = useState<TravelMiles | null | undefined>(undefined); // null: none stored
+  const [saved, setSaved] = useState<TravelMiles | null | undefined>(undefined); // null when none is stored
   const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -25,7 +25,7 @@ export function ServiceAreaForm({ mode, onDone }: FormProps) {
   }, []);
 
   const [picked, setMiles] = useState<TravelMiles | null>(null);
-  const miles = picked ?? saved ?? range?.default ?? null; // none stored: the admin's starting value
+  const miles = picked ?? saved ?? range?.default ?? null; // when none is stored, use the admin's starting value
 
   async function submit(e: FormEvent) {
     e.preventDefault();

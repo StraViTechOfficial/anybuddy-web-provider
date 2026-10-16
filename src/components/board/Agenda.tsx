@@ -1,6 +1,6 @@
 "use client";
-// Phone: requests to answer (all of them, most urgent first), then the range controls, a 7-day strip and a vertical
-// agenda of the chosen day with the same blocks.
+// The phone view: all requests to answer (most urgent first), then the range controls, a 7-day strip, and a vertical
+// agenda of the chosen day that uses the same blocks.
 import { useState, type ReactNode } from "react";
 import { countdown, hourMark } from "@/lib/format";
 import type { Availability, JobBooking } from "@/lib/types";
@@ -11,7 +11,7 @@ import s from "./Board.module.css";
 
 const HOURS = Array.from({ length: (H1 - H0) / 60 }, (_, i) => i);
 const y = (m: number) => ((Math.min(H1, Math.max(H0, m)) - H0) / 60) * 64;
-// Closed hours and the break for one day, same shading as the laptop board.
+// Closed hours and the break for one day, with the same shading as the laptop board.
 function Shade({ avail, day }: { avail: Availability | null; day: string }) {
   const o = openHours(avail, day);
   if (!o) return null;

@@ -8,7 +8,7 @@ import { useToast } from "@/components/Toast";
 import { useVendor } from "@/components/Vendor";
 import s from "../account.module.css";
 
-// The website's "For Buddies" FAQ (same as the iOS app), headed as statements.
+// The website's "For Buddies" FAQ, the same as in the iOS app. Its headings are statements rather than questions.
 const FAQ: [string, string][] = [
   ["Signing up as a Buddy", "Create your provider profile, list your services, share license and credential details for skilled jobs, and submit your documents for verification. Once approved, your profile goes live and you can start accepting jobs."],
   ["Fees for joining", "Signing up as a Buddy is free. Any-Buddy takes a small service fee from each completed booking, and you keep the rest."],

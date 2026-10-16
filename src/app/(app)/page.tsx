@@ -1,6 +1,6 @@
 "use client";
-// Home: the live board. The job in hand and requests with timers first; money lives on Earnings.
-// Laptop shows a week, tablet 3 days, phone a 7-day strip; the range start lives in the URL (?from=YYYY-MM-DD).
+// Home is the live board. The current job and requests with timers come first, and money lives on Earnings. A laptop
+// shows a week, a tablet 3 days and a phone a 7-day strip. The start of the range lives in the URL (?from=YYYY-MM-DD).
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -25,7 +25,7 @@ const TABLET = "(min-width: 700px) and (max-width: 1020px)";
 export default function Page() {
   const { vendor, onboarding } = useVendor();
   if (!vendor || !onboarding) return null; // the app layout is loading the Buddy
-  // Until admin approval, Home is "Get verified" (v3; no board, jobs or earnings).
+  // Until an admin approves the Buddy, Home shows "Get verified" with no board, jobs or earnings.
   if (vendor.verificationStatus !== 1) return <Checklist vendor={vendor} onboarding={onboarding} />;
   return <><SetupNote onboarding={onboarding} /><Suspense><Home /></Suspense></>;
 }
@@ -59,9 +59,10 @@ function Home() {
     api<Availability>("vendor/auth/get-profile-details", { query: { type: 2 } }).then((r) => setAvail(r.data)).catch(() => {});
   }, []);
 
-  // Fewest calls for the visible range: requests always (the phone lists them all); upcoming jobs when the range reaches
-  // today or later; today's finished jobs when today shows; one list-day-wise per past day, once (history doesn't change).
-  // ponytail: first 100 upcoming and newest 20 finished; page through if a Buddy ever holds more.
+  // Makes as few calls as the visible range needs. Requests always load, because the phone lists them all. Upcoming
+  // jobs load when the range reaches today or later, and today's finished jobs load when today is shown. Each past day
+  // needs one list-day-wise call, made only once because history doesn't change.
+  // ponytail: this loads the first 100 upcoming and the newest 20 finished jobs. Add paging if a Buddy ever has more.
   const load = useCallback(async () => {
     const ds = range.split(","), t = ymd(new Date());
     const newPast = ds.filter((d) => d < t && !pastRef.current[d]);
@@ -91,7 +92,8 @@ function Home() {
 
   const go = useCallback((to: string | 0 | 1 | -1) => {
     const key = to === 0 ? today : typeof to === "number" ? addDays(from, to * len) : to;
-    // Native pushState: Next syncs useSearchParams with it, with no server round trip, so fast clicks stack up.
+    // Uses the browser's own pushState. Next keeps useSearchParams in sync with it without a server round trip, so fast
+    // clicks can stack up.
     window.history.pushState(null, "", key === today ? "/" : `/?from=${key}`);
   }, [today, from, len]);
 
@@ -104,7 +106,7 @@ function Home() {
   const shown = (id?: string) => !!id && (items.some((x) => x.b._id === id) || requests.some((r) => r._id === id));
   const current = shown(sel) ? sel : pickDefault(items, nowMin, todayIdx);
 
-  // The focused booking's detail carries the customer's phone; the list item shows until it arrives.
+  // The focused booking's detail carries the customer's phone. The list item is shown until the detail arrives.
   useEffect(() => {
     if (!current) return;
     api<JobBooking>("vendor/bookings/detail", { query: { bookingId: current } }).then((r) => setDetail(r.data)).catch(() => setDetail(null));
@@ -112,7 +114,7 @@ function Home() {
   const listed = all.find((b) => b._id === current);
   const focused = detail && current && detail._id === current ? { ...detail, ...listed, user_details: detail.user_details } : listed;
 
-  // Select a booking; one off the board (a request, the job in progress) brings its days into view.
+  // Selects a booking. If it is off the board (a request or the job in progress), its days are brought into view.
   const pick = (id: string) => {
     setSel(id);
     const b = all.find((x) => x._id === id), key = b && ymd(b.scheduledDate);
@@ -123,7 +125,8 @@ function Home() {
     }
   };
 
-  // Keys (laptop): arrows move between blocks, A accepts, D opens decline, [ ] or Page Up/Down change the range.
+  // Keyboard shortcuts on a laptop: the arrow keys move between blocks, A accepts, D opens decline, and [ ] or Page Up
+  // and Page Down change the range.
   const order = items.map((x) => x.b._id).join();
   useEffect(() => {
     const ids = order ? order.split(",") : [];

@@ -1,4 +1,4 @@
-/* Earned per bar. Grid lines and axis text stay quiet; today's bar carries the brand colour. */
+/* Each bar shows what was earned. Grid lines and axis text stay quiet, and today's bar carries the brand colour. */
 .chart { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: 200px auto; column-gap: 10px; margin-top: 8px; padding-top: 34px; animation: fade .2s ease-out; }
 @keyframes fade { from { opacity: 0; } }
 
@@ -10,7 +10,7 @@
 .grid { position: absolute; left: 0; right: 0; height: 1px; background: var(--line); }
 .grid:first-child { background: color-mix(in srgb, var(--mute) 60%, var(--canvas)); } /* the $0 baseline */
 .cols { position: absolute; inset: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-.col { position: relative; display: flex; align-items: flex-end; justify-content: center; height: 100%; padding: 0; border: 0; border-radius: var(--r); background: none; } /* the whole column is the target */
+.col { position: relative; display: flex; align-items: flex-end; justify-content: center; height: 100%; padding: 0; border: 0; border-radius: var(--r); background: none; } /* the whole column responds to hover and taps, not just the bar */
 .col:focus-visible { outline-offset: 0; }
 .bar { position: relative; width: min(40px, 62%); border-radius: 4px 4px 0 0; background: color-mix(in srgb, var(--brand) 50%, var(--canvas)); transition: background .15s; }
 .col:hover .bar, .col[aria-pressed="true"] .bar { background: color-mix(in srgb, var(--brand) 72%, var(--canvas)); }

@@ -6,8 +6,9 @@ import s from "./chart.module.css";
 
 const axis = (n: number) => money(n).replace(/\.00$/, ""); // "$250", "$2.50"
 
-// Earned per bar on a $0-based axis. Today's bar is in the brand colour, the rest quieter.
-// Hover, tap, focus or arrow keys show a bar's amount; the latest amount is written above its bar; a hidden table reads the same figures.
+// Each bar shows what was earned, on an axis that starts at $0. Today's bar is in the brand colour and the rest are quieter.
+// Hovering, tapping, focusing or using the arrow keys shows a bar's amount. The latest amount is written above its bar,
+// and a hidden table gives screen readers the same figures.
 export function Chart({ bars, title }: { bars: Bar[]; title: string }) {
   const [sel, setSel] = useState<number | null>(null);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -18,7 +19,7 @@ export function Chart({ bars, title }: { bars: Bar[]; title: string }) {
   const top = t[t.length - 1];
   const pct = (n: number) => `${(n / top) * 100}%`;
   const focusable = sel ?? latest;
-  const days = bars[0].from === bars[0].to; // the week view: weekday initials on phones
+  const days = bars[0].from === bars[0].to; // in the week view, phones show weekday initials
   const thin = bars.length > 7; // phones keep every other month label, counting back from the latest
   const move = (e: KeyboardEvent) => {
     const i = ({ ArrowRight: focusable + 1, ArrowLeft: focusable - 1, Home: 0, End: bars.length - 1 } as Record<string, number>)[e.key];

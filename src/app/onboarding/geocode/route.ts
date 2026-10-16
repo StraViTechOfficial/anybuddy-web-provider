@@ -1,15 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-// Location (the address the Buddy works from, as in the register API) → map point for update-register-profile step 1
-// (services need it). The browser can't call the US Census geocoder itself (no CORS), so this forwards only
-// street/city/state/ZIP. Signed-in only (middleware).
-// Uses the free keyless US Census geocoder (US addresses, no autocomplete); swap for Google Geocoding to use one
-// geocoder across apps.
+// Turns the address the Buddy works from (the Location in the register API) into a map point for
+// update-register-profile step 1, which services need. The browser can't call the US Census geocoder itself because it
+// doesn't allow CORS, so this route forwards only the street, city, state and ZIP. Only signed-in Buddies can call it
+// (see middleware). It uses the free US Census geocoder, which needs no key but covers only US addresses and has no
+// autocomplete. Swap it for Google Geocoding to use one geocoder across the apps.
 //
 // Census matching is fuzzy: "Bostom 02458" can come back as a different street in Boston 02215. A match counts only
-// when its ZIP equals what the Buddy typed (postal city names vary: Newton or Chestnut Hill), or its city matches and
-// the ZIP shares the first 3 digits (Census ZIPs drift by a neighbour: 02458 vs 02459; another area's ZIP is caught).
-// On a miss we ask again without one field, so the reply names the field that is wrong ({ field, message }).
+// when its ZIP equals the one the Buddy typed (postal city names vary, for example Newton or Chestnut Hill), or when
+// its city matches and the ZIP shares the first 3 digits. That allows for Census ZIPs that drift to a neighbour (02458
+// vs 02459) while still catching a ZIP from another area. On a miss we ask again without one field, so the reply can
+// name the field that is wrong ({ field, message }).
 const CENSUS = "https://geocoding.geo.census.gov/geocoder/locations/address";
 
 type Match = { x: number; y: number; city: string; zip: string };

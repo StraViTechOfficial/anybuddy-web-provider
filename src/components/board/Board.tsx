@@ -1,5 +1,5 @@
 "use client";
-// Laptop (a week) and tablet (3 days): the visible days as rows on one 07:00 to 19:00 grid.
+// The laptop board (a week) and tablet board (3 days) show the visible days as rows on one 07:00 to 19:00 grid.
 import { useEffect, useState, type CSSProperties } from "react";
 import { countdown, elapsed, hourMark } from "@/lib/format";
 import type { Availability } from "@/lib/types";
@@ -11,7 +11,7 @@ const SPAN = H1 - H0;
 const pct = (m: number) => `${((Math.min(H1, Math.max(H0, m)) - H0) / SPAN) * 100}%`;
 const TICKS = Array.from({ length: SPAN / 60 + 1 }, (_, i) => i);
 
-/** One block. `vertical` = the phone agenda (64px per hour). */
+/** One block. `vertical` is for the phone agenda (64px per hour). */
 type Peek = (x: Item | null, el?: HTMLElement) => void;
 const KIND = { req: "Request", progress: "In progress", onway: "On the way", confirmed: "Confirmed", done: "Done", cancelled: "Canceled" } as const;
 
@@ -33,7 +33,7 @@ export function Blk({ x, sel, onSel, now, vertical, past, onPeek }: { x: Item; s
       style={pos}
       data-id={x.b._id}
       aria-pressed={sel}
-      aria-label={`${KIND[x.kind]}, ${name}, ${hm(x.s)}`} // no live timer: it would re-announce every second
+      aria-label={`${KIND[x.kind]}, ${name}, ${hm(x.s)}`} // no live timer, because screen readers would announce it every second
       onClick={onSel}
       onMouseEnter={(e) => onPeek?.(x, e.currentTarget)} onMouseLeave={() => onPeek?.(null)}
       onFocus={(e) => onPeek?.(x, e.currentTarget)} onBlur={() => onPeek?.(null)}

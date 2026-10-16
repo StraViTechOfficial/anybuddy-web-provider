@@ -6,10 +6,11 @@ import { ArrowLeft } from "@phosphor-icons/react";
 import { api } from "@/lib/api";
 import s from "../account.module.css";
 
-const DOCS = { terms: ["Terms of use", 2], privacy: ["Privacy policy", 3] } as const; // user/cms/list type: 2 terms, 3 privacy
+const DOCS = { terms: ["Terms of use", 2], privacy: ["Privacy policy", 3] } as const; // the type for user/cms/list: 2 is the Terms, 3 is the Privacy Policy
 type Doc = keyof typeof DOCS;
 
-/** CMS pages are admin-written HTML: keep the text and structure, drop anything that could run or load. */
+/** CMS pages are HTML written by an admin. This keeps the text and structure and drops anything that could run code
+ *  or load something. */
 function clean(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html");
   doc.querySelectorAll("script, style, iframe, object, embed, form, link, meta, img, svg").forEach((n) => n.remove());
@@ -18,10 +19,10 @@ function clean(html: string): string {
       if (a.name.startsWith("on") || a.name === "style" || a.name === "class") n.removeAttribute(a.name);
       else if (a.name === "href" && !/^(https?:|mailto:|#)/i.test(a.value.trim())) n.removeAttribute(a.name);
     }
-    // In-page contents links (#section) stay in the tab; outside links open a new one.
+    // Links to a section of this page (#section) stay in the tab. Links to other sites open a new tab.
     if (n.tagName === "A" && !n.getAttribute("href")?.startsWith("#")) { n.setAttribute("target", "_blank"); n.setAttribute("rel", "noopener noreferrer"); }
   });
-  // The page already has its h1; the document's own headings drop one level.
+  // The page already has its h1, so the document's own headings move down one level.
   doc.querySelectorAll("h1").forEach((h) => { const h2 = doc.createElement("h2"); h2.innerHTML = h.innerHTML; h.replaceWith(h2); });
   return doc.body.innerHTML;
 }

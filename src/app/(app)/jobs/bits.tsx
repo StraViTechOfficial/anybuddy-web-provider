@@ -27,7 +27,7 @@ export const hours = (j: Job) => {
   const n = Number(j.timeInterval) || 1;
   return `${n} hr${n === 1 ? "" : "s"}`;
 };
-/** The town part of "12 Main St, Brooklyn, NY 11201" (the street stays in the detail). */
+/** The town part of an address such as "12 Main St, Brooklyn, NY 11201". The street shows only in the job detail. */
 export const area = (j: Job) => {
   const parts = (j.address || "").split(",").map((p) => p.trim()).filter(Boolean);
   return parts[1] || parts[0] || "";
@@ -59,6 +59,6 @@ export function group(scheduled: string, now: number) {
   const diff = dayNo(dayKey(scheduled)) - dayNo(today);
   if (diff <= 0) return "Today"; // a confirmed job from an earlier day is still open work
   if (diff === 1) return "Tomorrow";
-  const weekday = new Date(dayNo(today) * 864e5).getUTCDay() || 7; // Mon 1 .. Sun 7
+  const weekday = new Date(dayNo(today) * 864e5).getUTCDay() || 7; // Monday is 1 and Sunday is 7
   return diff <= 7 - weekday ? "This week" : "Later";
 }

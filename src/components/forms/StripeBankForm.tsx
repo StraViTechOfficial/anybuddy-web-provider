@@ -18,7 +18,7 @@ type State = { name: string; isoCode: string };
 const EMPTY = {
   first: "", last: "", dob: "", ssn: "", phone: "", line1: "", line2: "", city: "", state: "", zip: "",
   holder: "", routing: "", account: "", confirm: "",
-  // Paid through a business: the business, and the Buddy's email and title as its representative.
+  // For a Buddy paid through a business: the business, plus the Buddy's email and title as its representative.
   bname: "", ein: "", structure: "", bphone: "", bline1: "", bline2: "", bcity: "", bstate: "", bzip: "", email: "", title: "",
 };
 type Kind = "individual" | "company";
@@ -29,7 +29,7 @@ const STRUCTURES = [
   { value: "private_corporation", label: "Corporation" },
 ];
 const KINDS: [Kind, string][] = [["individual", "As yourself, with your SSN or ITIN"], ["company", "As a business, with its EIN"]];
-// Business (EIN) payouts are built but not offered yet; shown as coming soon. Set to true to open them.
+// Business (EIN) payouts are built but not offered yet, so they show as coming soon. Set this to true to open them.
 const BUSINESS_OPEN = false;
 const einText = (d: string) => (d.length > 2 ? `${d.slice(0, 2)}-${d.slice(2)}` : d);
 // Same words as the iOS app (Payouts.statusRows). Pending and verified have their own boxes below.
@@ -37,15 +37,16 @@ const STATUS: Record<"needs_info" | "disabled", [string, string, string]> = {
   needs_info: ["Needs info", "t-bad", NEEDS_LEAD],
   disabled: ["Disabled", "t-bad", "Payouts are paused on this account. Contact support to turn them back on."],
 };
-// After a save Stripe checks in the background; GET vendor/payouts/account re-checks with Stripe on each call.
+// After a save, Stripe checks the details in the background. GET vendor/payouts/account asks Stripe again on each call.
 const POLL_MS = 3000, POLL_FOR_MS = 60000;
 const waiting = (st?: PayoutAccount["status"]) => st === "pending" || st === "not_started";
 
-// Account › Bank and onboarding's bank step in Stripe mode. Bank numbers go straight from this page to
-// Stripe as a token; our server gets the token, the identity US law asks for, and the Buddy's consent. The saved bank
-// shows only as its last 4; changing it needs a code sent to the Buddy (it used to be the password).
-// Typed bank details only, no Plaid. v2 "Get paid": name, phone and address from sign-up in one card,
-// "Confirm it's you" (date of birth, SSN last 4), "Where to send your money", and the Stripe line above Finish (no tick box).
+// Account › Bank and onboarding's bank step in Stripe mode. Bank numbers go straight from this page to Stripe as a
+// token. Our server gets only the token, the identity details US law asks for, and the Buddy's consent. The saved bank
+// shows only as its last 4, and changing it needs a code sent to the Buddy (it used to need the password).
+// Bank details are typed in, with no Plaid. "Get paid" shows the name, phone and address from sign-up in one card,
+// then "Confirm it's you" (date of birth and SSN last 4), "Where to send your money", and the Stripe line above Finish,
+// with no tick box.
 export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: string }) {
   const [v, setV] = useState(EMPTY);
   const [acct, setAcct] = useState<PayoutAccount | null>(null);
@@ -56,7 +57,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   const [kind, setKind] = useState<Kind>("individual");
   const [switchNote, setSwitchNote] = useState(false);
   const [einFocus, setEinFocus] = useState(false);
-  const [poll, setPoll] = useState(0); // bumped to start a 60 s round of checks
+  const [poll, setPoll] = useState(0); // increased to start a 60-second round of checks
   const [slow, setSlow] = useState(false); // the round ended with Stripe still checking
   const [code, setCode] = useState(EMPTY_CODE); // confirms a change of the saved bank
   const toast = useToast();
@@ -82,8 +83,9 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     api<State[]>("list-location", { query: { country: "United States" } })
       .then((r) => setStates(r.data.filter((x) => /^[A-Z]{2}$/.test(x.isoCode))))
       .catch(() => {});
-    // Prefill (Stripe never returns the DOB or SSN). Name and home address: the profile first, as "Change" edits it (v3);
-    // a business keeps its representative as Stripe has it. Phone and the rest: Stripe first, else the profile.
+    // Prefills the form. Stripe never returns the date of birth or SSN. The name and home address come from the profile
+    // first, because "Change" edits the profile, while a business keeps its representative as Stripe has it. The phone and
+    // everything else come from Stripe first, or else from the profile.
     Promise.all([payoutAccount(), api<VendorProfile>("vendor/auth/get-profile-details", { query: { type: 1 } })])
       .then(([a, { data: p }]) => {
         setAcct(a);
@@ -104,17 +106,18 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
       })
       .catch((e) => setError(errText(e)));
   }, []);
-  useEffect(() => { // the profile may hold the state's name, the select holds its code
+  useEffect(() => { // the profile may hold the state's name, but the select uses its code
     const hit = states.find((x) => x.name.toLowerCase() === v.state.toLowerCase());
     if (hit) setV((o) => ({ ...o, state: hit.isoCode }));
   }, [states, v.state]);
 
   const set = (k: keyof typeof EMPTY) => (e: { target: { value: string } }) => setV((o) => ({ ...o, [k]: e.target.value }));
   const hasBank = !!acct?.bank;
-  // Bank boxes are checked when the Buddy types in them, or when no bank is on file (with one on file, empty boxes keep it).
+  // The bank boxes are checked when the Buddy types in them, or when no bank is on file. With a bank on file, empty
+  // boxes keep it.
   const newBank = !!(v.routing || v.account || v.confirm) || !hasBank;
   const dob = parseDob(v.dob);
-  // Already with Stripe: optional, sent only when typed again (server rule).
+  // optional when Stripe already has it, and sent only when typed again (a server rule)
   const dobOnFile = !!acct?.identity?.dobProvided, ssnOnFile = !!acct?.identity?.ssnLast4Provided;
   const biz = kind === "company", einOnFile = !!acct?.business?.einProvided;
   const ein = v.ein.replace(/\D/g, "");
@@ -152,7 +155,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     confirm: newBank && /^\d{4,17}$/.test(v.account) && v.confirm !== v.account ? "The account numbers don't match." : undefined,
     changeCode: hasBank && newBank && !/^\d{6}$/.test(code.join("")) ? CODE_MISSING : undefined,
   });
-  // Name, phone and address from sign-up sit in one card while they are complete; any gap opens the fields.
+  // The name, phone and address from sign-up sit in one card while they are complete. Any gap opens the fields.
   const idKeys = ["first", "last", "phone", "line1", "city", "state", "zip"];
   const idFields = biz || idKeys.some((k) => check()[k]);
   const errs: Errors = tried ? check() : {};
@@ -194,9 +197,9 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
       setV((o) => ({ ...o, ssn: "", ein: "", routing: "", account: "", confirm: "" }));
       setCode(EMPTY_CODE);
       setTried(false);
-      // Onboarding moves on once Stripe has what it needs (server step 4 → 5); needs info / disabled stay here.
+      // Onboarding moves on once Stripe has what it needs (server step 4 to 5). The needs info and disabled states stay here.
       if (mode === "onboarding" && (data.status === "verified" || data.status === "pending")) return onDone();
-      // Account › Bank: the status box above the form tells how it went, so it scrolls into view.
+      // On Account › Bank, the status box above the form says how it went, so it scrolls into view.
       if (data.status === "verified") toast("Payout details saved");
       else if (waiting(data.status)) setPoll((n) => n + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -208,7 +211,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
     }
   }
 
-  // The ask card sends one thing to Stripe; onboarding moves on once Stripe is checking it (same rule as submit).
+  // The request card sends one thing to Stripe. Onboarding moves on once Stripe is checking it, the same rule as submit.
   const asked = (a: PayoutAccount) => {
     setAcct(a);
     if (mode === "onboarding" && (a.status === "verified" || a.status === "pending")) onDone();
@@ -311,7 +314,7 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
         : "Needed to verify you for payouts."}</p>
       {!idFields && (
         <>
-          {/* Compact: name, then city and state (no phone, no street). "Change" edits them where they live: Your name and address. */}
+          {/* A compact view: the name, then city and state, with no phone or street. "Change" edits them where they live, in Your name and address. */}
           <div className={`box ${s.saved} ${s.idCard} ${s.compact}`}>
             <span><b>{v.first} {v.last}</b><span className="hint">{v.city}, {v.state}</span></span>
             <Link className="btn" href="/account/bank/details">Change<span className="sr"> your name and address</span></Link>
@@ -378,7 +381,8 @@ export function StripeBankForm({ mode, onDone, onBack, pk }: FormProps & { pk: s
   );
 }
 
-/** What Stripe still needs: the ask card below, the words the form answers, then what goes through support (same as iOS). */
+/** What Stripe still needs: the request card below, the items the form answers, then what goes through support, the
+ *  same as iOS. */
 function Needs({ reqs }: { reqs: PayoutAccount["requirements"] }) {
   const { inForm, support } = needs(reqs);
   return (

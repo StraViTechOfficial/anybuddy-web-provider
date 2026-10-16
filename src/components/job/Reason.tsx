@@ -4,7 +4,7 @@ import { api, ApiError } from "@/lib/api";
 import { Select } from "@/components/ui/Select";
 import s from "./JobActions.module.css";
 
-// Reason picker for declining a request or cancelling a job: the backend's provider reasons plus a note.
+// The reason picker for declining a request or cancelling a job: the backend's reasons for Buddies, plus a note.
 export function Reason({ intro, confirm, onSubmit, onClose }: {
   intro?: React.ReactNode;
   confirm: string;

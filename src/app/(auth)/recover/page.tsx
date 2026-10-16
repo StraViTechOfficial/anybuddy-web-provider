@@ -8,8 +8,9 @@ import { emailError, rememberAgreed, say } from "../form";
 import { PhoneCode } from "../PhoneCode";
 import s from "../auth.module.css";
 
-// v2 "Log in with email" (existing Buddies): the account email gets a code (same reply for an unknown email), the code logs in,
-// then the Buddy adds the number they use now (phone/send-code, phone/verify, update-phone). Keeping the old one is allowed.
+// "Log in with email", for existing Buddies. We send a code to the account email (an unknown email gets the same
+// reply), and the code logs them in. Then the Buddy adds the number they use now (phone/send-code, phone/verify,
+// update-phone). They may also keep the old number.
 export default function Recover() {
   const toast = useToast();
   const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ export default function Recover() {
   const [busy, setBusy] = useState(false);
   const [fail, setFail] = useState("");
   const [sent, setSent] = useState<Sent | null>(null);
-  const [inside, setInside] = useState(false); // logged in: the phone step shows
+  const [inside, setInside] = useState(false); // once logged in, the phone step shows
   const bad = tried ? emailError(email) : undefined;
   const send = () => sendCode(() => api("vendor/auth/email-login/send-code", { method: "POST", body: { email: email.trim() } }));
 
@@ -39,7 +40,7 @@ export default function Recover() {
     rememberAgreed();
     setInside(true);
   }
-  const done = () => window.location.replace("/"); // v3: always Home. A full load (see login: the prefetched "/" redirect).
+  const done = () => window.location.replace("/"); // Always go to Home, with a full page load (see the note in login about the prefetched "/" redirect).
   async function savePhone(phone: string, code: string) {
     const { data } = await api<{ phoneToken: string }>("vendor/auth/phone/verify", { method: "POST", body: { countryCode: "+1", phone, code } });
     const r = await api("vendor/auth/update-phone", { method: "PUT", body: { phoneToken: data.phoneToken } });

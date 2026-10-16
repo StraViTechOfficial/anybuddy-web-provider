@@ -28,7 +28,7 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // One call, then refresh; `next` is the panel to show after it (null closes panels).
+  // Makes one call, then refreshes. `next` is the panel to show afterwards (null closes the panels).
   const run = async (fn: () => Promise<unknown>, done?: string, next: Mode = null) => {
     setBusy(true);
     setErr("");
@@ -39,7 +39,7 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
       if (!next) onChange();
     } catch (x) {
       setErr(oops(x));
-      onChange(); // e.g. "cancelled, but refund failed": the booking still changed
+      onChange(); // for example "cancelled, but refund failed", where the booking still changed
     }
     setBusy(false);
   };
@@ -144,8 +144,8 @@ export function JobActions({ booking, onChange }: { booking: Booking; onChange: 
   const sendCode = () => run(() => api("vendor/bookings/send-code", { method: "PUT", body: { bookingId: b._id } }), undefined, "code");
   const code = <CodeStep bookingId={b._id} finish={!!b.checkInAt} onClose={() => to(null)} onDone={() => { to(null); onChange(); }} />;
 
-  // Mid-job order: live status, time worked (a thin bar, not the centre of the screen), finish, the
-// customer's note, then call / help. No directions: already there.
+  // The order during a job: live status, time worked (a thin bar, not the centre of the screen), finish, the
+  // customer's note, then call and help. There are no directions, because the Buddy is already there.
   if (b.checkInAt) {
     const since = now.getTime() - Date.parse(b.checkInAt);
     const started = minuteOf(new Date(b.checkInAt));

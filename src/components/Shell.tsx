@@ -16,18 +16,18 @@ const TABS: [string, string, Icon][] = [
   ["/account", "Account", UserCircle],
 ];
 
-// Phone: bottom tab bar. 700px and up: one top bar. Badges refresh every minute.
+// Phones get a bottom tab bar, and screens 700px and wider get one top bar. Badges refresh every minute.
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const { vendor } = useVendor();
   const [requests, setRequests] = useState(0);
   const [unread, setUnread] = useState(0);
-  const approved = vendor?.verificationStatus === 1; // before approval only Home (review), Hours and Account
+  const approved = vendor?.verificationStatus === 1; // before approval, only Home (which shows the review), Hours and Account
   useEffect(() => {
     if (!approved) return;
     const load = () => {
       api("vendor/bookings/list", { query: { status: 1, page: 1, limit: 1 } }).then((r) => setRequests(r.count ?? 0)).catch(() => {});
-      // Opening Notifications marks everything read (backend), so the dot clears there.
+      // Opening Notifications marks everything as read on the server, so the dot clears there.
       if (path === "/notifications") setUnread(0);
       else api("vendor/notification/list-unread", { method: "PUT" }).then((r) => setUnread(r.count ?? 0)).catch(() => {});
     };
@@ -54,7 +54,7 @@ export function Shell({ children }: { children: ReactNode }) {
           {unread > 0 && <b />}
         </Link>}
       </header>
-      {/* v3: the review banner lives on Home ("Get verified"); other screens only say when changes are needed. */}
+      {/* The review banner lives on Home ("Get verified"). Other screens only show a notice when changes are needed. */}
       {vendor?.verificationStatus === 2 && path !== "/" && (
         <p className={`${s.banner} ${s.bad}`} role="status">
           Your application needs changes. <Link href="/account/help">Contact support</Link> to continue.
