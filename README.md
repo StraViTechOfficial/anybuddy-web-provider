@@ -48,6 +48,9 @@ Environment variables (put them in `.env.local`; names only, never commit values
 
 ## Security notes
 
+- `src/middleware.ts` sends a Content Security Policy with every page: scripts only from this site, Stripe.js, Google
+  Maps, or with the per-request nonce; photos, documents and uploads only from the files bucket; Stripe's frames; no
+  plugins. Each allowed host is explained in the code.
 - `next.config.ts` sends security headers on every page: `Content-Security-Policy: frame-ancestors 'none'`,
   `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`;
   the `X-Powered-By` header is off.
